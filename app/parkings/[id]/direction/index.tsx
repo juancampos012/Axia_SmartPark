@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const index = () => {
+const direction = () => {
   return (
     <View>
-      <Text>Inicio</Text>
+      <Text>Direction</Text>
     </View>
   )
 }
 
-export default index
+export default direction

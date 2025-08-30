@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const index = () => {
+const reserve = () => {
   return (
     <View>
-      <Text>Inicio</Text>
+      <Text>Reserve</Text>
     </View>
   )
 }
 
-export default index
+export default reserve
