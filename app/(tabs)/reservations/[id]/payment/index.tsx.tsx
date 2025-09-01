@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const reserve = () => {
+const payment = () => {
   return (
     <View>
-      <Text>Reserve</Text>
+      <Text>Pago de Reserva</Text>
     </View>
   )
 }
 
-export default reserve
+export default payment

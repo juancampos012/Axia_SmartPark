@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const register = () => {
+const map = () => {
   return (
     <View>
-      <Text>Registro</Text>
+      <Text>Mapa de la Reserva</Text>
     </View>
   )
 }
 
-export default register
+export default map

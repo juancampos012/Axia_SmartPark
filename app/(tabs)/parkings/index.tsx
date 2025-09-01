@@ -3,7 +3,7 @@ import { View, Text } from 'react-native'
 const parkings = () => {
   return (
     <View>
-      <Text>Parkings</Text>
+      <Text>Estacionamientos</Text>
     </View>
   )
 }

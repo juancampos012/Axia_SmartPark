@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const register = () => {
+const extend = () => {
   return (
     <View>
-      <Text>Registro</Text>
+      <Text>Extender Reserva</Text>
     </View>
   )
 }
 
-export default register
+export default extend

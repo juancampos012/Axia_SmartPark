@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const direction = () => {
+const profile = () => {
   return (
     <View>
-      <Text>Direction</Text>
+      <Text>Perfil</Text>
     </View>
   )
 }
 
-export default direction
+export default profile

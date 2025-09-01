@@ -1,11 +1,11 @@
 import { View, Text } from 'react-native'
 
-const register = () => {
+const home = () => {
   return (
     <View>
-      <Text>Registro</Text>
+      <Text>Inicio</Text>
     </View>
   )
 }
 
-export default register
+export default home
