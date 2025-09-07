@@ -1,102 +1,83 @@
 import React from 'react';
-import { TouchableOpacity, Text, TouchableOpacityProps } from 'react-native';
+import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
-interface ButtonProps extends TouchableOpacityProps {
+interface ButtonProps {
   title: string;
-  variant?: 'primary' | 'secondary' | 'success' | 'danger' | 'outline';
-  size?: 'sm' | 'md' | 'lg';
+  onPress: () => void;
+  variant?: 'primary' | 'secondary' | 'outline';
+  size?: 'small' | 'medium' | 'large';
+  disabled?: boolean;
   loading?: boolean;
-  containerClassName?: string;
-  textClassName?: string;
+  className?: string;
 }
 
 const Button: React.FC<ButtonProps> = ({
   title,
+  onPress,
   variant = 'primary',
-  size = 'md',
+  size = 'medium',
+  disabled = false,
   loading = false,
-  disabled,
-  containerClassName = "",
-  textClassName = "",
-  className = "",
-  ...props
+  className = ''
 }) => {
-  const getVariantClasses = () => {
-    switch (variant) {
-      case 'primary':
-        return 'bg-blue-500 active:bg-blue-600';
-      case 'secondary':
-        return 'bg-gray-500 active:bg-gray-600';
-      case 'success':
-        return 'bg-green-500 active:bg-green-600';
-      case 'danger':
-        return 'bg-red-500 active:bg-red-600';
-      case 'outline':
-        return 'bg-transparent border-2 border-blue-500 active:bg-blue-50';
-      default:
-        return 'bg-blue-500 active:bg-blue-600';
-    }
-  };
-
-  const getSizeClasses = () => {
+  const getSizeStyles = () => {
     switch (size) {
-      case 'sm':
-        return 'py-2 px-4';
-      case 'md':
-        return 'py-3 px-6';
-      case 'lg':
-        return 'py-4 px-8';
+      case 'small':
+        return 'h-10';
+      case 'large':
+        return 'h-14';
       default:
-        return 'py-3 px-6';
+        return 'h-12';
     }
   };
 
-  const getTextVariantClasses = () => {
-    switch (variant) {
-      case 'outline':
-        return 'text-blue-500';
-      default:
-        return 'text-white';
-    }
-  };
+  const content = (
+    <View className="flex-row items-center justify-center px-6">
+      {loading ? (
+        <ActivityIndicator color="#fff" size="small" />
+      ) : (
+        <Text className={`font-semibold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
+          {title}
+        </Text>
+      )}
+    </View>
+  );
 
-  const getTextSizeClasses = () => {
-    switch (size) {
-      case 'sm':
-        return 'text-sm';
-      case 'md':
-        return 'text-base';
-      case 'lg':
-        return 'text-lg';
-      default:
-        return 'text-base';
-    }
-  };
+  const isDisabled = disabled || loading;
+
+  if (variant === 'primary') {
+    return (
+      <TouchableOpacity
+        onPress={onPress}
+        disabled={isDisabled}
+        className={`w-full rounded-xl overflow-hidden border-2 border-transparent ${getSizeStyles()} ${isDisabled ? 'opacity-50' : ''} ${className}`}
+        style={{ borderRadius: 16 }}
+        activeOpacity={0.8}
+      >
+        <LinearGradient
+          colors={["#780BB7", "#093774"]} // axia-purple y axia-blue
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', borderRadius: 16 }}
+        >
+          {content}
+        </LinearGradient>
+      </TouchableOpacity>
+    );
+  }
+
+  const baseStyles = variant === 'secondary' ? 'bg-axia-darkGray' : 'border-2 border-white/30 bg-transparent';
 
   return (
     <TouchableOpacity
-      className={`
-        rounded-lg items-center justify-center
-        ${getVariantClasses()}
-        ${getSizeClasses()}
-        ${(disabled || loading) ? 'opacity-50' : ''}
-        ${containerClassName}
-        ${className}
-      `}
-      disabled={disabled || loading}
+      onPress={onPress}
+      disabled={isDisabled}
+      className={`w-full rounded-xl items-center justify-center ${getSizeStyles()} ${baseStyles} ${isDisabled ? 'opacity-50' : ''} ${className}`}
+      style={{ borderRadius: 16 }}
       activeOpacity={0.8}
-      {...props}
     >
-      <Text
-        className={`
-          font-semibold
-          ${getTextVariantClasses()}
-          ${getTextSizeClasses()}
-          ${textClassName}
-        `}
-      >
-        {loading ? 'Cargando...' : title}
-      </Text>
+      {content}
     </TouchableOpacity>
   );
 };
