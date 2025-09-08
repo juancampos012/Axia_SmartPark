@@ -62,14 +62,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         name="password"
         rules={{
           required: 'La contraseña es obligatoria',
-          minLength: { value: 6, message: 'Mínimo 6 caracteres' },
-          validate: {
-            hasUppercase: (value) =>
-              /[A-Z]/.test(value) || 'Debe contener al menos una mayúscula',
-            hasSpecialChar: (value) =>
-              /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(value) ||
-              'Debe contener al menos un carácter especial',
-          },
         }}
         render={({ field: { onChange, value } }) => (
           <Input
