@@ -1,5 +1,4 @@
 import { Stack } from 'expo-router';
-import "../global.css";
 
 export default function AppLayout() {
   return (
@@ -11,9 +10,9 @@ export default function AppLayout() {
       <Stack.Screen name="index" />
       <Stack.Screen name="(auth)" />
       <Stack.Screen name="(tabs)" />
-      <Stack.Screen name="parkings" />
+      {/* <Stack.Screen name="parkings" />
       <Stack.Screen name="payment" />
-      <Stack.Screen name="reservation" />
+      <Stack.Screen name="reservation" /> */}
     </Stack>
   );
 }

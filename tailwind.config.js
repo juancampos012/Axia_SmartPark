@@ -20,7 +20,7 @@ module.exports = {
           // Blanco
           white: '#FFFFFF',
           // Verde principal
-          green: '##006B54',
+          green: '#006B54',
           // Púrpura principal
           purple: '#780BB7',
           // Azul principal

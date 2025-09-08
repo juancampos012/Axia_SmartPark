@@ -1,55 +1,99 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { useForm, Controller } from 'react-hook-form';
 import Input from '../ui/Input';
 import Button from '../ui/Button';
 
 interface LoginFormProps {
-  onSubmit?: () => void;
+  onSubmit?: (data: { email: string; password: string }) => void;
   onSignUpPress?: () => void;
   onGooglePress?: () => void;
   onFacebookPress?: () => void;
 }
 
-const LoginForm: React.FC<LoginFormProps> = ({ 
-  onSubmit, 
-  onSignUpPress, 
-  onGooglePress, 
-  onFacebookPress 
+const LoginForm: React.FC<LoginFormProps> = ({
+  onSubmit,
+  onSignUpPress,
+  onGooglePress,
+  onFacebookPress
 }) => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const { control, handleSubmit, formState: { errors } } = useForm({
+    defaultValues: {
+      email: '',
+      password: ''
+    }
+  });
 
-  const handleSubmit = () => {
-    // Aquí se agregará la validación con zod y react-hook-form posteriormente
+  const submitForm = (data: { email: string; password: string }) => {
     if (onSubmit) {
-      onSubmit();
+      onSubmit(data);
     }
   };
 
   return (
     <View className="w-full px-6">
-      {/* Inputs */}
-      <Input
-        placeholder="Email"
-        value={email}
-        onChangeText={setEmail}
-        keyboardType="email-address"
-        autoCapitalize="none"
+      {/* Input Email */}
+      <Controller
+        control={control}
+        name="email"
+        rules={{
+          required: 'El email es obligatorio',
+          pattern: {
+            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+            message: 'Email inválido'
+          }
+        }}
+        render={({ field: { onChange, value } }) => (
+          <Input
+            placeholder="Email"
+            value={value}
+            onChangeText={onChange}
+            keyboardType="email-address"
+            autoCapitalize="none"
+          />
+        )}
+      />
+      {errors.email && <Text className="text-red-500">{errors.email.message}</Text>}
+
+      {/* Input Password */}
+      <Controller
+        control={control}
+        name="password"
+        rules={{
+          required: 'La contraseña es obligatoria',
+          minLength: { value: 6, message: 'Mínimo 6 caracteres' },
+          validate: {
+            hasUppercase: (value) =>
+              /[A-Z]/.test(value) || 'Debe contener al menos una mayúscula',
+            hasSpecialChar: (value) =>
+              /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(value) ||
+              'Debe contener al menos un carácter especial',
+          },
+        }}
+        render={({ field: { onChange, value } }) => (
+          <Input
+            placeholder="Password"
+            value={value}
+            onChangeText={onChange}
+            secureTextEntry
+            autoCapitalize="none"
+          />
+        )}
       />
 
-      <Input
-        placeholder="Password"
-        value={password}
-        onChangeText={setPassword}
-        secureTextEntry
-        autoCapitalize="none"
-      />
+      {/* Mostrar el primer error */}
+      {errors.password && (
+        <Text className="text-red-500">
+          {errors.password.message ||
+            (errors.password.types && Object.values(errors.password.types)[0])}
+        </Text>
+      )}
 
       {/* Botón Sign In */}
       <Button
         title="SIGN IN"
-        onPress={handleSubmit}
+        onPress={handleSubmit(submitForm)}
         className="w-full mt-4"
       />
 
@@ -62,7 +106,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Botones de redes sociales */}
       <View className="flex-row justify-between space-x-6 mb-8 px-8">
-        {/* Botón Google */}
         <TouchableOpacity
           onPress={onGooglePress}
           className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center mx-4"
@@ -70,7 +113,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
           <Ionicons name="logo-google" size={24} color="#FFFFFF" />
         </TouchableOpacity>
 
-        {/* Botón Facebook */}
         <TouchableOpacity
           onPress={onFacebookPress}
           className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center mx-3"
