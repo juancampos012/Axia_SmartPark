@@ -46,7 +46,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="Email"
+            placeholder="Correo electrónico"
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"
@@ -65,7 +65,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="Password"
+            placeholder="Contraseña"
             value={value}
             onChangeText={onChange}
             secureTextEntry
@@ -84,7 +84,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Botón Sign In */}
       <Button
-        title="SIGN IN"
+        title="Iniciar sesión"
         onPress={handleSubmit(submitForm)}
         className="w-full mt-4"
       />
@@ -92,7 +92,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       {/* Separador "Or login with" */}
       <View className="flex-row items-center my-8">
         <View className="flex-1 h-px bg-axia-gray" />
-        <Text className="px-4 text-axia-gray text-sm">Or login with</Text>
+        <Text className="px-4 text-axia-gray text-sm">O ingrear con</Text>
         <View className="flex-1 h-px bg-axia-gray" />
       </View>
 
@@ -116,11 +116,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
       {/* Link para Sign Up */}
       <View className="flex-row justify-center items-center">
         <Text className="text-axia-gray text-base">
-          Don't have an account?{' '}
+          Aun no tienes cuenta?{' '}
         </Text>
         <TouchableOpacity onPress={onSignUpPress}>
           <Text className="text-axia-green text-base font-semibold">
-            Sign up
+            Crear cuenta
           </Text>
         </TouchableOpacity>
       </View>

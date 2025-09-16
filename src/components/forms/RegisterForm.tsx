@@ -58,7 +58,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="First Name"
+            placeholder="Nombre"
             value={value}
             onChangeText={onChange}
             autoCapitalize="words"
@@ -79,7 +79,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="Last Name"
+            placeholder="Apellido"
             value={value}
             onChangeText={onChange}
             autoCapitalize="words"
@@ -101,7 +101,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="Email"
+            placeholder="Correo electrónico"
             value={value}
             onChangeText={onChange}
             keyboardType="email-address"
@@ -128,7 +128,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="Password"
+            placeholder="Contraseña"
             value={value}
             onChangeText={onChange}
             secureTextEntry
@@ -153,7 +153,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         }}
         render={({ field: { onChange, value } }) => (
           <Input
-            placeholder="Phone"
+            placeholder="Telefono"
             value={value}
             onChangeText={onChange}
             keyboardType="phone-pad"
@@ -164,7 +164,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
 
       {/* Botón */}
       <Button
-        title="SIGN UP"
+        title="Crear cuenta"
         onPress={handleSubmit(submitForm)}
         loading={isSubmitting}
         className="w-full mt-4"
@@ -172,11 +172,11 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
 
       <View className="flex-row justify-center items-center mt-6">
         <Text className="text-axia-gray text-base">
-          Already have an account?{' '}
+          Ya tienes una cuenta?{' '}
         </Text>
         <TouchableOpacity onPress={onLoginPress}>
           <Text className="text-axia-green text-base font-semibold">
-            Log in
+            Iniciar sesión
           </Text>
         </TouchableOpacity>
       </View>

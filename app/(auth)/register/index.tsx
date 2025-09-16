@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import RegisterForm from '../../../src/components/forms/RegisterForm';
 
 // Importar el logo
-const AxiaSmartParkLogo = require('../../../assets/axia-sp.png');
+const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Register = () => {
   const router = useRouter();
@@ -26,7 +26,7 @@ const Register = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0F1115]">
+    <SafeAreaView className="flex-1 bg-axia-black">
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="flex-1 min-h-screen px-4 py-8">
 
@@ -48,14 +48,9 @@ const Register = () => {
             {/* Logo */}
             <Image
               source={AxiaSmartParkLogo}
-              className="w-72 h-72 mb-8"
+              className="w-72 h-72 mb-8 mt-[-100]"
               resizeMode="contain"
-            />
-
-            {/* Título */}
-            <Text className="text-white text-2xl font-normal mb-8">
-              Create account
-            </Text>
+            />  
 
             {/* Formulario */}
             <RegisterForm 

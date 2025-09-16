@@ -5,7 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import LoginForm from '../../../src/components/forms/LoginForm';
 
 // Importar el logo
-const AxiaSmartParkLogo = require('../../../assets/axia-sp.png');
+const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Login = () => {
   const router = useRouter();
@@ -36,14 +36,14 @@ const Login = () => {
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-[#0F1115]">
+    <SafeAreaView className="flex-1 bg-axia-black">
       <View className="flex-1 min-h-screen px-4 py-8">
         
         {/* Header con botón de back */}
-        <View className="flex-row items-start mb-4 mt-4 py-10">
+        <View className="flex-row items-start mb-4 mt-4">
           <TouchableOpacity 
             onPress={handleGoBack}
-            className="mt-0"
+            className="mt-2"
           >
             <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
           </TouchableOpacity>
@@ -64,7 +64,7 @@ const Login = () => {
         {/* Título */}
         <View className="items-center mb-8">
           <Text className="text-white text-3xl font-normal">
-            Log In
+            Iniciar sesión
           </Text>
         </View>
 
