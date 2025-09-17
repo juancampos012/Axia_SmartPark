@@ -60,6 +60,7 @@ export default function TabsLayout() {
           ),
         }}
       />
+      <Tabs.Screen name="profile/personal-info/index" options={{ href: null }} />
       <Tabs.Screen
         name="settings/index"
         options={{
