@@ -1,15 +1,16 @@
 import React from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
-import Input from '../ui/Input';
+import Input from '../../atoms/Input';
+import Switch from '../../atoms/Switch';
 
 interface PersonalInfoFormData {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  identification: string;
-  dateOfBirth: string;
+  active: boolean;
+  createdAt: string;
 }
 
 interface PersonalInfoFormProps {
@@ -25,8 +26,8 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
     lastName: '',
     email: '',
     phone: '',
-    identification: '',
-    dateOfBirth: ''
+    active: true,
+    createdAt: ''
   },
   isEditing = false,
   onSubmit,
@@ -168,53 +169,44 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
           />
         </View>
 
-        {/* Identificación */}
+        {/* Estado activo */}
         <View>
-          <Text className="text-white text-sm font-medium mb-2">
-            Identificación
+          <Text className="text-white text-sm font-medium mb-3">
+            Estado de la cuenta
           </Text>
           <Controller
             control={control}
-            name="identification"
-            rules={{
-              required: 'La identificación es obligatoria',
-              minLength: {
-                value: 6,
-                message: 'La identificación debe tener al menos 6 caracteres'
-              }
-            }}
+            name="active"
             render={({ field: { onChange, value } }) => (
-              <Input
-                placeholder="Número de identificación"
+              <Switch
                 value={value}
-                onChangeText={onChange}
-                keyboardType="numeric"
-                error={errors.identification?.message}
-                editable={false}
+                onValueChange={onChange}
+                disabled={!isEditing}
+                label={value ? "Cuenta activa" : "Cuenta inactiva"}
+                className="bg-[#161B22] rounded-xl p-4"
               />
             )}
           />
         </View>
 
-        {/* Fecha de nacimiento */}
+        {/* Usuario desde */}
         <View>
           <Text className="text-white text-sm font-medium mb-2">
-            Fecha de nacimiento
+            Usuario desde
           </Text>
           <Controller
             control={control}
-            name="dateOfBirth"
-            rules={{
-              required: 'La fecha de nacimiento es obligatoria'
-            }}
-            render={({ field: { onChange, value } }) => (
-              <Input
-                placeholder="DD/MM/YYYY"
-                value={value}
-                onChangeText={onChange}
-                error={errors.dateOfBirth?.message}
-                editable={false}
-              />
+            name="createdAt"
+            render={({ field: { value } }) => (
+              <View className="bg-[#161B22] rounded-xl p-4 border border-white/10">
+                <Text className="text-white/80 text-base">
+                  {value ? new Date(value).toLocaleDateString('es-ES', {
+                    year: 'numeric',
+                    month: 'long',
+                    day: 'numeric'
+                  }) : 'No disponible'}
+                </Text>
+              </View>
             )}
           />
         </View>

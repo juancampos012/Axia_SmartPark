@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import LoginForm from '../../../src/components/forms/LoginForm';
+import LoginForm from '../../../src/components/organisms/forms/LoginForm';
 
 // Importar el logo
 const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
@@ -10,16 +10,7 @@ const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 const Login = () => {
   const router = useRouter();
 
-  const handleLogin = () => {
-    console.log('Login pressed');
-    // Aquí iría la lógica de login
-    // Por ahora solo navegamos al home
-    router.push('/(tabs)/home');
-  };
-
-  const handleSignUpPress = () => {
-    router.push('/(auth)/register');
-  };
+  
 
   const handleGoogleLogin = () => {
     console.log('Google login pressed');
@@ -75,8 +66,7 @@ const Login = () => {
 
             {/* Formulario */}
             <LoginForm 
-              onSubmit={handleLogin}
-              onSignUpPress={handleSignUpPress}
+              onSignUpPress={() => {}}
               onGooglePress={handleGoogleLogin}
               onFacebookPress={handleFacebookLogin}
             />

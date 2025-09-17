@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, ScrollView, SafeAreaView, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import RegisterForm from '../../../src/components/forms/RegisterForm';
+import RegisterForm from '../../../src/components/organisms/forms/RegisterForm';
 
 // Importar el logo
 const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
@@ -10,16 +10,6 @@ const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 const Register = () => {
   const router = useRouter();
 
-  const handleRegister = (data: any) => {
-    console.log('Datos de registro:', data);
-    // Aquí iría la lógica de registro
-    // Por ahora solo navegamos al login
-    router.push('/(auth)/login');
-  };
-
-  const handleLoginPress = () => {
-    router.push('/(auth)/login');
-  };
 
   const handleGoBack = () => {
     router.back();
@@ -58,8 +48,8 @@ const Register = () => {
 
               {/* Formulario */}
               <RegisterForm 
-                onSubmit={handleRegister}
-                onLoginPress={handleLoginPress}
+                onSubmit={() => {}}
+                onLoginPress={() => {}}
               />
             </View>
           </View>
