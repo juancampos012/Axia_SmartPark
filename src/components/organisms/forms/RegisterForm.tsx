@@ -312,7 +312,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
           ¿Ya tienes una cuenta?{' '}
         </Text>
         <TouchableOpacity onPress={onLoginPress}>
-          <Text className="text-axia-green text-base font-semibold">
+          <Text className="text-axia-green text-base font-primaryBold">
             Iniciar sesión
           </Text>
         </TouchableOpacity>

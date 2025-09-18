@@ -60,7 +60,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
         
         {/* Nombres */}
         <View>
-          <Text className="text-white text-sm font-medium mb-2">
+          <Text className="text-white text-sm font-primary mb-2">
             Nombre
           </Text>
           <Controller
@@ -87,7 +87,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
 
         {/* Apellidos */}
         <View>
-          <Text className="text-white text-sm font-medium mb-2">
+          <Text className="text-white text-sm font-primary mb-2">
             Apellido
           </Text>
           <Controller
@@ -114,7 +114,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
 
         {/* Email */}
         <View>
-          <Text className="text-white text-sm font-medium mb-2">
+          <Text className="text-white text-sm font-primary mb-2">
             Correo electrónico
           </Text>
           <Controller
@@ -143,7 +143,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
 
         {/* Teléfono */}
         <View>
-          <Text className="text-white text-sm font-medium mb-2">
+          <Text className="text-white text-sm font-primary mb-2">
             Teléfono
           </Text>
           <Controller
@@ -171,7 +171,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
 
         {/* Estado activo */}
         <View>
-          <Text className="text-white text-sm font-medium mb-3">
+          <Text className="text-white text-sm font-primary mb-3">
             Estado de la cuenta
           </Text>
           <Controller
@@ -191,7 +191,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
 
         {/* Usuario desde */}
         <View>
-          <Text className="text-white text-sm font-medium mb-2">
+          <Text className="text-white text-sm font-primary mb-2">
             Usuario desde
           </Text>
           <Controller
@@ -220,7 +220,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             onPress={handleSubmit(submitForm)}
             className="flex-1 bg-axia-green py-4 rounded-xl items-center justify-center mr-2"
           >
-            <Text className="text-axia-black text-lg font-semibold">
+            <Text className="text-axia-black text-lg font-primaryBold">
               Guardar cambios
             </Text>
           </TouchableOpacity>
@@ -229,7 +229,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
             onPress={handleCancelPress}
             className="flex-1 bg-transparent border-2 border-axia-green py-4 rounded-xl items-center justify-center ml-2"
           >
-            <Text className="text-axia-green text-lg font-semibold">
+            <Text className="text-axia-green text-lg font-primaryBold">
               Cancelar
             </Text>
           </TouchableOpacity>

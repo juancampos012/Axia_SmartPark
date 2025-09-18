@@ -46,10 +46,12 @@ module.exports = {
         '18': '4.5rem',
         '88': '22rem',
       },
-      // Fuentes personalizadas (si quieres agregar)
+      // Fuentes personalizadas 
       fontFamily: {
-        'primary': ['System'],
-        'secondary': ['System'],
+        'primary': ['Inter-Regular', 'sans-serif'],
+        'primaryBold': ['Inter-SemiBold', 'sans-serif'],
+        'secondary': ['Poppins-Bold', 'sans-serif'],
+        'secondaryMedium': ['Poppins-Medium', 'sans-serif'],
       },
       // Bordes redondeados personalizados
       borderRadius: {

@@ -26,16 +26,16 @@ export default function TestComponent() {
               />
             </View>
             
-            <Text className="text-white text-5xl font-bold mb-3 text-center">
+            <Text className="text-white text-5xl font-secondary mb-3 text-center">
               Bienvenido a
             </Text>
-            <Text className="text-white text-3xl font-bold mb-4">
+            <Text className="text-white text-3xl font-secondary mb-4">
               AXIA SmartPark
             </Text>
-            <Text className="text-white/70 text-lg text-center px-8 mb-2">
+            <Text className="text-white/70 text-lg text-center px-8 mb-2 font-primary">
               Tu espacio, tu tiempo, tu ciudad.
             </Text>
-            <Text className="text-white/50 text-base text-center px-6">
+            <Text className="text-white/50 text-base text-center px-6 font-primary">
               Encuentra y reserva estacionamiento de forma inteligente
             </Text>
           </View>

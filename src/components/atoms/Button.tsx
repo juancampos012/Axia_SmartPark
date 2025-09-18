@@ -37,7 +37,7 @@ const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator color="#fff" size="small" />
       ) : (
-        <Text className={`font-semibold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
+        <Text className={`font-primaryBold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
           {title}
         </Text>
       )}

@@ -93,7 +93,7 @@ const Profile = () => {
             <View className="relative mb-6 mt-14">
               {/* Número grande de fondo */}
               <View className="absolute inset-0 justify-center items-center">
-                <Text className="text-6xl font-bold text-axia-darkGray opacity-30">
+                <Text className="text-6xl font-secondary text-axia-darkGray opacity-30">
                   93
                 </Text>
               </View>
@@ -105,7 +105,7 @@ const Profile = () => {
             </View>
             
             {/* Nombre del usuario */}
-            <Text className="text-white text-2xl font-normal">
+            <Text className="text-white text-2xl font-primaryBold">
               {userProfile.name}
             </Text>
           </View>
@@ -125,7 +125,7 @@ const Profile = () => {
                     color="#FFFFFF" 
                     style={{ marginRight: 16 }}
                   />
-                  <Text className="text-white text-lg">
+                  <Text className="text-white text-lg font-primary">
                     {item.title}
                   </Text>
                 </View>
@@ -137,14 +137,14 @@ const Profile = () => {
           {/* Sección Mis Carros */}
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-4">
-              <Text className="text-white text-xl font-semibold">
+              <Text className="text-white text-xl font-primaryBold">
                 Mis Carros
               </Text>
               <TouchableOpacity
                 onPress={handleViewAllCars}
                 className="bg-axia-darkGray px-4 py-2 rounded-lg"
               >
-                <Text className="text-white text-sm">
+                <Text className="text-white text-sm font-primary">
                   Todos
                 </Text>
               </TouchableOpacity>
@@ -167,13 +167,13 @@ const Profile = () => {
                       
                       {/* Información del carro */}
                       <View className="flex-1">
-                        <Text className="text-white text-lg font-semibold">
+                        <Text className="text-white text-lg font-primaryBold">
                           {car.brand} {car.model}
                         </Text>
-                        <Text className="text-axia-gray text-sm">
+                        <Text className="text-axia-gray text-sm font-primary">
                           Modelo: {car.year}
                         </Text>
-                        <Text className="text-axia-gray text-sm">
+                        <Text className="text-axia-gray text-sm font-primary">
                           Placa: {car.plate}
                         </Text>
                       </View>
@@ -185,14 +185,14 @@ const Profile = () => {
               // Estado cuando no hay carros
               <View className="bg-axia-darkGray rounded-xl p-6 items-center">
                 <Ionicons name="car-outline" size={48} color="#9CA3AF" />
-                <Text className="text-axia-gray text-center mt-4 mb-4">
+                <Text className="text-axia-gray text-center mt-4 mb-4 font-primary">
                   Aún no tienes carros registrados
                 </Text>
                 <TouchableOpacity
                   onPress={handleAddCar}
                   className="bg-axia-green px-6 py-2 rounded-lg"
                 >
-                  <Text className="text-axia-black font-semibold">
+                  <Text className="text-axia-black font-primaryBold">
                     Agregar Carro
                   </Text>
                 </TouchableOpacity>
