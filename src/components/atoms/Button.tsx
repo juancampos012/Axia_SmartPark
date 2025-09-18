@@ -1,5 +1,5 @@
 import React from 'react';
-import { ActivityIndicator, Text, TouchableOpacity, View } from 'react-native';
+import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ButtonProps {
@@ -37,7 +37,11 @@ const Button: React.FC<ButtonProps> = ({
       {loading ? (
         <ActivityIndicator color="#fff" size="small" />
       ) : (
-        <Text className={`font-semibold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
+        <Text
+          className={`font-semibold ${
+            variant === 'outline' ? 'text-white' : 'text-white'
+          }`}
+        >
           {title}
         </Text>
       )}
@@ -48,37 +52,54 @@ const Button: React.FC<ButtonProps> = ({
 
   if (variant === 'primary') {
     return (
-      <TouchableOpacity
+      <Pressable
         onPress={onPress}
         disabled={isDisabled}
-        className={`w-full rounded-xl overflow-hidden border-2 border-transparent ${getSizeStyles()} ${isDisabled ? 'opacity-50' : ''} ${className}`}
-        style={{ borderRadius: 16 }}
-        activeOpacity={0.8}
+        className={`w-full rounded-xl overflow-hidden border-2 border-transparent ${getSizeStyles()} ${
+          isDisabled ? 'opacity-50' : ''
+        } ${className}`}
+        style={({ pressed }) => ({
+          borderRadius: 16,
+          opacity: pressed ? 0.7 : 1
+        })}
       >
         <LinearGradient
-          colors={["#780BB7", "#093774"]} // axia-purple y axia-blue
+          colors={['#780BB7', '#093774']}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
-          style={{ width: '100%', height: '100%', justifyContent: 'center', alignItems: 'center', borderRadius: 16 }}
+          style={{
+            width: '100%',
+            height: '100%',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: 16
+          }}
         >
           {content}
         </LinearGradient>
-      </TouchableOpacity>
+      </Pressable>
     );
   }
 
-  const baseStyles = variant === 'secondary' ? 'bg-axia-darkGray' : 'border-2 border-white/30 bg-transparent';
+  const baseStyles =
+    variant === 'secondary'
+      ? 'bg-axia-darkGray'
+      : 'border-2 border-white/30 bg-transparent';
 
   return (
-    <TouchableOpacity
+    <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      className={`w-full rounded-xl items-center justify-center ${getSizeStyles()} ${baseStyles} ${isDisabled ? 'opacity-50' : ''} ${className}`}
-      style={{ borderRadius: 16 }}
-      activeOpacity={0.8}
+      className={`w-full rounded-xl items-center justify-center ${getSizeStyles()} ${baseStyles} ${
+        isDisabled ? 'opacity-50' : ''
+      } ${className}`}
+      style={({ pressed }) => ({
+        borderRadius: 16,
+        opacity: pressed ? 0.7 : 1
+      })}
     >
       {content}
-    </TouchableOpacity>
+    </Pressable>
   );
 };
 

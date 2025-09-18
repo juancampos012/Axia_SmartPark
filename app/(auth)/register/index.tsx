@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, ScrollView, SafeAreaView, TouchableOpacity, KeyboardAvoidingView } from 'react-native';
+import { View, Image, ScrollView, SafeAreaView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import RegisterForm from '../../../src/components/organisms/forms/RegisterForm';
@@ -10,7 +10,6 @@ const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 const Register = () => {
   const router = useRouter();
 
-
   const handleGoBack = () => {
     router.back();
   };
@@ -19,19 +18,21 @@ const Register = () => {
     <SafeAreaView className="flex-1 bg-axia-black">
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior="padding"
+        behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="flex-1 min-h-screen px-4 py-8">
 
             {/* Header con botón de back */}
             <View className="flex-row items-start mb-4 mt-4">
-              <TouchableOpacity 
+              <Pressable 
                 onPress={handleGoBack}
                 className="mt-2"
+                accessibilityLabel="Volver"
+                accessibilityRole="button"
               >
                 <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
+              </Pressable>
               
               {/* Spacer para balance */}
               <View className="flex-1" />
