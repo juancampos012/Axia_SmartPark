@@ -37,6 +37,8 @@ export default function TabsLayout() {
       />
       <Tabs.Screen name="parkings/[id]/index" options={{ href: null }} />
       <Tabs.Screen name="parkings/[id]/reserve" options={{ href: null }} />
+      <Tabs.Screen name="cars/add/index" options={{ href: null }} />
+      <Tabs.Screen name="cars/detail/[carId]" options={{ href: null }} />
       <Tabs.Screen
         name="reservations/index"
         options={{

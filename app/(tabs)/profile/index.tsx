@@ -41,8 +41,8 @@ const Profile = () => {
     {
       id: '1',
       brand: 'Toyota',
-      model: 'Swift',
-      year: 2022,
+      model: 'Corolla',
+      year: 2020,
       plate: 'ABC 123',
     },
   ];
@@ -74,7 +74,8 @@ const Profile = () => {
   };
 
   const handleCarPress = (carId: string) => {
-    router.push(`/(cars)/car-details/${carId}` as any);
+    // Hardcodeamos la ruta al detalle
+    router.push(`/cars/car-detail/${carId}` as any);
   };
 
   const handleViewAllCars = () => {
@@ -82,7 +83,7 @@ const Profile = () => {
   };
 
   const handleAddCar = () => {
-    router.push('/(cars)/add-car');
+    router.push('/cars/add-car');
   };
 
   return (
