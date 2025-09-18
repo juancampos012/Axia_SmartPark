@@ -1,9 +1,8 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-// Usar iconos por defecto en lugar de imágenes
+import { fetchUserProfile } from '../../../libs/user';
 
 interface Car {
   id: string;
@@ -23,9 +22,20 @@ interface MenuItem {
 const Profile = () => {
   const router = useRouter();
 
-  const userProfile = {
-    name: "Fernando Alonso",
-  };
+  const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await fetchUserProfile();
+        setUserProfile(data); 
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const userCars: Car[] = [
     {
@@ -106,7 +116,7 @@ const Profile = () => {
             
             {/* Nombre del usuario */}
             <Text className="text-white text-2xl font-normal">
-              {userProfile.name}
+              {userProfile?.name}
             </Text>
           </View>
 

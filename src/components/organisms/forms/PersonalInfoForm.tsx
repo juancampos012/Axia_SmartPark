@@ -190,7 +190,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
         </View>
 
         {/* Usuario desde */}
-        <View>
+        {/* <View>
           <Text className="text-white text-sm font-medium mb-2">
             Usuario desde
           </Text>
@@ -209,7 +209,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               </View>
             )}
           />
-        </View>
+        </View> */}
 
       </View>
 

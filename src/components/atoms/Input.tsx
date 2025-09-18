@@ -20,7 +20,8 @@ const Input: React.FC<InputProps> = ({
   secureTextEntry = false,
   keyboardType = 'default',
   autoCapitalize = 'sentences',
-  error
+  error,
+  editable = true, 
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -31,11 +32,14 @@ const Input: React.FC<InputProps> = ({
 
   return (
     <View className="w-full mb-4">
-      <View className={`
-        relative rounded-lg border
-        ${isFocused ? 'border-axia-purple bg-axia-darkGray' : 'border-axia-gray bg-axia-darkGray'}
-        ${error ? 'border-red-500' : ''}
-      `}>
+      <View
+        className={`
+          relative rounded-lg border
+          ${isFocused ? 'border-axia-purple bg-axia-darkGray' : 'border-axia-gray bg-axia-darkGray'}
+          ${!editable ? 'opacity-60' : ''}
+          ${error ? 'border-red-500' : ''}
+        `}
+      >
         <TextInput
           className="px-4 py-4 text-white text-base"
           placeholder={placeholder}
@@ -45,30 +49,32 @@ const Input: React.FC<InputProps> = ({
           secureTextEntry={secureTextEntry && !isPasswordVisible}
           keyboardType={keyboardType}
           autoCapitalize={autoCapitalize}
+          editable={editable} 
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
         />
-        
+
         {secureTextEntry && (
           <TouchableOpacity
             onPress={togglePasswordVisibility}
             className="absolute right-4 top-4"
-            style={{ 
+            disabled={!editable} 
+            style={{
               alignItems: 'center',
               justifyContent: 'center',
               width: 24,
-              height: 24
+              height: 24,
             }}
           >
-            <Ionicons 
-              name={isPasswordVisible ? 'eye-off' : 'eye'} 
-              size={20} 
-              color="#8C8C8C" 
+            <Ionicons
+              name={isPasswordVisible ? 'eye-off' : 'eye'}
+              size={20}
+              color="#8C8C8C"
             />
           </TouchableOpacity>
         )}
       </View>
-      
+
       {error && (
         <Text className="text-red-500 text-sm mt-1 ml-1">{error}</Text>
       )}
