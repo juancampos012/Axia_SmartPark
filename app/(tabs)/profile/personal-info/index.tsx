@@ -108,7 +108,7 @@ const PersonalInfo = () => {
           style: 'cancel'
         },
         {
-          text: 'Eliminar',
+          text: 'Eliminar', 
           style: 'destructive',
           onPress: async () => {
             try {
@@ -166,13 +166,13 @@ const PersonalInfo = () => {
                 <Ionicons name="person" size={60} color="#FFFFFF" />
               </View>
               
-              {isEditing && (
+              {/* {isEditing && (
                 <Pressable className="bg-axia-green px-4 py-2 rounded-lg">
                   <Text className="text-axia-black font-semibold">
                     Cambiar foto
                   </Text>
                 </Pressable>
-              )}
+              )} */}
             </View>
 
             {/* Formulario */}

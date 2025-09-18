@@ -97,6 +97,9 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
 
     await saveUserData(dataResponse.data.user);
 
+    const storedTokens = await AsyncStorage.getItem("accessToken");
+    console.log("Token guardado en AsyncStorage:", storedTokens);
+
     return dataResponse;
   } catch (error) {
     console.error("Error en login:", error);
