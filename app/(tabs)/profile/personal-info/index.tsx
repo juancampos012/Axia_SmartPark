@@ -1,35 +1,64 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, TouchableOpacity, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import PersonalInfoForm from '../../../../src/components/forms/PersonalInfoForm';
+import PersonalInfoForm from '../../../../src/components/organisms/forms/PersonalInfoForm';
 import { useForm } from 'react-hook-form';
+import { fetchUserProfile, updateUserProfile, deleteUserAccount } from '../../../../libs/user';
 
 interface PersonalInfoFormData {
   firstName: string;
   lastName: string;
   email: string;
   phone: string;
-  identification: string;
-  dateOfBirth: string;
+  active: boolean;
+  createdAt: string;
 }
 
 const PersonalInfo = () => {
   const router = useRouter();
   const [isEditing, setIsEditing] = useState(false);
+  const [userData, setUserData] = useState<PersonalInfoFormData | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Datos actuales del usuario (normalmente vendrían de un estado global o API)
-  const currentUserData: PersonalInfoFormData = {
-    firstName: 'Fernando',
-    lastName: 'Alonso',
-    email: 'fernando.alonso@email.com',
-    phone: '+57 300 123 4567',
-    identification: '12345678',
-    dateOfBirth: '29/07/1981'
+  // Cargar datos del usuario al montar el componente
+  useEffect(() => {
+    loadUserProfile();
+  }, []);
+
+  const loadUserProfile = async () => {
+    try {
+      setLoading(true);
+      const profile = await fetchUserProfile();
+      
+      // Mapear los datos del perfil al formato del formulario
+      const formData: PersonalInfoFormData = {
+        firstName: profile.name || '',
+        lastName: profile.lastName || '',
+        email: profile.email || '',
+        phone: profile.phoneNumber || '',
+        active: profile.isActive || false,
+        createdAt: profile.createdAt || ''
+      };
+      
+      setUserData(formData);
+    } catch (error) {
+      console.error('Error loading user profile:', error);
+      Alert.alert('Error', 'No se pudo cargar la información del usuario');
+    } finally {
+      setLoading(false);
+    }
   };
 
   const { control, handleSubmit, formState: { errors }, reset } = useForm<PersonalInfoFormData>({
-    defaultValues: currentUserData
+    defaultValues: userData || {
+      firstName: '',
+      lastName: '',
+      email: '',
+      phone: '',
+      active: true,
+      createdAt: ''
+    }
   });
 
   const handleGoBack = () => {
@@ -40,24 +69,38 @@ const PersonalInfo = () => {
     setIsEditing(!isEditing);
   };
 
-  const handleSaveChanges = (data: PersonalInfoFormData) => {
-    console.log('Saving personal info:', data);
-    
-    // Aquí iría la lógica para guardar los datos en la API
-    // Por ahora solo mostramos un alert de éxito
-    Alert.alert(
-      'Información actualizada',
-      'Tu información personal ha sido actualizada correctamente.',
-      [
-        {
-          text: 'OK',
-          onPress: () => {
-            setIsEditing(false);
-            // Aquí actualizarías el estado global con los nuevos datos
+  const handleSaveChanges = async (data: PersonalInfoFormData) => {
+    try {
+      console.log('Saving personal info:', data);
+      
+      // Mapear los datos del formulario al formato esperado por la API
+      const updateData = {
+        name: data.firstName,
+        lastName: data.lastName,
+        email: data.email,
+        phoneNumber: data.phone
+      };
+      
+      await updateUserProfile(updateData);
+      
+      Alert.alert(
+        'Información actualizada',
+        'Tu información personal ha sido actualizada correctamente.',
+        [
+          {
+            text: 'OK',
+            onPress: () => {
+              setIsEditing(false);
+              // Recargar los datos actualizados
+              loadUserProfile();
+            }
           }
-        }
-      ]
-    );
+        ]
+      );
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      Alert.alert('Error', 'No se pudo actualizar la información');
+    }
   };
 
   const handleCancelEdit = () => {
@@ -76,8 +119,26 @@ const PersonalInfo = () => {
         {
           text: 'Eliminar',
           style: 'destructive',
-          onPress: () => {
-            console.log('Account deletion confirmed');
+          onPress: async () => {
+            try {
+              await deleteUserAccount();
+              Alert.alert(
+                'Cuenta eliminada',
+                'Tu cuenta ha sido eliminada correctamente.',
+                [
+                  {
+                    text: 'OK',
+                    onPress: () => {
+                      // Navegar al login o pantalla inicial
+                      router.replace('/');
+                    }
+                  }
+                ]
+              );
+            } catch (error) {
+              console.error('Error deleting account:', error);
+              Alert.alert('Error', 'No se pudo eliminar la cuenta');
+            }
           }
         }
       ]
@@ -134,12 +195,22 @@ const PersonalInfo = () => {
             </View>
 
             {/* Formulario */}
-            <PersonalInfoForm
-              initialData={currentUserData}
-              isEditing={isEditing}
-              onSubmit={handleSaveChanges}
-              onCancel={handleCancelEdit}
-            />
+            {loading ? (
+              <View className="flex-1 items-center justify-center py-12">
+                <Text className="text-white text-lg">Cargando...</Text>
+              </View>
+            ) : userData ? (
+              <PersonalInfoForm
+                initialData={userData}
+                isEditing={isEditing}
+                onSubmit={handleSaveChanges}
+                onCancel={handleCancelEdit}
+              />
+            ) : (
+              <View className="flex-1 items-center justify-center py-12">
+                <Text className="text-white text-lg">No se pudo cargar la información</Text>
+              </View>
+            )}
 
             <View className="mt-12 pt-8 border-t border-axia-darkGray">
               <TouchableOpacity

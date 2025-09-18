@@ -10,7 +10,7 @@ interface InputProps {
   keyboardType?: 'default' | 'email-address' | 'numeric' | 'phone-pad';
   autoCapitalize?: 'none' | 'sentences' | 'words' | 'characters';
   error?: string;
-  editable?: boolean; // Nueva prop para habilitar/deshabilitar
+  editable?: boolean;
 }
 
 const Input: React.FC<InputProps> = ({
@@ -20,8 +20,7 @@ const Input: React.FC<InputProps> = ({
   secureTextEntry = false,
   keyboardType = 'default',
   autoCapitalize = 'sentences',
-  error,
-  editable = true // Por defecto habilitado
+  error
 }) => {
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -34,9 +33,8 @@ const Input: React.FC<InputProps> = ({
     <View className="w-full mb-4">
       <View className={`
         relative rounded-lg border
-        ${isFocused && editable ? 'border-axia-purple bg-axia-darkGray' : 'border-axia-gray bg-axia-darkGray'}
+        ${isFocused ? 'border-axia-purple bg-axia-darkGray' : 'border-axia-gray bg-axia-darkGray'}
         ${error ? 'border-red-500' : ''}
-        ${!editable ? 'opacity-60' : ''}
       `}>
         <TextInput
           className="px-4 py-4 text-white text-base"
@@ -49,7 +47,6 @@ const Input: React.FC<InputProps> = ({
           autoCapitalize={autoCapitalize}
           onFocus={() => setIsFocused(true)}
           onBlur={() => setIsFocused(false)}
-          editable={editable}
         />
         
         {secureTextEntry && (
@@ -62,12 +59,11 @@ const Input: React.FC<InputProps> = ({
               width: 24,
               height: 24
             }}
-            disabled={!editable}
           >
             <Ionicons 
               name={isPasswordVisible ? 'eye-off' : 'eye'} 
               size={20} 
-              color={editable ? "#8C8C8C" : "#4A4A4A"} 
+              color="#8C8C8C" 
             />
           </TouchableOpacity>
         )}

@@ -1,33 +1,42 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, TouchableOpacity, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
-import Input from '../ui/Input';
-import Button from '../ui/Button';
+import Input from '../../atoms/Input';
+import Button from '../../atoms/Button';
+import { LoginDTO } from '../../../../interfaces/Auth';
+import { loginAuth } from '../../../../libs/auth';
+import { router } from 'expo-router';
 
 interface LoginFormProps {
-  onSubmit?: (data: { email: string; password: string }) => void;
+  onSuccess?: () => void;
   onSignUpPress?: () => void;
   onGooglePress?: () => void;
   onFacebookPress?: () => void;
 }
 
 const LoginForm: React.FC<LoginFormProps> = ({
-  onSubmit,
+  onSuccess,
   onSignUpPress,
   onGooglePress,
   onFacebookPress
 }) => {
-  const { control, handleSubmit, formState: { errors } } = useForm({
+  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginDTO>({
     defaultValues: {
       email: '',
       password: ''
     }
   });
 
-  const submitForm = (data: { email: string; password: string }) => {
-    if (onSubmit) {
-      onSubmit(data);
+  const submitForm = async (data: LoginDTO) => {
+    try {
+      const authResponse = await loginAuth(data);
+      const user = authResponse.data.user;
+      Alert.alert("Bienvenido", `Hola ${user.name}`);
+      router.push('/home');
+      if (onSuccess) onSuccess(); // Si se pasa un callback para navegar
+    } catch (error: any) {
+      Alert.alert("Error", error.message || "Correo o contraseña incorrectos");
     }
   };
 
@@ -51,10 +60,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
             onChangeText={onChange}
             keyboardType="email-address"
             autoCapitalize="none"
+            error={errors.email?.message}
           />
         )}
       />
-      {errors.email && <Text className="text-red-500">{errors.email.message}</Text>}
 
       {/* Input Password */}
       <Controller
@@ -70,6 +79,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
             onChangeText={onChange}
             secureTextEntry
             autoCapitalize="none"
+            error={errors.password?.message}
           />
         )}
       />
@@ -82,17 +92,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </Text>
       )}
 
-      {/* Botón Sign In */}
+      {/* Botón de inicio de sesión */}
       <Button
         title="Iniciar sesión"
         onPress={handleSubmit(submitForm)}
+        loading={isSubmitting}
         className="w-full mt-4"
       />
 
-      {/* Separador "Or login with" */}
+      {/* Separador */}
       <View className="flex-row items-center my-8">
         <View className="flex-1 h-px bg-axia-gray" />
-        <Text className="px-4 text-axia-gray text-sm">O ingrear con</Text>
+        <Text className="px-4 text-axia-gray text-sm">O ingresa con</Text>
         <View className="flex-1 h-px bg-axia-gray" />
       </View>
 
@@ -113,10 +124,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
         </TouchableOpacity>
       </View>
 
-      {/* Link para Sign Up */}
+      {/* Link para crear cuenta */}
       <View className="flex-row justify-center items-center">
         <Text className="text-axia-gray text-base">
-          Aun no tienes cuenta?{' '}
+          ¿Aún no tienes cuenta?{' '}
         </Text>
         <TouchableOpacity onPress={onSignUpPress}>
           <Text className="text-axia-green text-base font-semibold">
