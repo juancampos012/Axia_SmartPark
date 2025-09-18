@@ -84,8 +84,6 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
     });
 
     const dataResponse = await handleResponse(response); // <- parsea el JSON
-    console.log("Respuesta del backend:", dataResponse); // <- loggea el JSON, no el objeto Response
-    console.log("User data:", dataResponse.data.user); // <- loggea los datos del usuario
 
     if (!dataResponse.data.tokens.accessToken || !dataResponse.data.user) {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");

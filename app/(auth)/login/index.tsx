@@ -1,50 +1,53 @@
-import React from 'react';
-import { View, Text, Image, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
-import { useRouter } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
-import LoginForm from '../../../src/components/organisms/forms/LoginForm';
+import React, { useEffect } from "react";
+import { View, Text, SafeAreaView, Pressable, Image, KeyboardAvoidingView, ScrollView } from "react-native";
+import { useRouter } from "expo-router";
+import { Ionicons } from "@expo/vector-icons";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import LoginForm from "../../../src/components/organisms/forms/LoginForm";
 
-// Importar el logo
-const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
+const AxiaSmartParkLogo = require("../../../assets/axia-sp1.png");
 
-const Login = () => {
+export default function Login() {
   const router = useRouter();
 
-  
+  // 👉 Revisa si ya hay sesión activa
+  useEffect(() => {
+    const checkSession = async () => {
+      const token = await AsyncStorage.getItem("authToken");
+      if (token) {
+        router.replace("/home"); // Si ya está logueado → no mostrar login
+      }
+    };
+    checkSession();
+  }, []);
+
+  const handleLoginSuccess = async () => {
+    // Simulación de login correcto
+    await AsyncStorage.setItem("authToken", "fake_token_123");
+
+    router.replace("/home");
+  };
 
   const handleGoogleLogin = () => {
-    console.log('Google login pressed');
-    // Lógica de login con Google
+    console.log("Google login pressed");
   };
 
   const handleFacebookLogin = () => {
-    console.log('Facebook login pressed');
-    // Lógica de login con Facebook
-  };
-
-  const handleGoBack = () => {
-    router.back();
+    console.log("Facebook login pressed");
   };
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black">
-      <KeyboardAvoidingView 
-        className="flex-1" 
-        behavior="padding"
-      >
+      <KeyboardAvoidingView className="flex-1" behavior="padding">
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="flex-1 min-h-screen px-4 py-8">
-            
-            {/* Header con botón de back */}
+            {/* Header con botón back */}
             <View className="flex-row items-start mb-4 mt-4">
-              <TouchableOpacity 
-                onPress={handleGoBack}
-                className="mt-2"
-              >
+              <Pressable onPress={() => router.back()} className="mt-2">
                 <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
-              
-              {/* Logo centrado */}
+              </Pressable>
+
+              {/* Logo */}
               <View className="flex-1 items-center">
                 <Image
                   source={AxiaSmartParkLogo}
@@ -52,8 +55,7 @@ const Login = () => {
                   resizeMode="contain"
                 />
               </View>
-              
-              {/* Spacer para balance */}
+
               <View className="w-6" />
             </View>
 
@@ -65,16 +67,15 @@ const Login = () => {
             </View>
 
             {/* Formulario */}
-            <LoginForm 
-              onSignUpPress={() => {}}
+            <LoginForm
+              onSignUpPress={() => router.push("/register")}
               onGooglePress={handleGoogleLogin}
               onFacebookPress={handleFacebookLogin}
+              onSuccess={handleLoginSuccess} // 👈 cuando loguee
             />
           </View>
         </ScrollView>
       </KeyboardAvoidingView>
     </SafeAreaView>
   );
-};
-
-export default Login;
+}

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 
 interface SwitchProps {
   value: boolean;
@@ -14,7 +14,7 @@ const Switch: React.FC<SwitchProps> = ({
   onValueChange,
   disabled = false,
   label,
-  className = ''
+  className = '',
 }) => {
   const handlePress = () => {
     if (!disabled && onValueChange) {
@@ -29,10 +29,13 @@ const Switch: React.FC<SwitchProps> = ({
           {label}
         </Text>
       )}
-      
-      <TouchableOpacity
+
+      <Pressable
         onPress={handlePress}
         disabled={disabled}
+        hitSlop={8}
+        accessibilityRole="switch"
+        accessibilityState={{ checked: value, disabled }}
         className={`
           w-12 h-6 rounded-full p-1 flex-row items-center
           ${value ? 'bg-axia-green' : 'bg-gray-600'}
@@ -45,7 +48,7 @@ const Switch: React.FC<SwitchProps> = ({
             ${value ? 'ml-auto' : 'ml-0'}
           `}
         />
-      </TouchableOpacity>
+      </Pressable>
     </View>
   );
 };

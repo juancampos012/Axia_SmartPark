@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
 import Switch from '../../atoms/Switch';
@@ -190,7 +190,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
         </View>
 
         {/* Usuario desde */}
-        <View>
+        {/* <View>
           <Text className="text-white text-sm font-medium mb-2">
             Usuario desde
           </Text>
@@ -209,30 +209,30 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               </View>
             )}
           />
-        </View>
+        </View> */}
 
       </View>
 
       {/* Botones de acción */}
       {isEditing && (
         <View className="mt-8 flex-row space-x-4">
-          <TouchableOpacity
+          <Pressable
             onPress={handleSubmit(submitForm)}
             className="flex-1 bg-axia-green py-4 rounded-xl items-center justify-center mr-2"
           >
             <Text className="text-axia-black text-lg font-semibold">
               Guardar cambios
             </Text>
-          </TouchableOpacity>
+          </Pressable>
           
-          <TouchableOpacity
+          <Pressable
             onPress={handleCancelPress}
             className="flex-1 bg-transparent border-2 border-axia-green py-4 rounded-xl items-center justify-center ml-2"
           >
             <Text className="text-axia-green text-lg font-semibold">
               Cancelar
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 

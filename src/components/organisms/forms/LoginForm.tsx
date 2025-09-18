@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
@@ -33,7 +33,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       const authResponse = await loginAuth(data);
       const user = authResponse.data.user;
       Alert.alert("Bienvenido", `Hola ${user.name}`);
-      router.push('/home');
+      router.replace('/home');
       if (onSuccess) onSuccess(); // Si se pasa un callback para navegar
     } catch (error: any) {
       Alert.alert("Error", error.message || "Correo o contraseña incorrectos");
@@ -109,19 +109,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
       {/* Botones de redes sociales */}
       <View className="flex-row justify-between space-x-6 mb-8 px-8">
-        <TouchableOpacity
+        <Pressable
           onPress={onGooglePress}
           className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center mx-4"
         >
           <Ionicons name="logo-google" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        </Pressable>
 
-        <TouchableOpacity
+        <Pressable
           onPress={onFacebookPress}
           className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center mx-3"
         >
           <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
-        </TouchableOpacity>
+        </Pressable>
       </View>
 
       {/* Link para crear cuenta */}
@@ -129,11 +129,11 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Text className="text-axia-gray text-base">
           ¿Aún no tienes cuenta?{' '}
         </Text>
-        <TouchableOpacity onPress={onSignUpPress}>
+        <Pressable onPress={onSignUpPress}>
           <Text className="text-axia-green text-base font-semibold">
             Crear cuenta
           </Text>
-        </TouchableOpacity>
+        </Pressable>
       </View>
     </View>
   );
