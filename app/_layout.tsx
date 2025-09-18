@@ -23,5 +23,6 @@ export default function AppLayout() {
       <Stack.Screen name="payment" />
       <Stack.Screen name="reservation" />
     </Stack>
+    
   );
 }

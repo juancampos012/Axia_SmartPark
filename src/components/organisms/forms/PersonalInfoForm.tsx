@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
 import Switch from '../../atoms/Switch';
@@ -169,9 +169,9 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
           />
         </View>
 
-        {/* Estado activo */}
-        <View>
-          <Text className="text-white text-sm font-primary mb-3">
+        {/* <View>
+          <Text className="text-white text-sm font-medium mb-3">
+
             Estado de la cuenta
           </Text>
           <Controller
@@ -187,11 +187,10 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               />
             )}
           />
-        </View>
+        </View> */}
 
-        {/* Usuario desde */}
-        <View>
-          <Text className="text-white text-sm font-primary mb-2">
+        {/* <View>
+          <Text className="text-white text-sm font-medium mb-2">
             Usuario desde
           </Text>
           <Controller
@@ -209,30 +208,30 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
               </View>
             )}
           />
-        </View>
+        </View> */}
 
       </View>
 
       {/* Botones de acción */}
       {isEditing && (
         <View className="mt-8 flex-row space-x-4">
-          <TouchableOpacity
+          <Pressable
             onPress={handleSubmit(submitForm)}
             className="flex-1 bg-axia-green py-4 rounded-xl items-center justify-center mr-2"
           >
             <Text className="text-axia-black text-lg font-primaryBold">
               Guardar cambios
             </Text>
-          </TouchableOpacity>
+          </Pressable>
           
-          <TouchableOpacity
+          <Pressable
             onPress={handleCancelPress}
             className="flex-1 bg-transparent border-2 border-axia-green py-4 rounded-xl items-center justify-center ml-2"
           >
             <Text className="text-axia-green text-lg font-primaryBold">
               Cancelar
             </Text>
-          </TouchableOpacity>
+          </Pressable>
         </View>
       )}
 

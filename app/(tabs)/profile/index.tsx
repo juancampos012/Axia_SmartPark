@@ -1,9 +1,8 @@
-import React from 'react';
-import { View, Text, SafeAreaView, TouchableOpacity, ScrollView } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, SafeAreaView, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-// Usar iconos por defecto en lugar de imágenes
+import { fetchUserProfile } from '../../../libs/user';
 
 interface Car {
   id: string;
@@ -23,16 +22,27 @@ interface MenuItem {
 const Profile = () => {
   const router = useRouter();
 
-  const userProfile = {
-    name: "Fernando Alonso",
-  };
+  const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
+
+  useEffect(() => {
+    const loadProfile = async () => {
+      try {
+        const data = await fetchUserProfile();
+        setUserProfile(data); 
+      } catch (error) {
+        console.error("Error fetching profile:", error);
+      }
+    };
+
+    loadProfile();
+  }, []);
 
   const userCars: Car[] = [
     {
       id: '1',
       brand: 'Toyota',
-      model: 'Swift',
-      year: 2022,
+      model: 'Corolla',
+      year: 2020,
       plate: 'ABC 123',
     },
   ];
@@ -60,27 +70,20 @@ const Profile = () => {
   ];
 
   const handleMenuItemPress = (route: string) => {
-    console.log(`Menu item pressed: ${route}`);
-    // Navegar a la ruta correspondiente
     router.push(route as any);
   };
 
   const handleCarPress = (carId: string) => {
-    console.log(`Car pressed: ${carId}`);
-    // Navegar a los detalles del carro
-    router.push(`/(cars)/car-details/${carId}` as any);
+    // Hardcodeamos la ruta al detalle
+    router.push(`/cars/car-detail/${carId}` as any);
   };
 
   const handleViewAllCars = () => {
-    console.log('View all cars pressed');
-    // Navegar a la lista completa de carros
     router.push('/(cars)/my-cars');
   };
 
   const handleAddCar = () => {
-    console.log('Add car pressed');
-    // Navegar a agregar nuevo carro
-    router.push('/(cars)/add-car');
+    router.push('/cars/add-car');
   };
 
   return (
@@ -91,14 +94,12 @@ const Profile = () => {
           {/* Foto de perfil y nombre */}
           <View className="items-center mb-12">
             <View className="relative mb-6 mt-14">
-              {/* Número grande de fondo */}
               <View className="absolute inset-0 justify-center items-center">
                 <Text className="text-6xl font-secondary text-axia-darkGray opacity-30">
                   93
                 </Text>
               </View>
               
-              {/* Icono de perfil circular */}
               <View className="w-36 h-36 rounded-full border-2 border-axia-green bg-axia-darkGray items-center justify-center">
                 <Ionicons name="person" size={60} color="#FFFFFF" />
               </View>
@@ -107,13 +108,14 @@ const Profile = () => {
             {/* Nombre del usuario */}
             <Text className="text-white text-2xl font-primaryBold">
               {userProfile.name}
+
             </Text>
           </View>
 
           {/* Opciones del menú */}
           <View className="mb-8">
-            {menuItems.map((item, index) => (
-              <TouchableOpacity
+            {menuItems.map((item) => (
+              <Pressable
                 key={item.id}
                 onPress={() => handleMenuItemPress(item.route || '')}
                 className="flex-row items-center justify-between py-4 border-b border-axia-darkGray"
@@ -130,7 +132,7 @@ const Profile = () => {
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-              </TouchableOpacity>
+              </Pressable>
             ))}
           </View>
 
@@ -140,32 +142,29 @@ const Profile = () => {
               <Text className="text-white text-xl font-primaryBold">
                 Mis Carros
               </Text>
-              <TouchableOpacity
+              <Pressable
                 onPress={handleViewAllCars}
                 className="bg-axia-darkGray px-4 py-2 rounded-lg"
               >
                 <Text className="text-white text-sm font-primary">
                   Todos
                 </Text>
-              </TouchableOpacity>
+              </Pressable>
             </View>
 
-            {/* Lista de carros */}
             {userCars.length > 0 ? (
               <View>
                 {userCars.map((car) => (
-                  <TouchableOpacity
+                  <Pressable
                     key={car.id}
                     onPress={() => handleCarPress(car.id)}
                     className="bg-axia-darkGray rounded-xl p-4 mb-4"
                   >
                     <View className="flex-row items-center">
-                      {/* Icono del carro */}
                       <View className="w-20 h-16 rounded-lg bg-axia-gray items-center justify-center mr-4">
                         <Ionicons name="car-sport" size={24} color="#FFFFFF" />
                       </View>
                       
-                      {/* Información del carro */}
                       <View className="flex-1">
                         <Text className="text-white text-lg font-primaryBold">
                           {car.brand} {car.model}
@@ -178,24 +177,23 @@ const Profile = () => {
                         </Text>
                       </View>
                     </View>
-                  </TouchableOpacity>
+                  </Pressable>
                 ))}
               </View>
             ) : (
-              // Estado cuando no hay carros
               <View className="bg-axia-darkGray rounded-xl p-6 items-center">
                 <Ionicons name="car-outline" size={48} color="#9CA3AF" />
                 <Text className="text-axia-gray text-center mt-4 mb-4 font-primary">
                   Aún no tienes carros registrados
                 </Text>
-                <TouchableOpacity
+                <Pressable
                   onPress={handleAddCar}
                   className="bg-axia-green px-6 py-2 rounded-lg"
                 >
                   <Text className="text-axia-black font-primaryBold">
                     Agregar Carro
                   </Text>
-                </TouchableOpacity>
+                </Pressable>
               </View>
             )}
           </View>

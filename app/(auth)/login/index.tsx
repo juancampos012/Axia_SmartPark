@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, SafeAreaView, TouchableOpacity, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, Image, SafeAreaView, Pressable, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import LoginForm from '../../../src/components/organisms/forms/LoginForm';
@@ -9,8 +9,6 @@ const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Login = () => {
   const router = useRouter();
-
-  
 
   const handleGoogleLogin = () => {
     console.log('Google login pressed');
@@ -37,12 +35,12 @@ const Login = () => {
             
             {/* Header con botón de back */}
             <View className="flex-row items-start mb-4 mt-4">
-              <TouchableOpacity 
+              <Pressable 
                 onPress={handleGoBack}
                 className="mt-2"
               >
                 <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
-              </TouchableOpacity>
+              </Pressable>
               
               {/* Logo centrado */}
               <View className="flex-1 items-center">
