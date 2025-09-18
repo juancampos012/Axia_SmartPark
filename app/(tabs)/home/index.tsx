@@ -8,9 +8,8 @@ const home = () => {
     router.push('/');
   }
   return (
-    <View className="flex-1 items-center justify-center bg-purple-100">
-      <Text className="text-2xl font-bold text-purple-700">Inicio</Text>
-      <Button title="Ir a Inicio" onPress={home}></Button>
+    <View className="flex-1 items-center justify-center bg-axia-black">
+      <Text className="text-2xl font-secondary text-axia-green">Inicio</Text>
     </View>
   )
 }

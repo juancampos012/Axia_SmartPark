@@ -299,8 +299,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         <Text className="text-axia-gray text-base">
           ¿Ya tienes una cuenta?{' '}
         </Text>
+
         <Pressable onPress={onLoginPress}>
-          <Text className="text-axia-green text-base font-semibold">
+          <Text className="text-axia-green text-base font-primaryBold">
             Iniciar sesión
           </Text>
         </Pressable>

@@ -130,7 +130,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
           ¿Aún no tienes cuenta?{' '}
         </Text>
         <Pressable onPress={onSignUpPress}>
-          <Text className="text-axia-green text-base font-semibold">
+              <Text className="text-axia-green text-base font-primaryBold">
             Crear cuenta
           </Text>
         </Pressable>

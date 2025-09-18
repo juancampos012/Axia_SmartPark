@@ -3,8 +3,8 @@ import { View, Text } from 'react-native'
 
 const settings = () => {
   return (
-    <View className="flex-1 items-center justify-center bg-gray-100">
-      <Text className="text-2xl font-bold text-gray-700">Configuración</Text>
+    <View className="flex-1 items-center justify-center bg-axia-black">
+      <Text className="text-2xl font-secondary text-axia-green">Configuración</Text>
     </View>
   )
 }
