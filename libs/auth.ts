@@ -206,6 +206,9 @@ export const logout = async (): Promise<void> => {
         
         // Limpiar tokens y datos locales
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
+
+        const storedTokens = await AsyncStorage.getItem("accessToken");
+        console.log("Token eliminado en AsyncStorage:", storedTokens);
     } catch (error) {
         console.error('Error en logout:', error);
         // Limpiar datos locales aunque falle el logout en el servidor
