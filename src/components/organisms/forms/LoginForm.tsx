@@ -129,7 +129,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Text className="text-axia-gray text-base">
           ¿Aún no tienes cuenta?{' '}
         </Text>
-        <Pressable onPress={onSignUpPress}>
+        <Pressable onPress={() => router.push('/register')}>
               <Text className="text-axia-green text-base font-primaryBold">
             Crear cuenta
           </Text>

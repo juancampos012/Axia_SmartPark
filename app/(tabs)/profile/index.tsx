@@ -38,13 +38,13 @@ const Profile = () => {
   }, []);
 
   const userCars: Car[] = [
-    {
+    /* {
       id: '1',
       brand: 'Toyota',
       model: 'Corolla',
       year: 2020,
       plate: 'ABC 123',
-    },
+    }, */
   ];
 
   // Opciones del menú de perfil
@@ -74,8 +74,7 @@ const Profile = () => {
   };
 
   const handleCarPress = (carId: string) => {
-    // Hardcodeamos la ruta al detalle
-    router.push(`/cars/car-detail/${carId}` as any);
+    router.push(`/cars/detail/${carId}` as any);
   };
 
   const handleViewAllCars = () => {
@@ -83,7 +82,7 @@ const Profile = () => {
   };
 
   const handleAddCar = () => {
-    router.push('/cars/add-car');
+    router.push('/cars/add');
   };
 
   return (
@@ -107,7 +106,7 @@ const Profile = () => {
             
             {/* Nombre del usuario */}
             <Text className="text-white text-2xl font-primaryBold">
-              {userProfile.name}
+              {userProfile?.name}
 
             </Text>
           </View>

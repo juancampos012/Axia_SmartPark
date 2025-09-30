@@ -9,9 +9,12 @@ const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Register = () => {
   const router = useRouter();
+  const onLoginPress = () => {
+    router.push('/login');
+  }
 
   const handleGoBack = () => {
-    router.back();
+    router.push("/");
   };
 
   return (
@@ -48,10 +51,7 @@ const Register = () => {
               />  
 
               {/* Formulario */}
-              <RegisterForm 
-                onSubmit={() => {}}
-                onLoginPress={() => {}}
-              />
+              <RegisterForm onSubmit={() => {}} onLoginPress={onLoginPress} />
             </View>
           </View>
         </ScrollView>

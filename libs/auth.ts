@@ -2,7 +2,7 @@ import { LoginDTO, RegisterDTO, ForgotPasswordDTO, ResetPasswordDTO, LoginRespon
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = ENV_API_BASE_URL || 'http://172.20.10.4:3001/api';
 
 // Función auxiliar para manejar respuestas
 const handleResponse = async (response: Response) => {
@@ -75,6 +75,7 @@ const saveUserData = async (user: any) => {
 // Login
 export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
   try {
+    console.log(API_BASE_URL);
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -206,6 +207,8 @@ export const logout = async (): Promise<void> => {
         
         // Limpiar tokens y datos locales
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
+        const storedTokens = await AsyncStorage.getItem("accessToken");
+        console.log("Token eliminado en AsyncStorage:", storedTokens);
     } catch (error) {
         console.error('Error en logout:', error);
         // Limpiar datos locales aunque falle el logout en el servidor

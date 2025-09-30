@@ -21,7 +21,7 @@ const Login = () => {
   };
 
   const handleGoBack = () => {
-    router.back();
+    router.push('/');
   };
 
   return (
