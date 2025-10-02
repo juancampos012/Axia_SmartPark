@@ -30,13 +30,41 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const submitForm = async (data: LoginDTO) => {
     try {
+      console.log("Iniciando login con email:", data.email);
       const authResponse = await loginAuth(data);
       const user = authResponse.data.user;
       Alert.alert("Bienvenido", `Hola ${user.name}`);
       router.push('/home');
-      if (onSuccess) onSuccess(); // Si se pasa un callback para navegar
+      if (onSuccess) onSuccess();
     } catch (error: any) {
-      Alert.alert("Error", error.message || "Correo o contraseña incorrectos");
+      console.error("Error en login form:", error);
+      
+      let errorMessage = error.message || "Correo o contraseña incorrectos";
+      
+      // Mostrar información adicional si está disponible
+      if (error.details) {
+        console.log("Detalles del error:", error.details);
+        
+        // Si hay información sobre intentos de login
+        if (error.details.loginAttempts !== undefined) {
+          const attempts = error.details.loginAttempts;
+          const maxAttempts = error.details.maxAttempts;
+          
+          if (maxAttempts && attempts >= maxAttempts) {
+            errorMessage = `Cuenta bloqueada por demasiados intentos fallidos. ${error.details.lockTime ? `Inténtalo de nuevo en ${Math.ceil(error.details.lockTime / 60)} minutos.` : 'Contacta al soporte.'}`;
+          } else if (maxAttempts) {
+            const remainingAttempts = maxAttempts - attempts;
+            errorMessage += `\n\nIntentos restantes: ${remainingAttempts}`;
+          }
+        }
+        
+        // Si hay tiempo de bloqueo
+        if (error.details.retryAfter) {
+          errorMessage += `\n\nReintentar en: ${Math.ceil(error.details.retryAfter / 60)} minutos`;
+        }
+      }
+      
+      Alert.alert("Error de inicio de sesión", errorMessage);
     }
   };
 
