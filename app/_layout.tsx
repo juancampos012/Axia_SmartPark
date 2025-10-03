@@ -1,16 +1,24 @@
-
-import { Drawer } from 'expo-router/drawer';
+// app/_layout.tsx
+import { Stack } from 'expo-router';
+import { useFonts, Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
+import { Poppins_500Medium, Poppins_700Bold } from "@expo-google-fonts/poppins";
 import "../global.css";
 
 export default function AppLayout() {
+  const [fontsLoaded] = useFonts({
+    "Inter-Regular": Inter_400Regular,
+    "Inter-SemiBold": Inter_600SemiBold,
+    "Poppins-Medium": Poppins_500Medium,
+    "Poppins-Bold": Poppins_700Bold,
+  });
+
+  if (!fontsLoaded) return null;
+
   return (
-    <Drawer>
-      <Drawer.Screen name="index" options={{ title: 'Inicio', drawerLabel:'Inicio' }} />
-      <Drawer.Screen name="(home)" options={{ title: 'Home', drawerLabel: 'Home' }} />
-      <Drawer.Screen name="parkings" options={{ title: 'Estacionamientos' }} />
-      <Drawer.Screen name="payment" options={{ title: 'Pagos' }} />
-      <Drawer.Screen name="reservation" options={{ title: 'Reservas' }} />
-      <Drawer.Screen name="tabs" options={{ title: 'Más' }} />
-    </Drawer>
+    <Stack screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="index" />
+      <Stack.Screen name="(auth)" />
+    </Stack>
+    
   );
 }
