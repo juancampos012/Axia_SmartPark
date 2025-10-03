@@ -45,7 +45,7 @@ const Input: React.FC<InputProps> = ({
         `}
       >
         <TextInput
-          className="px-4 py-4 text-white text-base"
+          className="px-4 py-4 text-white text-base font-primary"
           placeholder={placeholder}
           placeholderTextColor={!editable ? '#666' : '#8C8C8C'}
           value={value}
@@ -83,7 +83,7 @@ const Input: React.FC<InputProps> = ({
       </View>
 
       {error && (
-        <Text className="text-red-500 text-sm mt-1 ml-1">{error}</Text>
+        <Text className="text-error text-sm mt-1 ml-1 font-primary">{error}</Text>
       )}
     </View>
   );

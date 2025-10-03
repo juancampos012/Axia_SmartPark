@@ -2,22 +2,51 @@ import { LoginDTO, RegisterDTO, ForgotPasswordDTO, ResetPasswordDTO, LoginRespon
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = ENV_API_BASE_URL || 'http://172.20.10.4:3001/api';
 
 // Función auxiliar para manejar respuestas
 const handleResponse = async (response: Response) => {
-    const data = await response.json();
+    let data;
+    
+    try {
+        const responseText = await response.text();
+        console.log("Raw response text:", responseText);
+        
+        // Intentar parsear como JSON
+        data = responseText ? JSON.parse(responseText) : {};
+    } catch (parseError) {
+        console.error("Error parsing JSON response:", parseError);
+        throw new Error(`Error del servidor: respuesta inválida (${response.status})`);
+    }
+    
+    console.log("Parsed response data:", data);
+    console.log("Response status:", response.status);
+    console.log("Response ok:", response.ok);
     
     if (!response.ok) {
         // Handle specific HTTP status codes
         let errorMessage = data.message || 'Error en la solicitud';
+        let errorDetails = data;
         
         switch (response.status) {
             case 400:
                 errorMessage = data.message || 'Datos de entrada inválidos';
                 break;
             case 401:
-                errorMessage = 'Credenciales incorrectas';
+                // Para errores de autenticación, preservar información adicional como loginAttempts
+                errorMessage = data.message || 'Credenciales incorrectas';
+                if (data.loginAttempts !== undefined) {
+                    errorDetails.loginAttempts = data.loginAttempts;
+                }
+                if (data.maxAttempts !== undefined) {
+                    errorDetails.maxAttempts = data.maxAttempts;
+                }
+                if (data.lockTime !== undefined) {
+                    errorDetails.lockTime = data.lockTime;
+                }
+                if (data.remainingAttempts !== undefined) {
+                    errorDetails.remainingAttempts = data.remainingAttempts;
+                }
                 break;
             case 409:
                 // Conflict - usually means duplicate email or phone
@@ -38,7 +67,10 @@ const handleResponse = async (response: Response) => {
                 }
                 break;
             case 429:
-                errorMessage = 'Demasiados intentos. Intenta de nuevo más tarde';
+                errorMessage = data.message || 'Demasiados intentos. Intenta de nuevo más tarde';
+                if (data.retryAfter) {
+                    errorDetails.retryAfter = data.retryAfter;
+                }
                 break;
             case 500:
                 errorMessage = 'Error interno del servidor. Intenta de nuevo más tarde';
@@ -47,7 +79,12 @@ const handleResponse = async (response: Response) => {
                 errorMessage = data.message || `Error: ${response.status}`;
         }
         
-        throw new Error(errorMessage);
+        const error = new Error(errorMessage);
+        // Adjuntar información adicional al error
+        (error as any).details = errorDetails;
+        (error as any).status = response.status;
+        (error as any).rawData = data;
+        throw error;
     }
     
     return data;
@@ -75,6 +112,9 @@ const saveUserData = async (user: any) => {
 // Login
 export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
   try {
+    console.log("Enviando petición de login a:", `${API_BASE_URL}/auth/login`);
+    console.log("Datos enviados:", { email: body.email, password: "***" });
+    
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -83,9 +123,14 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
       body: JSON.stringify(body),
     });
 
-    const dataResponse = await handleResponse(response); // <- parsea el JSON
+    console.log("Respuesta del servidor - Status:", response.status);
+    console.log("Respuesta del servidor - Headers:", Object.fromEntries(response.headers.entries()));
 
-    if (!dataResponse.data.tokens.accessToken || !dataResponse.data.user) {
+    const dataResponse = await handleResponse(response);
+    console.log("Respuesta del backend:", dataResponse);
+    console.log("User data:", dataResponse.data?.user);
+
+    if (!dataResponse.data?.tokens?.accessToken || !dataResponse.data?.user) {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");
     }
 
@@ -101,8 +146,17 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
     console.log("Token guardado en AsyncStorage:", storedTokens);
 
     return dataResponse;
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error en login:", error);
+    console.error("Error details:", error.details);
+    console.error("Error status:", error.status);
+    
+    // Si hay información adicional sobre intentos de login, incluirla en el error
+    if (error.details?.loginAttempts !== undefined) {
+      console.log(`Intentos de login: ${error.details.loginAttempts}/${error.details.maxAttempts || 'N/A'}`);
+      error.message += ` (Intento ${error.details.loginAttempts}${error.details.maxAttempts ? `/${error.details.maxAttempts}` : ''})`;
+    }
+    
     throw error;
   }
 };
@@ -206,6 +260,8 @@ export const logout = async (): Promise<void> => {
         
         // Limpiar tokens y datos locales
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
+        const storedTokens = await AsyncStorage.getItem("accessToken");
+        console.log("Token eliminado en AsyncStorage:", storedTokens);
     } catch (error) {
         console.error('Error en logout:', error);
         // Limpiar datos locales aunque falle el logout en el servidor

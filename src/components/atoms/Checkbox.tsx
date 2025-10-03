@@ -1,24 +1,15 @@
 // components/atoms/Checkbox.tsx
 import React, { useEffect, useState } from "react";
-import {
-  Pressable,
-  View,
-  Text,
-  GestureResponderEvent,
-  ViewStyle,
-  TextStyle,
-} from "react-native";
-import { Ionicons } from "@expo/vector-icons";
 
 export interface CheckboxProps {
   value?: boolean;
   defaultValue?: boolean;
   onValueChange?: (next: boolean) => void;
   label?: string;
-  size?: number; // px
-  color?: string; // hex or tailwind color (used for icon/background via inline style)
-  boxStyle?: ViewStyle;
-  labelStyle?: TextStyle;
+  size?: "sm" | "md" | "lg"; // Tailwind sizes instead of px
+  color?: "green" | "purple" | "blue"; // Axia color options
+  boxStyle?: string; // Tailwind classes
+  labelStyle?: string; // Tailwind classes
   disabled?: boolean;
   error?: string;
   pressLabel?: boolean;
@@ -29,10 +20,10 @@ const Checkbox: React.FC<CheckboxProps> = ({
   defaultValue = false,
   onValueChange,
   label,
-  size = 22,
-  color = "axia-green",
-  boxStyle,
-  labelStyle,
+  size = "md",
+  color = "green",
+  boxStyle = "",
+  labelStyle = "",
   disabled = false,
   error,
   pressLabel = true,
@@ -46,62 +37,107 @@ const Checkbox: React.FC<CheckboxProps> = ({
 
   const checked = isControlled ? Boolean(value) : internal;
 
-  const toggle = (evt?: GestureResponderEvent) => {
+  const toggle = () => {
     if (disabled) return;
     const next = !checked;
     if (!isControlled) setInternal(next);
     onValueChange?.(next);
   };
 
-  const boxBorderColor = checked ? color : "#CBD5E1"; // tailwind gray-300
-  const boxBgColor = checked ? color : "transparent";
+  // Size mappings
+  const sizeClasses = {
+    sm: "w-4 h-4 rounded",
+    md: "w-5 h-5 rounded-md",
+    lg: "w-6 h-6 rounded-md"
+  };
+
+  const iconSizes = {
+    sm: "w-3 h-3",
+    md: "w-4 h-4", 
+    lg: "w-5 h-5"
+  };
+
+  // Color mappings for Axia palette
+  const colorClasses = {
+    green: {
+      checked: "border-axia-green bg-axia-green",
+      unchecked: "border-axia-gray hover:border-axia-darkGray",
+    },
+    purple: {
+      checked: "border-axia-purple bg-axia-purple", 
+      unchecked: "border-axia-gray hover:border-axia-darkGray",
+    },
+    blue: {
+      checked: "border-axia-blue bg-axia-blue",
+      unchecked: "border-axia-gray hover:border-axia-darkGray",
+    }
+  };
+
+  const checkboxClasses = `
+    flex items-center justify-center
+    border-2 transition-all duration-200
+    ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+    ${checked ? colorClasses[color].checked : colorClasses[color].unchecked}
+    ${sizeClasses[size]}
+    ${boxStyle}
+  `;
+
+  const labelClasses = `
+    text-sm transition-colors duration-200
+    ${disabled ? "text-axia-gray cursor-not-allowed" : "text-axia-black cursor-pointer"}
+    ${labelStyle}
+  `;
 
   return (
-    <View className="flex-col">
-      <View className="flex-row items-center">
-        <Pressable
-          onPress={toggle}
-          accessibilityRole="checkbox"
-          accessibilityState={{ checked, disabled }}
-          accessibilityLabel={label ?? "Checkbox"}
-          className={`rounded ${disabled ? "opacity-50" : "opacity-100"}`}
-          style={[
-            {
-              width: size,
-              height: size,
-              borderRadius: Math.max(4, Math.round(size * 0.18)),
-              borderWidth: 2,
-              alignItems: "center",
-              justifyContent: "center",
-              borderColor: boxBorderColor,
-              backgroundColor: boxBgColor,
-            },
-            boxStyle,
-          ]}
+    <div className="flex flex-col">
+      <div className="flex items-center">
+        {/* Checkbox Button */}
+        <button
+          type="button"
+          onClick={toggle}
+          disabled={disabled}
+          className={checkboxClasses}
+          role="checkbox"
+          aria-checked={checked}
+          aria-label={label || "Checkbox"}
         >
-          {checked && <Ionicons name="checkmark" size={Math.round(size * 0.7)} color="#fff" />}
-        </Pressable>
+          {checked && (
+            <svg 
+              className={`${iconSizes[size]} text-axia-white`}
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={3} 
+                d="M5 13l4 4L19 7" 
+              />
+            </svg>
+          )}
+        </button>
 
-        {label ? (
-          <Pressable
-            onPress={pressLabel ? toggle : undefined}
+        {/* Label */}
+        {label && (
+          <button
+            type="button"
+            onClick={pressLabel ? toggle : undefined}
             disabled={!pressLabel || disabled}
-            className="ml-3"
-            style={labelStyle}
+            className={`ml-3 text-left ${labelClasses}`}
           >
-            <Text className={`text-sm ${disabled ? "text-gray-400" : "text-gray-700"}`}>
-              {label}
-            </Text>
-          </Pressable>
-        ) : null}
-      </View>
+            {label}
+          </button>
+        )}
+      </div>
 
-      {error ? (
-        <Text className="text-red-600 text-xs mt-2 ml-1">
+      {/* Error Message */}
+      {error && (
+        <p className="text-axia-error text-xs mt-1 ml-1">
           {error}
-        </Text>
-      ) : null}
-    </View>
+        </p>
+      )}
+    </div>
   );
 };
 

@@ -1,0 +1,76 @@
+LICENCIA DE SOFTWARE PROPIETARIO
+==================================
+
+Copyright (c) 2025 Axia SmartPark - Todos los derechos reservados
+
+AVISO DE DERECHOS DE AUTOR
+---------------------------
+Este software y su código fuente son propiedad exclusiva de los autores originales
+del proyecto Axia SmartPark. Todos los derechos están reservados.
+
+AUTORES:
+- Juan José Campos
+- Santiago Jiménez 
+
+TÉRMINOS Y CONDICIONES
+-----------------------
+
+1. PROPIEDAD INTELECTUAL
+   Este software, incluyendo todo el código fuente, documentación, diseño, gráficos,
+   y cualquier otro material relacionado, es propiedad exclusiva de los autores
+   mencionados anteriormente.
+
+2. RESTRICCIONES DE USO
+   Queda ESTRICTAMENTE PROHIBIDO:
+   a) Copiar, modificar, fusionar, publicar o distribuir este software
+   b) Sublicenciar o vender copias del software
+   c) Realizar ingeniería inversa, descompilar o desensamblar el software
+   d) Usar el software con fines comerciales sin autorización expresa
+   e) Eliminar o alterar cualquier aviso de derechos de autor o propiedad
+
+3. ACCESO Y VISUALIZACIÓN
+   El acceso a este código fuente se proporciona únicamente con fines de:
+   - Revisión académica
+   - Evaluación del proyecto
+   - Demostración de habilidades técnicas
+   
+   Este acceso NO constituye una licencia para usar, copiar o modificar el software.
+
+4. USO AUTORIZADO
+   Cualquier uso de este software requiere autorización expresa y por escrito
+   de TODOS los autores mencionados anteriormente.
+
+5. CONFIDENCIALIDAD
+   Este software contiene información confidencial y propietaria. Cualquier
+   persona con acceso a este código debe mantener su confidencialidad y no
+   divulgarlo a terceros.
+
+6. GARANTÍAS Y RESPONSABILIDAD
+   Este software se proporciona "TAL CUAL", sin garantías de ningún tipo,
+   expresas o implícitas. Los autores no se responsabilizan por daños directos,
+   indirectos, incidentales o consecuentes que puedan surgir del uso de este software.
+
+7. VIOLACIÓN DE LA LICENCIA
+   La violación de cualquiera de estos términos resultará en:
+   - Revocación inmediata de cualquier acceso al software
+   - Acciones legales según las leyes de derechos de autor aplicables
+   - Reclamación por daños y perjuicios
+
+8. LEY APLICABLE
+   Esta licencia se regirá e interpretará de acuerdo con las leyes de Colombia
+   y las leyes internacionales de derechos de autor.
+
+9. CONTACTO
+   Para solicitar permisos o aclaraciones sobre esta licencia, contactar a:
+   GitHub: @juancampos012
+   Repositorio: github.com/juancampos012/Axia_SmartPark
+
+RECONOCIMIENTO
+--------------
+Al acceder, ver o interactuar con este software, usted reconoce que ha leído,
+comprendido y acepta estar sujeto a los términos de esta licencia.
+
+================================================================================
+ATENCIÓN: El uso no autorizado de este software constituye una violación de
+los derechos de autor y puede resultar en consecuencias legales.
+================================================================================
