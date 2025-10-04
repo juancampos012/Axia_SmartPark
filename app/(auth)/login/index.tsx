@@ -1,5 +1,6 @@
 import React from 'react';
-import { View, Text, Image, SafeAreaView, Pressable, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, Image, Pressable, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import LoginForm from '../../../components/organisms/forms/LoginForm';
@@ -21,7 +22,7 @@ const Login = () => {
   };
 
   const handleGoBack = () => {
-    router.push('/');
+    router.replace('/');
   };
 
   return (

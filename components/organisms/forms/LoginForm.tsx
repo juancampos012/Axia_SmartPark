@@ -30,47 +30,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const submitForm = async (data: LoginDTO) => {
     try {
-      console.log("Iniciando login con email:", data.email);
       const authResponse = await loginAuth(data);
       const user = authResponse.data.user;
       Alert.alert("Bienvenido", `Hola ${user.name}`);
-      router.replace('/home');
-      if (onSuccess) onSuccess(); // Si se pasa un callback para navegar
+      router.navigate('/(tabs)');
+      if (onSuccess) onSuccess();
     } catch (error: any) {
-      console.error("Error en login form:", error);
-      
-      let errorMessage = error.message || "Correo o contraseña incorrectos";
-      
-      // Mostrar información adicional si está disponible
-      if (error.details) {
-        console.log("Detalles del error:", error.details);
-        
-        // Si hay información sobre intentos de login
-        if (error.details.loginAttempts !== undefined) {
-          const attempts = error.details.loginAttempts;
-          const maxAttempts = error.details.maxAttempts;
-          
-          if (maxAttempts && attempts >= maxAttempts) {
-            errorMessage = `Cuenta bloqueada por demasiados intentos fallidos. ${error.details.lockTime ? `Inténtalo de nuevo en ${Math.ceil(error.details.lockTime / 60)} minutos.` : 'Contacta al soporte.'}`;
-          } else if (maxAttempts) {
-            const remainingAttempts = maxAttempts - attempts;
-            errorMessage += `\n\nIntentos restantes: ${remainingAttempts}`;
-          }
-        }
-        
-        // Si hay tiempo de bloqueo
-        if (error.details.retryAfter) {
-          errorMessage += `\n\nReintentar en: ${Math.ceil(error.details.retryAfter / 60)} minutos`;
-        }
-      }
-      
-      Alert.alert("Error de inicio de sesión", errorMessage);
+      console.error(error);
+      Alert.alert("Error de inicio de sesión", error.message || "Correo o contraseña incorrectos");
     }
   };
 
   return (
     <View className="w-full px-6">
-      {/* Input Email */}
       <Controller
         control={control}
         name="email"
@@ -93,13 +65,10 @@ const LoginForm: React.FC<LoginFormProps> = ({
         )}
       />
 
-      {/* Input Password */}
       <Controller
         control={control}
         name="password"
-        rules={{
-          required: 'La contraseña es obligatoria',
-        }}
+        rules={{ required: 'La contraseña es obligatoria' }}
         render={({ field: { onChange, value } }) => (
           <Input
             placeholder="Contraseña"
@@ -112,15 +81,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         )}
       />
 
-      {/* Mostrar el primer error */}
-      {errors.password && (
-        <Text className="text-red-500">
-          {errors.password.message ||
-            (errors.password.types && Object.values(errors.password.types)[0])}
-        </Text>
-      )}
-
-      {/* Botón de inicio de sesión */}
       <Button
         title="Iniciar sesión"
         onPress={handleSubmit(submitForm)}
@@ -128,39 +88,32 @@ const LoginForm: React.FC<LoginFormProps> = ({
         className="w-full mt-4"
       />
 
-      {/* Separador */}
       <View className="flex-row items-center my-8">
         <View className="flex-1 h-px bg-axia-gray" />
         <Text className="px-4 text-axia-gray text-sm">O ingresa con</Text>
         <View className="flex-1 h-px bg-axia-gray" />
       </View>
 
-      {/* Botones de redes sociales */}
       <View className="flex-row justify-between space-x-6 mb-8 px-8">
         <Pressable
           onPress={onGooglePress}
-          className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center mx-4"
+          className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center"
         >
           <Ionicons name="logo-google" size={24} color="#FFFFFF" />
         </Pressable>
 
         <Pressable
           onPress={onFacebookPress}
-          className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center mx-3"
+          className="bg-axia-darkGray p-4 rounded-lg flex-1 items-center"
         >
           <Ionicons name="logo-facebook" size={24} color="#FFFFFF" />
         </Pressable>
       </View>
 
-      {/* Link para crear cuenta */}
       <View className="flex-row justify-center items-center">
-        <Text className="text-axia-gray text-base">
-          ¿Aún no tienes cuenta?{' '}
-        </Text>
+        <Text className="text-axia-gray text-base">¿Aún no tienes cuenta? </Text>
         <Pressable onPress={() => router.push('/register')}>
-              <Text className="text-axia-green text-base font-primaryBold">
-            Crear cuenta
-          </Text>
+          <Text className="text-axia-green text-base font-primaryBold">Crear cuenta</Text>
         </Pressable>
       </View>
     </View>

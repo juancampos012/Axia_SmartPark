@@ -1,27 +1,28 @@
 import React from 'react';
-import { View, Image, ScrollView, SafeAreaView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { View, Image, ScrollView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import RegisterForm from '../../../components/organisms/forms/RegisterForm';
 
-// Importar el logo
 const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Register = () => {
   const router = useRouter();
+
   const onLoginPress = () => {
     router.push('/login');
-  }
+  };
 
   const handleGoBack = () => {
-    router.push("/");
+    router.replace('/');
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-axia-black">
+    <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior={Platform.OS === "ios" ? "padding" : undefined}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="flex-1 min-h-screen px-4 py-8">
@@ -36,8 +37,7 @@ const Register = () => {
               >
                 <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
               </Pressable>
-              
-              {/* Spacer para balance */}
+
               <View className="flex-1" />
             </View>
 
@@ -46,7 +46,7 @@ const Register = () => {
               {/* Logo */}
               <Image
                 source={AxiaSmartParkLogo}
-                className="w-72 h-72 mb-8 mt-[-100]"
+                className="w-72 h-72 mb-8"
                 resizeMode="contain"
               />  
 
