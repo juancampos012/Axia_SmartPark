@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, Pressable, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import PersonalInfoForm from '../../../../src/components/organisms/forms/PersonalInfoForm';
+import PersonalInfoForm from '../../../../components/organisms/forms/PersonalInfoForm';
 import { useForm } from 'react-hook-form';
 import { fetchUserProfile, updateUserProfile, deleteUserAccount } from '../../../../libs/user';
 

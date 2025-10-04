@@ -4,8 +4,8 @@ import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
-import { LoginDTO } from '../../../../interfaces/Auth';
-import { loginAuth } from '../../../../libs/auth';
+import { LoginDTO } from '../../../interfaces/Auth';
+import { loginAuth } from '../../../libs/auth';
 import { router } from 'expo-router';
 
 interface LoginFormProps {

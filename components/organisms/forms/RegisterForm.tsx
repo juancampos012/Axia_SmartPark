@@ -4,8 +4,8 @@ import { useForm, Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
 import Checkbox from '../../atoms/Checkbox';
-import { registerAuth } from '../../../../libs/auth';
-import type { RegisterDTO } from '../../../../interfaces/Auth';
+import { registerAuth } from '../../../libs/auth';
+import type { RegisterDTO } from '../../../interfaces/Auth';
 
 interface OriginalFormValues {
   firstName: string;

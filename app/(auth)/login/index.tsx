@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Text, Image, SafeAreaView, Pressable, KeyboardAvoidingView, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import LoginForm from '../../../src/components/organisms/forms/LoginForm';
+import LoginForm from '../../../components/organisms/forms/LoginForm';
 
 // Importar el logo
 const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
