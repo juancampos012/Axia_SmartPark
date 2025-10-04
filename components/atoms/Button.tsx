@@ -3,7 +3,7 @@ import { ActivityIndicator, Text, View, Pressable } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
 
 interface ButtonProps {
-  title: string;
+  title: string | React.ReactNode; // Cambiar para aceptar ReactNode
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'small' | 'medium' | 'large';
@@ -32,16 +32,26 @@ const Button: React.FC<ButtonProps> = ({
     }
   };
 
-  const content = (
-    <View className="flex-row items-center justify-center px-6">
-      {loading ? (
-        <ActivityIndicator color="#fff" size="small" />
-      ) : (
-        <Text className={`font-primaryBold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
+  const renderContent = () => {
+    if (loading) {
+      return <ActivityIndicator color="#fff" size="small" />;
+    }
 
+    if (typeof title === 'string') {
+      return (
+        <Text className={`font-primaryBold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
           {title}
         </Text>
-      )}
+      );
+    }
+
+    // Si title es un ReactNode, lo renderizamos directamente
+    return title;
+  };
+
+  const content = (
+    <View className="flex-row items-center justify-center px-6">
+      {renderContent()}
     </View>
   );
 
