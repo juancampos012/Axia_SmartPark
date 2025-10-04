@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
+import { View, Text, TouchableOpacity, Image, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../../atoms/Card';
 import Rating from '../../atoms/Rating';
 import Distance from '../../atoms/Distance';
-import Badge from '../../atoms/Badge';
+
 
 export interface Parking {
   id: string;
@@ -30,9 +30,9 @@ interface ParkingCardProps {
 const ParkingCard: React.FC<ParkingCardProps> = ({ parking, onPress, onFavoritePress }) => {
   return (
     <Card className="mb-4">
-      <TouchableOpacity 
+      <Pressable 
         onPress={() => onPress(parking.id)}
-        className="flex-row"
+        className="flex-row active:scale-95"
       >
         {/* Imagen del parqueadero */}
         <View className="w-20 h-20 rounded-lg bg-axia-gray mr-4 overflow-hidden items-center justify-center">
@@ -57,16 +57,16 @@ const ParkingCard: React.FC<ParkingCardProps> = ({ parking, onPress, onFavoriteP
               <Rating rating={parking.rating} />
               
               {/* Botón de favorito */}
-              <TouchableOpacity 
+              <Pressable 
                 onPress={() => onFavoritePress?.(parking.id)}
-                className="ml-3 p-1"
+                className="ml-3 p-1 active:scale-65"
               >
                 <Ionicons 
                   name={parking.isFavorite ? "heart" : "heart-outline"} 
                   size={20} 
                   color={parking.isFavorite ? "#dc2626" : "#8C8C8C"} 
                 />
-              </TouchableOpacity>
+              </Pressable>
             </View>
           </View>
 
@@ -97,7 +97,7 @@ const ParkingCard: React.FC<ParkingCardProps> = ({ parking, onPress, onFavoriteP
         <View className="ml-2 justify-center">
           <Ionicons name="chevron-forward" size={20} color="#8C8C8C" />
         </View>
-      </TouchableOpacity>
+      </Pressable>
     </Card>
   );
 };
