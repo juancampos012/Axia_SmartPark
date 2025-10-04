@@ -10,8 +10,8 @@ const AxiaSmartParkLogo = require('../assets/axia-sp1.png');
 export default function WelcomeScreen() {
   const router = useRouter();
 
-  const handleLoginPress = () => router.replace('/(auth)/login');
-  const handleRegisterPress = () => router.replace('/(auth)/register');
+  const handleLoginPress = () => router.push('/(auth)/login');
+  const handleRegisterPress = () => router.push('/(auth)/register');
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black">

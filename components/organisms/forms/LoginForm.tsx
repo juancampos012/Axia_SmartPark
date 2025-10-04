@@ -30,10 +30,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const submitForm = async (data: LoginDTO) => {
     try {
-      const authResponse = await loginAuth(data);
-      const user = authResponse.data.user;
-      Alert.alert("Bienvenido", `Hola ${user.name}`);
-      router.navigate('/(tabs)');
+      await loginAuth(data);
+      router.dismissAll();
+      router.replace('/(tabs)/home');
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error(error);

@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, SafeAreaView, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -56,7 +57,7 @@ export default function CarDetails() {
       <ScrollView className="flex-1 px-6 py-8">
         {/* Header con botón de regresar */}
         <View className="flex-row items-center mb-8">
-          <Pressable onPress={() => router.push('/profile/')} className="mr-4">
+          <Pressable onPress={() => router.back()} className="mr-4">
             <Ionicons name="chevron-back" size={28} color="#FFFFFF" />
           </Pressable>
           <Text className="text-white text-2xl font-semibold">Detalle del Carro</Text>
@@ -78,10 +79,7 @@ export default function CarDetails() {
 
         {/* Opciones */}
         <View className="mt-8">
-          <Pressable
-            onPress={() => router.push('/profile/')}
-            className="bg-axia-green px-6 py-3 rounded-lg items-center"
-          >
+          <Pressable onPress={() => router.back()} className="bg-axia-green px-6 py-3 rounded-lg items-center">
             <Text className="text-axia-black font-semibold">Volver a Mis Carros</Text>
           </Pressable>
         </View>

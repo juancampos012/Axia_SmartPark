@@ -10,7 +10,7 @@ export default function TabsLayout() {
         tabBarInactiveTintColor: '#8C8C8C',
         tabBarStyle: { 
           backgroundColor: '#0F1115', 
-          borderTopColor: '#1a1f29', 
+          borderTopColor: '', 
           height: 90, 
           paddingBottom: 8, 
         },
@@ -37,8 +37,6 @@ export default function TabsLayout() {
       />
       <Tabs.Screen name="parkings/[id]/index" options={{ href: null }} />
       <Tabs.Screen name="parkings/[id]/reserve" options={{ href: null }} />
-      <Tabs.Screen name="cars/add/index" options={{ href: null }} />
-      <Tabs.Screen name="cars/detail/[carId]" options={{ href: null }} />
       <Tabs.Screen
         name="reservations/index"
         options={{
@@ -53,8 +51,10 @@ export default function TabsLayout() {
       <Tabs.Screen name="reservations/[id]/index" options={{ href: null }} />
       <Tabs.Screen name="reservations/[id]/payment/[paymentId]" options={{ href: null }} />
       <Tabs.Screen name="reservations/[id]/payment/index" options={{ href: null }} />
+      
+      {/* SOLO la pantalla principal de profile - las subpantallas estarán en el stack */}
       <Tabs.Screen
-        name="profile/index"
+        name="profile"
         options={{
           title: 'Perfil',
           tabBarIcon: ({ color }) => (
@@ -62,7 +62,10 @@ export default function TabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="profile/personal-info/index" options={{ href: null }} />
+      
+      {/* REMUEVE estas líneas - ahora estarán en el stack de profile */}
+      {/* <Tabs.Screen name="profile/personal-info/index" options={{ href: null }} /> */}
+      
       <Tabs.Screen
         name="settings/index"
         options={{
