@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, SafeAreaView, Pressable, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { View, Text, Pressable, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import PersonalInfoForm from '../../../../components/organisms/forms/PersonalInfoForm';
@@ -58,7 +59,7 @@ const PersonalInfo = () => {
   });
 
   const handleGoBack = () => {
-    router.push('/(tabs)/profile');
+    router.back();
   };
 
   const handleEditPress = () => {
@@ -67,7 +68,6 @@ const PersonalInfo = () => {
 
   const handleSaveChanges = async (data: PersonalInfoFormData) => {
     try {
-      console.log('Saving personal info:', data);
       const updateData = {
         name: data.firstName,
         lastName: data.lastName,

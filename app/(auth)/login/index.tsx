@@ -22,7 +22,7 @@ const Login = () => {
   };
 
   const handleGoBack = () => {
-    router.replace('/');
+    router.back();
   };
 
   return (

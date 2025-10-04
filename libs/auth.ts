@@ -10,18 +10,12 @@ const handleResponse = async (response: Response) => {
     
     try {
         const responseText = await response.text();
-        console.log("Raw response text:", responseText);
         
         // Intentar parsear como JSON
         data = responseText ? JSON.parse(responseText) : {};
     } catch (parseError) {
-        console.error("Error parsing JSON response:", parseError);
         throw new Error(`Error del servidor: respuesta inválida (${response.status})`);
     }
-    
-    console.log("Parsed response data:", data);
-    console.log("Response status:", response.status);
-    console.log("Response ok:", response.ok);
     
     if (!response.ok) {
         // Handle specific HTTP status codes
@@ -112,9 +106,6 @@ const saveUserData = async (user: any) => {
 // Login
 export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
   try {
-    console.log("Enviando petición de login a:", `${API_BASE_URL}/auth/login`);
-    console.log("Datos enviados:", { email: body.email, password: "***" });
-    
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -123,12 +114,7 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
       body: JSON.stringify(body),
     });
 
-    console.log("Respuesta del servidor - Status:", response.status);
-    console.log("Respuesta del servidor - Headers:", Object.fromEntries(response.headers.entries()));
-
     const dataResponse = await handleResponse(response);
-    console.log("Respuesta del backend:", dataResponse);
-    console.log("User data:", dataResponse.data?.user);
 
     if (!dataResponse.data?.tokens?.accessToken || !dataResponse.data?.user) {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");
@@ -142,15 +128,11 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
 
     await saveUserData(dataResponse.data.user);
 
-    const storedTokens = await AsyncStorage.getItem("accessToken");
-    console.log("Token guardado en AsyncStorage:", storedTokens);
+    await AsyncStorage.getItem("accessToken");
+
 
     return dataResponse;
-  } catch (error: any) {
-    console.error("Error en login:", error);
-    console.error("Error details:", error.details);
-    console.error("Error status:", error.status);
-    
+  } catch (error: any) {    
     // Si hay información adicional sobre intentos de login, incluirla en el error
     if (error.details?.loginAttempts !== undefined) {
       console.log(`Intentos de login: ${error.details.loginAttempts}/${error.details.maxAttempts || 'N/A'}`);
@@ -260,8 +242,7 @@ export const logout = async (): Promise<void> => {
         
         // Limpiar tokens y datos locales
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
-        const storedTokens = await AsyncStorage.getItem("accessToken");
-        console.log("Token eliminado en AsyncStorage:", storedTokens);
+        await AsyncStorage.getItem("accessToken");
     } catch (error) {
         console.error('Error en logout:', error);
         // Limpiar datos locales aunque falle el logout en el servidor

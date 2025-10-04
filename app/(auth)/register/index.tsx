@@ -15,7 +15,7 @@ const Register = () => {
   };
 
   const handleGoBack = () => {
-    router.replace('/');
+    router.back();
   };
 
   return (
