@@ -8,6 +8,7 @@ export default function AuthLayout() {
         gestureEnabled: false, 
       }}
     >
+      <Stack.Screen name="index" />
       <Stack.Screen name="login/index" />
       <Stack.Screen name="register/index" />
     </Stack>
