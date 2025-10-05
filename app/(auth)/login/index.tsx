@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Text, Image, Pressable, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import LoginForm from '../../../components/organisms/forms/LoginForm';
-
-const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Login = () => {
   const router = useRouter();
@@ -26,14 +24,14 @@ const Login = () => {
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <ScrollView 
           className="flex-1" 
           showsVerticalScrollIndicator={false}
           contentContainerStyle={{ flexGrow: 1 }}
         >
-          <View className="flex-1 px-6 py-8 justify-center">
+          <View className="flex-1 px-6 py-8 justify-start">
             
             {/* Header con botón de back */}
             <View className="absolute top-12 left-6 z-10">
@@ -46,7 +44,7 @@ const Login = () => {
             </View>
 
             {/* Logo y título */}
-            <View className="items-center mb-12">
+            <View className="items-center mb-12 mt-16">
               <Text className="text-white text-3xl font-primaryBold text-center">
                 Iniciar Sesión
               </Text>
