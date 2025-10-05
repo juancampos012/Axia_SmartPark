@@ -1,4 +1,4 @@
-import { UserUpdateDTO, Role, UserCreateDTO } from "../interfaces/User";
+import { UserUpdateDTO } from "../interfaces/User";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
 

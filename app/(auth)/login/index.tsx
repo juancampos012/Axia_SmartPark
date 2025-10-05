@@ -1,64 +1,55 @@
 import React from 'react';
-import { View, Text, Image, SafeAreaView, Pressable, KeyboardAvoidingView, ScrollView } from 'react-native';
+import { View, Text, Pressable, KeyboardAvoidingView, Platform, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import LoginForm from '../../../src/components/organisms/forms/LoginForm';
-
-// Importar el logo
-const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
+import LoginForm from '../../../components/organisms/forms/LoginForm';
 
 const Login = () => {
   const router = useRouter();
 
   const handleGoogleLogin = () => {
     console.log('Google login pressed');
-    // Lógica de login con Google
   };
 
   const handleFacebookLogin = () => {
     console.log('Facebook login pressed');
-    // Lógica de login con Facebook
   };
 
   const handleGoBack = () => {
-    router.push('/');
+    router.back();
   };
 
   return (
-    <SafeAreaView className="flex-1 bg-axia-black">
+    <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior="padding"
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-          <View className="flex-1 min-h-screen px-4 py-8">
+        <ScrollView 
+          className="flex-1" 
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ flexGrow: 1 }}
+        >
+          <View className="flex-1 px-6 py-8 justify-start">
             
             {/* Header con botón de back */}
-            <View className="flex-row items-start mb-4 mt-4">
+            <View className="absolute top-12 left-6 z-10">
               <Pressable 
                 onPress={handleGoBack}
-                className="mt-2"
+                className="w-10 h-10 rounded-full bg-axia-darkGray items-center justify-center"
               >
-                <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+                <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
               </Pressable>
-              
-              {/* Logo centrado */}
-              <View className="flex-1 items-center">
-                <Image
-                  source={AxiaSmartParkLogo}
-                  className="w-72 h-72"
-                  resizeMode="contain"
-                />
-              </View>
-              
-              {/* Spacer para balance */}
-              <View className="w-6" />
             </View>
 
-            {/* Título */}
-            <View className="items-center mb-8">
-              <Text className="text-white text-3xl font-normal">
-                Iniciar sesión
+            {/* Logo y título */}
+            <View className="items-center mb-12 mt-16">
+              <Text className="text-white text-3xl font-primaryBold text-center">
+                Iniciar Sesión
+              </Text>
+              <Text className="text-axia-gray text-base font-primary text-center">
+                Ingresa a tu cuenta para continuar
               </Text>
             </View>
 

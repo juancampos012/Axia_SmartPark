@@ -2,7 +2,6 @@ import React from 'react';
 import { View, Text, Pressable } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
-import Switch from '../../atoms/Switch';
 
 interface PersonalInfoFormData {
   firstName: string;

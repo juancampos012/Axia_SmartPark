@@ -1,7 +1,9 @@
 import React, { useState } from "react";
-import { SafeAreaView, ScrollView, View, Text, Pressable } from "react-native";
+import { ScrollView, View, Text, Pressable } from "react-native";
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from "expo-router";
-import Input from "../../../../src/components/atoms/Input";
+import Input from "../../../../../components/atoms/Input";
 
 export default function AddCarScreen() {
   const router = useRouter();
@@ -12,7 +14,10 @@ export default function AddCarScreen() {
   const [plate, setPlate] = useState("");
 
   const handleSave = () => {
-    console.log({ brand, model, year, plate });
+    router.back();
+  };
+    
+  const handleGoBack = () => {
     router.back();
   };
 
@@ -24,11 +29,24 @@ export default function AddCarScreen() {
         showsVerticalScrollIndicator={false}
       >
         {/* Header */}
-        <View className="items-center mb-8">
-          <Text className="text-white text-3xl font-bold">
-            Añadir Vehículo
-          </Text>
-          <Text className="text-white/60 text-base mt-2 text-center">
+        <View className="mb-12">
+          <View className="relative mb-4">
+            <Pressable 
+              onPress={handleGoBack} 
+              className="absolute left-0 top-0 z-10 p-2 -ml-2"
+            >
+              <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
+            </Pressable>
+            
+            <View className="items-center">
+              <Text className="text-white text-3xl font-bold text-center">
+                Añadir Vehículo
+              </Text>
+            </View>
+          </View>
+          
+          {/* Descripción */}
+          <Text className="text-white/60 text-base text-center px-4">
             Registra tu carro para poder reservar tu parqueadero fácilmente.
           </Text>
         </View>

@@ -1,52 +1,31 @@
-import React from 'react';
-import { Image, SafeAreaView, Text, View } from 'react-native';
+import React, { useEffect } from 'react';
+import { View, Text, Image } from 'react-native';
 import { useRouter } from 'expo-router';
-import Button from '../src/components/atoms/Button';
+import { StatusBar } from 'expo-status-bar';
 
-// Importar el logo
-const AxiaSmartParkLogo = require('../assets/axia-sp1.png');
+// Usa tu logo actual
+const AxiaLogo = require('../assets/axia-sp1.png');
 
-export default function TestComponent() {
+export default function SplashScreen() {
   const router = useRouter();
 
-  const handleLoginPress = () => router.replace('/(auth)/login');
-  const handleRegisterPress = () => router.replace('/(auth)/register');
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      router.replace('/(auth)');
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, []);
 
   return (
-    <SafeAreaView className="flex-1 bg-axia-black">
-        <View className="flex-1 px-6 py-8">
-          {/* Centro: Logo + tagline */}
-          <View className="flex-1 items-center justify-center">
-            {/* Círculo sutil detrás del logo */}
-            <View className="w-80 h-80 items-center justify-center mb-8 pb-2">
-              <Image
-                source={AxiaSmartParkLogo}
-                className="w-80 h-80"
-                resizeMode="contain"
-              />
-            </View>
-            
-            <Text className="text-white text-5xl font-secondary mb-3 text-center">
-              Bienvenido a
-            </Text>
-            <Text className="text-white text-3xl font-secondary mb-4">
-              AXIA SmartPark
-            </Text>
-            <Text className="text-white/70 text-lg text-center px-8 mb-2 font-primary">
-              Tu espacio, tu tiempo, tu ciudad.
-            </Text>
-            <Text className="text-white/50 text-base text-center px-6 font-primary">
-              Encuentra y reserva estacionamiento de forma inteligente
-            </Text>
-          </View>
-
-          {/* CTAs con mejor spacing */}
-          <View className="gap-4 pb-8">
-            <Button title="Iniciar sesión" onPress={handleLoginPress} variant="primary" size="large" className="w-full" />
-            <Button title="Crear cuenta" onPress={handleRegisterPress} variant="outline" size="large" className="w-full" />
-          </View>
-        </View>
-    </SafeAreaView>
-
+    <View className="flex-1 bg-axia-black justify-center items-center">
+      <StatusBar style="light" />
+      
+      <Image
+        source={AxiaLogo}
+        className="w-40 h-40 mb-6"
+        resizeMode="contain"
+      />
+    </View>
   );
 }
