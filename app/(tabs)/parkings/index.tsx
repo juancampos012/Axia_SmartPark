@@ -13,12 +13,38 @@ import ParkingsList from '../../../components/organisms/parking/ParkingsList';
 import { Parking } from '../../../components/molecules/parking/ParkingCard';
 import { Filter } from '../../../components/molecules/parking/FilterList';
 
+interface ParkingSpot {
+  id: string;
+  number: string;
+  status: 'available' | 'occupied' | 'reserved' | 'maintenance';
+  type: 'car' | 'motorcycle' | 'disabled';
+  floor: number;
+}
+
+interface Floor {
+  id: string;
+  number: number;
+  name: string;
+  totalSpots: number;
+  availableSpots: number;
+  spots: ParkingSpot[];
+}
+
+interface ExtendedParking extends Parking {
+  floors: Floor[];
+  operatingHours: string;
+  security: boolean;
+  covered: boolean;
+  open24h: boolean;
+  description: string;
+}
+
 const ParkingsScreen = () => {
   const router = useRouter();
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [favorites, setFavorites] = useState<Set<string>>(new Set(['1'])); // Inicial con el primer parking como favorito
+  const [favorites, setFavorites] = useState<Set<string>>(new Set(['1']));
 
-  const parkingData: Parking[] = [
+  const parkingData: ExtendedParking[] = [
     {
       id: '1',
       name: 'Estacionamiento La Seriedad',
@@ -28,10 +54,62 @@ const ParkingsScreen = () => {
       rating: 4.8,
       availableSpots: 25,
       totalSpots: 50,
-      image: '',
+      image: 'https://dimobaservicios.com/wp-content/uploads/2023/11/que-hace-un-auxiliar-parking.png',
       address: 'Calle 123 #45-67, Centro',
-      features: ['Cubierto', 'Seguridad 24h', 'Cámaras'],
-      isFavorite: false
+      features: ['Cubierto', 'Seguridad 24h', 'Cámaras', 'Ascensor'],
+      isFavorite: false,
+      floors: [
+        {
+          id: '1-1',
+          number: 1,
+          name: 'Piso 1 - Principal',
+          totalSpots: 10,
+          availableSpots: 6,
+          spots: [
+            { id: '1-1', number: 'A1', status: 'available', type: 'car', floor: 1 },
+            { id: '1-2', number: 'A2', status: 'occupied', type: 'car', floor: 1 },
+            { id: '1-3', number: 'A3', status: 'available', type: 'car', floor: 1 },
+            { id: '1-4', number: 'A4', status: 'reserved', type: 'car', floor: 1 },
+            { id: '1-5', number: 'A5', status: 'available', type: 'motorcycle', floor: 1 },
+            { id: '1-6', number: 'A6', status: 'maintenance', type: 'car', floor: 1 },
+            { id: '1-7', number: 'A7', status: 'available', type: 'car', floor: 1 },
+            { id: '1-8', number: 'A8', status: 'occupied', type: 'car', floor: 1 },
+            { id: '1-9', number: 'A9', status: 'available', type: 'disabled', floor: 1 },
+            { id: '1-10', number: 'A10', status: 'available', type: 'car', floor: 1 },
+          ]
+        },
+        {
+          id: '1-2',
+          number: 2,
+          name: 'Piso 2 - Cubierto',
+          totalSpots: 5,
+          availableSpots: 4,
+          spots: [
+            { id: '2-1', number: 'B1', status: 'available', type: 'car', floor: 2 },
+            { id: '2-2', number: 'B2', status: 'available', type: 'car', floor: 2 },
+            { id: '2-3', number: 'B3', status: 'occupied', type: 'car', floor: 2 },
+            { id: '2-4', number: 'B4', status: 'available', type: 'motorcycle', floor: 2 },
+            { id: '2-5', number: 'B5', status: 'available', type: 'car', floor: 2 },
+          ]
+        },
+        {
+          id: '1-3',
+          number: 3,
+          name: 'Piso 3 - Premium',
+          totalSpots: 3,
+          availableSpots: 2,
+          spots: [
+            { id: '3-1', number: 'C1', status: 'available', type: 'car', floor: 3 },
+            { id: '3-2', number: 'C2', status: 'occupied', type: 'car', floor: 3 },
+            { id: '3-3', number: 'C3', status: 'available', type: 'car', floor: 3 },
+          ]
+        }
+      ],
+      operatingHours: '24/7',
+      security: true,
+      covered: true,
+      open24h: true,
+      description: 'Estacionamiento moderno con 3 pisos de parqueo, seguridad las 24 horas y sistema de cámaras de vigilancia.'
     },
     {
       id: '2',
@@ -42,10 +120,31 @@ const ParkingsScreen = () => {
       rating: 4.5,
       availableSpots: 12,
       totalSpots: 40,
-      image: '',
+      image: 'https://dimobaservicios.com/wp-content/uploads/2023/11/que-hace-un-auxiliar-parking.png',
       address: 'Carrera 50 #32-18, Zona Rosa',
-      features: ['Cubierto', 'Vigilancia', 'Acceso fácil'],
-      isFavorite: false
+      features: ['Cubierto', 'Vigilancia', 'Acceso fácil', 'Iluminación LED'],
+      isFavorite: false,
+      floors: [
+        {
+          id: '2-1',
+          number: 1,
+          name: 'Piso Único',
+          totalSpots: 40,
+          availableSpots: 12,
+          spots: [
+            { id: '2-1-1', number: 'P1', status: 'available', type: 'car', floor: 1 },
+            { id: '2-1-2', number: 'P2', status: 'occupied', type: 'car', floor: 1 },
+            { id: '2-1-3', number: 'P3', status: 'available', type: 'motorcycle', floor: 1 },
+            { id: '2-1-4', number: 'P4', status: 'available', type: 'car', floor: 1 },
+            { id: '2-1-5', number: 'P5', status: 'reserved', type: 'car', floor: 1 },
+          ]
+        }
+      ],
+      operatingHours: '6:00 AM - 10:00 PM',
+      security: true,
+      covered: true,
+      open24h: false,
+      description: 'Estacionamiento de un solo piso con fácil acceso y vigilancia permanente.'
     },
     {
       id: '3',
@@ -56,10 +155,41 @@ const ParkingsScreen = () => {
       rating: 4.2,
       availableSpots: 8,
       totalSpots: 60,
-      image: '',
+      image: 'https://dimobaservicios.com/wp-content/uploads/2023/11/que-hace-un-auxiliar-parking.png',
       address: 'Avenida Principal #15-30, Norte',
-      features: ['Aire libre', 'Seguridad', 'Económico'],
-      isFavorite: false
+      features: ['Aire libre', 'Seguridad', 'Económico', 'Amplio'],
+      isFavorite: false,
+      floors: [
+        {
+          id: '3-1',
+          number: 1,
+          name: 'Nivel Exterior',
+          totalSpots: 40,
+          availableSpots: 5,
+          spots: [
+            { id: '3-1-1', number: 'E1', status: 'available', type: 'car', floor: 1 },
+            { id: '3-1-2', number: 'E2', status: 'occupied', type: 'car', floor: 1 },
+            { id: '3-1-3', number: 'E3', status: 'available', type: 'motorcycle', floor: 1 },
+          ]
+        },
+        {
+          id: '3-2',
+          number: 2,
+          name: 'Nivel Interior',
+          totalSpots: 20,
+          availableSpots: 3,
+          spots: [
+            { id: '3-2-1', number: 'I1', status: 'available', type: 'car', floor: 2 },
+            { id: '3-2-2', number: 'I2', status: 'occupied', type: 'car', floor: 2 },
+            { id: '3-2-3', number: 'I3', status: 'available', type: 'car', floor: 2 },
+          ]
+        }
+      ],
+      operatingHours: '5:00 AM - 11:00 PM',
+      security: true,
+      covered: false,
+      open24h: false,
+      description: 'Estacionamiento al aire libre con dos niveles, ideal para estadías cortas.'
     },
     {
       id: '4',
@@ -70,10 +200,41 @@ const ParkingsScreen = () => {
       rating: 4.9,
       availableSpots: 5,
       totalSpots: 20,
-      image: '',
+      image: 'https://dimobaservicios.com/wp-content/uploads/2023/11/que-hace-un-auxiliar-parking.png',
       address: 'Av. Luxury #100-25, Norte',
-      features: ['Cubierto', 'Valet', 'Lavado incluido'],
-      isFavorite: false
+      features: ['Cubierto', 'Valet', 'Lavado incluido', 'Climatizado'],
+      isFavorite: false,
+      floors: [
+        {
+          id: '4-1',
+          number: 1,
+          name: 'Planta Baja - VIP',
+          totalSpots: 10,
+          availableSpots: 2,
+          spots: [
+            { id: '4-1-1', number: 'V1', status: 'available', type: 'car', floor: 1 },
+            { id: '4-1-2', number: 'V2', status: 'reserved', type: 'car', floor: 1 },
+            { id: '4-1-3', number: 'V3', status: 'available', type: 'car', floor: 1 },
+          ]
+        },
+        {
+          id: '4-2',
+          number: 2,
+          name: 'Sótano - Ejecutivo',
+          totalSpots: 10,
+          availableSpots: 3,
+          spots: [
+            { id: '4-2-1', number: 'S1', status: 'occupied', type: 'car', floor: 2 },
+            { id: '4-2-2', number: 'S2', status: 'available', type: 'car', floor: 2 },
+            { id: '4-2-3', number: 'S3', status: 'available', type: 'car', floor: 2 },
+          ]
+        }
+      ],
+      operatingHours: '24/7',
+      security: true,
+      covered: true,
+      open24h: true,
+      description: 'Estacionamiento premium con servicio de valet parking y lavado incluido.'
     }
   ];
 
@@ -145,7 +306,13 @@ const ParkingsScreen = () => {
   };
 
   const handleParkingPress = (parkingId: string) => {
-    router.push(`/parkings/${parkingId}`);
+    const parking = filteredAndSortedParkings.find(p => p.id === parkingId);
+    if (parking) {
+      router.push({
+        pathname: `/parkings/${parking.id}`,
+        params: { data: JSON.stringify(parking) },
+      });
+    }
   };
 
   const handleFilterSelect = (filterId: string) => {
@@ -154,7 +321,6 @@ const ParkingsScreen = () => {
 
   const handleViewMore = () => {
     console.log('Ver más parqueaderos');
-    // Aquí puedes implementar la lógica para cargar más parqueaderos
   };
 
   return (
@@ -196,11 +362,11 @@ const ParkingsScreen = () => {
               <View className="flex-row items-center mb-1">
                 <Ionicons name="time" size={16} color="#F59E0B" />
                 <Text className="text-white font-primaryBold text-lg ml-2">
-                  24/7
+                  {parkingData.filter(p => p.open24h).length}
                 </Text>
               </View>
               <Text className="text-axia-gray text-xs font-primary text-center">
-                Abiertos
+                24/7
               </Text>
             </View>
             
@@ -210,7 +376,7 @@ const ParkingsScreen = () => {
               <View className="flex-row items-center mb-1">
                 <Ionicons name="shield-checkmark" size={16} color="#3B82F6" />
                 <Text className="text-white font-primaryBold text-lg ml-2">
-                  {filteredAndSortedParkings.filter(p => p.features.includes('Seguridad') || p.features.includes('Vigilancia')).length}
+                  {parkingData.filter(p => p.security).length}
                 </Text>
               </View>
               <Text className="text-axia-gray text-xs font-primary text-center">
@@ -274,7 +440,7 @@ const ParkingsScreen = () => {
 
           <ParkingsList
             parkings={filteredAndSortedParkings}
-            onParkingPress={handleParkingPress}
+            onParkingPress={handleParkingPress} 
             onFavoritePress={handleFavoritePress}
           />
         </View>
@@ -285,8 +451,8 @@ const ParkingsScreen = () => {
             className="bg-axia-green py-4 rounded-xl items-center shadow-lg shadow-axia-green/25 active:scale-95 "
           >
             <View className="flex-row items-center justify-center">
-              <Ionicons name="search" size={20} color="#000000" />
-              <Text className="text-axia-black font-primaryBold text-lg ml-2">
+              <Ionicons name="search" size={20} color="#fff" />
+              <Text className="text-white font-primaryBold text-lg ml-2">
                 Explorar más parqueaderos
               </Text>
             </View>

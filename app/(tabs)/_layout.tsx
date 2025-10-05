@@ -26,7 +26,7 @@ export default function TabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="parkings/index"
+        name="parkings"
         options={{
           title: 'Parqueos',
           tabBarIcon: ({ color }) => (

@@ -1,11 +1,9 @@
 import React from 'react';
-import { View, Image, ScrollView, Pressable, KeyboardAvoidingView, Platform, Text } from 'react-native';
+import { View, ScrollView, Pressable, KeyboardAvoidingView, Platform, Text } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import RegisterForm from '../../../components/organisms/forms/RegisterForm';
-
-const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
 
 const Register = () => {
   const router = useRouter();
@@ -43,13 +41,7 @@ const Register = () => {
 
             {/* Logo y título */}
             <View className="items-center mb-8">
-              <View className="w-32 h-32 items-center justify-center mb-6 shadow-lg">
-                <Image
-                  source={AxiaSmartParkLogo}
-                  className="w-28 h-28"
-                  resizeMode="contain"
-                />
-              </View>
+
               
               <Text className="text-white text-4xl font-primaryBold mb-2 text-center">
                 Crear Cuenta

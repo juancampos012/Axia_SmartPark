@@ -1,9 +1,8 @@
 import React from 'react';
 import { ActivityIndicator, Text, View, Pressable } from 'react-native';
-import { LinearGradient } from 'expo-linear-gradient';
 
 interface ButtonProps {
-  title: string | React.ReactNode; // Cambiar para aceptar ReactNode
+  title: string | React.ReactNode;
   onPress: () => void;
   variant?: 'primary' | 'secondary' | 'outline';
   size?: 'small' | 'medium' | 'large';
@@ -24,88 +23,79 @@ const Button: React.FC<ButtonProps> = ({
   const getSizeStyles = () => {
     switch (size) {
       case 'small':
-        return 'h-10';
+        return 'h-10 px-4';
       case 'large':
-        return 'h-14';
+        return 'h-14 px-8';
       default:
-        return 'h-12';
+        return 'h-12 px-6';
+    }
+  };
+
+  const getVariantStyles = () => {
+    switch (variant) {
+      case 'primary':
+        return 'bg-axia-green active:bg-axia-green/90 border-2 border-axia-green';
+      case 'secondary':
+        return 'bg-axia-green/10 border-2 border-axia-green active:bg-axia-green/20';
+      case 'outline':
+        return 'bg-transparent border-2 border-white/30 active:bg-white/10';
+      default:
+        return 'bg-axia-green active:bg-axia-green/90 border-2 border-axia-green';
+    }
+  };
+
+  const getTextColor = () => {
+    switch (variant) {
+      case 'primary':
+        return 'text-white';
+      case 'secondary':
+        return 'text-axia-green';
+      case 'outline':
+        return 'text-white';
+      default:
+        return 'text-white';
     }
   };
 
   const renderContent = () => {
     if (loading) {
-      return <ActivityIndicator color="#fff" size="small" />;
+      return (
+        <ActivityIndicator 
+          color={variant === 'primary' ? "#FFFFFF" : "#006B54"} 
+          size="small" 
+        />
+      );
     }
 
     if (typeof title === 'string') {
       return (
-        <Text className={`font-primaryBold ${variant === 'outline' ? 'text-white' : 'text-white'}`}>
+        <Text className={`font-primaryBold text-base ${getTextColor()}`}>
           {title}
         </Text>
       );
     }
 
-    // Si title es un ReactNode, lo renderizamos directamente
     return title;
   };
 
-  const content = (
-    <View className="flex-row items-center justify-center px-6">
-      {renderContent()}
-    </View>
-  );
-
   const isDisabled = disabled || loading;
-
-  if (variant === 'primary') {
-    return (
-      <Pressable
-        onPress={onPress}
-        disabled={isDisabled}
-        className={`w-full rounded-xl overflow-hidden border-2 border-transparent ${getSizeStyles()} ${
-          isDisabled ? 'opacity-50' : ''
-        } ${className}`}
-        style={({ pressed }) => ({
-          borderRadius: 16,
-          opacity: pressed ? 0.7 : 1
-        })}
-      >
-        <LinearGradient
-          colors={['#780BB7', '#093774']}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          style={{
-            width: '100%',
-            height: '100%',
-            justifyContent: 'center',
-            alignItems: 'center',
-            borderRadius: 16
-          }}
-        >
-          {content}
-        </LinearGradient>
-      </Pressable>
-    );
-  }
-
-  const baseStyles =
-    variant === 'secondary'
-      ? 'bg-axia-darkGray'
-      : 'border-2 border-white/30 bg-transparent';
 
   return (
     <Pressable
       onPress={onPress}
       disabled={isDisabled}
-      className={`w-full rounded-xl items-center justify-center ${getSizeStyles()} ${baseStyles} ${
-        isDisabled ? 'opacity-50' : ''
-      } ${className}`}
+      className={`
+        w-full rounded-xl items-center justify-center 
+        ${getSizeStyles()} 
+        ${getVariantStyles()}
+        ${isDisabled ? 'opacity-50' : ''}
+        ${className}
+      `}
       style={({ pressed }) => ({
-        borderRadius: 16,
-        opacity: pressed ? 0.7 : 1
+        transform: [{ scale: pressed && !isDisabled ? 0.98 : 1 }],
       })}
     >
-      {content}
+      {renderContent()}
     </Pressable>
   );
 };
