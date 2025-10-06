@@ -1,7 +1,7 @@
 import { View, Text } from 'react-native'
 import React from 'react'
 import { router } from 'expo-router'  
-import Button from '../../../src/components/atoms/Button'
+import Button from '../../../components/atoms/Button'
 
 const home = () => {
   const home = () => {

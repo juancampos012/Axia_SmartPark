@@ -2,6 +2,7 @@
 import { Stack } from 'expo-router';
 import { useFonts, Inter_400Regular, Inter_600SemiBold } from "@expo-google-fonts/inter";
 import { Poppins_500Medium, Poppins_700Bold } from "@expo-google-fonts/poppins";
+import { AuthProvider } from '../context/AuthContext'; // Verificar esta ruta
 import "../global.css";
 
 export default function AppLayout() {
@@ -15,10 +16,12 @@ export default function AppLayout() {
   if (!fontsLoaded) return null;
 
   return (
-    <Stack screenOptions={{ headerShown: false }}>
-      <Stack.Screen name="index" />
-      <Stack.Screen name="(auth)" />
-    </Stack>
-    
+    <AuthProvider>
+      <Stack screenOptions={{ headerShown: false }}>
+        <Stack.Screen name="index" />
+        <Stack.Screen name="(auth)" />
+        <Stack.Screen name="(tabs)" />
+      </Stack>
+    </AuthProvider>
   );
 }

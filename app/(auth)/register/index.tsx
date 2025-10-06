@@ -2,7 +2,7 @@ import React from 'react';
 import { View, Image, ScrollView, SafeAreaView, Pressable, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import RegisterForm from '../../../src/components/organisms/forms/RegisterForm';
+import RegisterForm from '../../../components/organisms/forms/RegisterForm';
 
 // Importar el logo
 const AxiaSmartParkLogo = require('../../../assets/axia-sp1.png');
@@ -32,7 +32,6 @@ const Register = () => {
                 onPress={handleGoBack}
                 className="mt-2"
                 accessibilityLabel="Volver"
-                accessibilityRole="button"
               >
                 <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
               </Pressable>

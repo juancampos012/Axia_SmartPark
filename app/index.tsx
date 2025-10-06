@@ -1,7 +1,7 @@
 import React from 'react';
 import { Image, SafeAreaView, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import Button from '../src/components/atoms/Button';
+import Button from '../components/atoms/Button';
 
 // Importar el logo
 const AxiaSmartParkLogo = require('../assets/axia-sp1.png');

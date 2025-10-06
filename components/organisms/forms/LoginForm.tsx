@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useForm, Controller } from 'react-hook-form';
@@ -6,7 +6,8 @@ import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
 import { LoginDTO } from '../../../../interfaces/Auth';
 import { loginAuth } from '../../../../libs/auth';
-import { router } from 'expo-router';
+import { router, useRouter } from 'expo-router';
+import { useAuth } from '../../../context/AuthContext';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -21,6 +22,9 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onGooglePress,
   onFacebookPress
 }) => {
+  const router = useRouter();
+  const { signIn } = useAuth();
+  const [loading, setLoading] = useState(false);
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginDTO>({
     defaultValues: {
       email: '',
@@ -29,13 +33,33 @@ const LoginForm: React.FC<LoginFormProps> = ({
   });
 
   const submitForm = async (data: LoginDTO) => {
+    setLoading(true);
     try {
       console.log("Iniciando login con email:", data.email);
-      const authResponse = await loginAuth(data);
-      const user = authResponse.data.user;
-      Alert.alert("Bienvenido", `Hola ${user.name}`);
-      router.replace('/home');
-      if (onSuccess) onSuccess(); // Si se pasa un callback para navegar
+      const response = await loginAuth({
+        email: data.email,
+        password: data.password,
+      });
+
+      if (response.success && response.data) {
+        // Usar signIn del contexto para guardar el usuario y tokens
+        await signIn(
+          response.data.user,
+          response.data.tokens.accessToken,
+          response.data.tokens.refreshToken
+        );
+
+        Alert.alert(
+          "¡Bienvenido!",
+          `Hola ${response.data.user.name}`,
+          [
+            {
+              text: "OK",
+              onPress: () => router.replace("/(tabs)/home"),
+            },
+          ]
+        );
+      }
     } catch (error: any) {
       console.error("Error en login form:", error);
       
@@ -65,6 +89,8 @@ const LoginForm: React.FC<LoginFormProps> = ({
       }
       
       Alert.alert("Error de inicio de sesión", errorMessage);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -124,7 +150,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       <Button
         title="Iniciar sesión"
         onPress={handleSubmit(submitForm)}
-        loading={isSubmitting}
+        loading={isSubmitting || loading}
         className="w-full mt-4"
       />
 

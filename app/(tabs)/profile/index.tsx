@@ -1,43 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, SafeAreaView, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchUserProfile } from '../../../libs/user';
-
-interface Car {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  plate: string;
-}
-
-interface MenuItem {
-  id: string;
-  icon: string;
-  title: string;
-  route?: string;
-}
+import { useAuth } from '../../../context/AuthContext';
 
 const Profile = () => {
   const router = useRouter();
+  const { user } = useAuth();
 
-  const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
-
-  useEffect(() => {
-    const loadProfile = async () => {
-      try {
-        const data = await fetchUserProfile();
-        setUserProfile(data); 
-      } catch (error) {
-        console.error("Error fetching profile:", error);
-      }
-    };
-
-    loadProfile();
-  }, []);
-
-  const userCars: Car[] = [
+  const userCars = [
     /* {
       id: '1',
       brand: 'Toyota',
@@ -48,7 +19,7 @@ const Profile = () => {
   ];
 
   // Opciones del menú de perfil
-  const menuItems: MenuItem[] = [
+  const menuItems = [
     {
       id: '1',
       icon: 'person-outline',
@@ -69,11 +40,11 @@ const Profile = () => {
     }
   ];
 
-  const handleMenuItemPress = (route: string) => {
+  const handleMenuItemPress = (route) => {
     router.push(route as any);
   };
 
-  const handleCarPress = (carId: string) => {
+  const handleCarPress = (carId) => {
     router.push(`/cars/detail/${carId}` as any);
   };
 
@@ -106,8 +77,7 @@ const Profile = () => {
             
             {/* Nombre del usuario */}
             <Text className="text-white text-2xl font-primaryBold">
-              {userProfile?.name}
-
+              {user?.name} {user?.lastName}
             </Text>
           </View>
 

@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import { SafeAreaView, ScrollView, View, Text, Pressable } from "react-native";
 import { useRouter } from "expo-router";
-import Input from "../../../../src/components/atoms/Input";
+import Input from "../../../../components/atoms/Input";
 
 export default function AddCarScreen() {
   const router = useRouter();

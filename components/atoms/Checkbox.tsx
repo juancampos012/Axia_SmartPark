@@ -1,15 +1,17 @@
 // components/atoms/Checkbox.tsx
 import React, { useEffect, useState } from "react";
+import { View, Text, Pressable } from "react-native";
+import { Ionicons } from "@expo/vector-icons";
 
 export interface CheckboxProps {
   value?: boolean;
   defaultValue?: boolean;
   onValueChange?: (next: boolean) => void;
   label?: string;
-  size?: "sm" | "md" | "lg"; // Tailwind sizes instead of px
-  color?: "green" | "purple" | "blue"; // Axia color options
-  boxStyle?: string; // Tailwind classes
-  labelStyle?: string; // Tailwind classes
+  size?: "sm" | "md" | "lg";
+  color?: "green" | "purple" | "blue";
+  boxStyle?: string;
+  labelStyle?: string;
   disabled?: boolean;
   error?: string;
   pressLabel?: boolean;
@@ -52,92 +54,84 @@ const Checkbox: React.FC<CheckboxProps> = ({
   };
 
   const iconSizes = {
-    sm: "w-3 h-3",
-    md: "w-4 h-4", 
-    lg: "w-5 h-5"
+    sm: 12,
+    md: 16, 
+    lg: 20
   };
 
   // Color mappings for Axia palette
   const colorClasses = {
     green: {
       checked: "border-axia-green bg-axia-green",
-      unchecked: "border-axia-gray hover:border-axia-darkGray",
+      unchecked: "border-axia-gray",
     },
     purple: {
       checked: "border-axia-purple bg-axia-purple", 
-      unchecked: "border-axia-gray hover:border-axia-darkGray",
+      unchecked: "border-axia-gray",
     },
     blue: {
       checked: "border-axia-blue bg-axia-blue",
-      unchecked: "border-axia-gray hover:border-axia-darkGray",
+      unchecked: "border-axia-gray",
     }
   };
 
   const checkboxClasses = `
     flex items-center justify-center
-    border-2 transition-all duration-200
-    ${disabled ? "opacity-50 cursor-not-allowed" : "cursor-pointer"}
+    border-2
+    ${disabled ? "opacity-50" : ""}
     ${checked ? colorClasses[color].checked : colorClasses[color].unchecked}
     ${sizeClasses[size]}
     ${boxStyle}
   `;
 
   const labelClasses = `
-    text-sm transition-colors duration-200
-    ${disabled ? "text-axia-gray cursor-not-allowed" : "text-axia-black cursor-pointer"}
+    text-sm
+    ${disabled ? "text-axia-gray" : "text-white"}
     ${labelStyle}
   `;
 
   return (
-    <div className="flex flex-col">
-      <div className="flex items-center">
+    <View className="flex-col">
+      <View className="flex-row items-center">
         {/* Checkbox Button */}
-        <button
-          type="button"
-          onClick={toggle}
+        <Pressable
+          onPress={toggle}
           disabled={disabled}
           className={checkboxClasses}
-          role="checkbox"
-          aria-checked={checked}
-          aria-label={label || "Checkbox"}
+          accessibilityRole="checkbox"
+          accessibilityState={{ checked, disabled }}
+          accessibilityLabel={label || "Checkbox"}
         >
           {checked && (
-            <svg 
-              className={`${iconSizes[size]} text-axia-white`}
-              fill="none" 
-              stroke="currentColor" 
-              viewBox="0 0 24 24"
-            >
-              <path 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
-                strokeWidth={3} 
-                d="M5 13l4 4L19 7" 
-              />
-            </svg>
+            <Ionicons 
+              name="checkmark" 
+              size={iconSizes[size]} 
+              color="#FFFFFF" 
+            />
           )}
-        </button>
+        </Pressable>
 
         {/* Label */}
         {label && (
-          <button
-            type="button"
-            onClick={pressLabel ? toggle : undefined}
+          <Pressable
+            onPress={pressLabel ? toggle : undefined}
             disabled={!pressLabel || disabled}
-            className={`ml-3 text-left ${labelClasses}`}
+            className="ml-3 flex-1"
           >
-            {label}
-          </button>
+            <Text className={labelClasses}>
+              {label}
+            </Text>
+          </Pressable>
         )}
-      </div>
+      </View>
 
       {/* Error Message */}
       {error && (
-        <p className="text-axia-error text-xs mt-1 ml-1">
+        <Text className="text-red-500 text-xs mt-1 ml-1">
           {error}
-        </p>
+        </Text>
       )}
-    </div>
+    </View>
   );
 };
 

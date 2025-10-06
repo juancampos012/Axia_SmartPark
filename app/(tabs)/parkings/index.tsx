@@ -3,15 +3,15 @@ import { SafeAreaView, ScrollView, View, Text } from 'react-native';
 import { useRouter } from 'expo-router';
 
 // Components
-import SearchHeader from '../../../src/components/molecules/parking/SearchHeader';
-import MapSection from '../../../src/components/molecules/parking/MapSection';
-import ParkingsFilterSection from '../../../src/components/organisms/parking/ParkingsFilterSection';
-import ParkingsList from '../../../src/components/organisms/parking/ParkingsList';
+import SearchHeader from '../../../components/molecules/parking/SearchHeader';
+import MapSection from '../../../components/molecules/parking/MapSection';
+import ParkingsFilterSection from '../../../components/organisms/parking/ParkingsFilterSection';
+import ParkingsList from '../../../components/organisms/parking/ParkingsList';
 
 // Types
-import { Parking } from '../../../src/components/molecules/parking/ParkingCard';
-import { Filter } from '../../../src/components/molecules/parking/FilterList';
-import Button from '../../../src/components/atoms/Button';
+import { Parking } from '../../../components/molecules/parking/ParkingCard';
+import { Filter } from '../../../components/molecules/parking/FilterList';
+import Button from '../../../components/atoms/Button';
 
 const FloatingActionButton = ({ title, onPress }: { title: string; onPress: () => void }) => (
   <View className="absolute bottom-6 left-6 right-6 items-center z-10">

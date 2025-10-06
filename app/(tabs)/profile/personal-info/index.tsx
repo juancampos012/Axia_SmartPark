@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { View, Text, SafeAreaView, Pressable, ScrollView, Alert, KeyboardAvoidingView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import PersonalInfoForm from '../../../../src/components/organisms/forms/PersonalInfoForm';
-import { useForm } from 'react-hook-form';
-import { fetchUserProfile, updateUserProfile, deleteUserAccount } from '../../../../libs/user';
+import PersonalInfoForm from '../../../../components/organisms/forms/PersonalInfoForm';
+import { useAuth } from '../../../../context/AuthContext';
+import { deleteUserAccount } from '../../../../libs/user';
 
 interface PersonalInfoFormData {
   firstName: string;
@@ -17,45 +17,23 @@ interface PersonalInfoFormData {
 
 const PersonalInfo = () => {
   const router = useRouter();
+  const { user, updateUserProfile } = useAuth();
   const [isEditing, setIsEditing] = useState(false);
   const [userData, setUserData] = useState<PersonalInfoFormData | null>(null);
-  const [loading, setLoading] = useState(true);
 
+  // Sincronizar userData con el user del contexto
   useEffect(() => {
-    loadUserProfile();
-  }, []);
-
-  const loadUserProfile = async () => {
-    try {
-      setLoading(true);
-      const profile = await fetchUserProfile();
-      const formData: PersonalInfoFormData = {
-        firstName: profile.name || '',
-        lastName: profile.lastName || '',
-        email: profile.email || '',
-        phone: profile.phoneNumber || '',
-        active: profile.isActive || false,
-        createdAt: profile.createdAt || ''
-      };
-      setUserData(formData);
-    } catch (error) {
-      console.error('Error loading user profile:', error);
-      Alert.alert('Error', 'No se pudo cargar la información del usuario');
-    } finally {
-      setLoading(false);
+    if (user) {
+      setUserData({
+        firstName: user.name || '',
+        lastName: user.lastName || '',
+        email: user.email || '',
+        phone: user.phoneNumber || '',
+        active: user.isVerified || false,
+        createdAt: user.createdAt?.toString() || ''
+      });
     }
-  };
-
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<PersonalInfoFormData>({
-    defaultValues: userData || {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      active: true,
-      createdAt: ''
-    }
-  });
+  }, [user]);
 
   const handleGoBack = () => {
     router.push('/(tabs)/profile');
@@ -68,13 +46,15 @@ const PersonalInfo = () => {
   const handleSaveChanges = async (data: PersonalInfoFormData) => {
     try {
       console.log('Saving personal info:', data);
-      const updateData = {
+      
+      // Usar la función del contexto
+      await updateUserProfile({
         name: data.firstName,
         lastName: data.lastName,
         email: data.email,
         phoneNumber: data.phone
-      };
-      await updateUserProfile(updateData);
+      });
+
       Alert.alert(
         'Información actualizada',
         'Tu información personal ha sido actualizada correctamente.',
@@ -83,7 +63,7 @@ const PersonalInfo = () => {
             text: 'OK',
             onPress: () => {
               setIsEditing(false);
-              loadUserProfile();
+              // El user ya está actualizado en el contexto
             }
           }
         ]
@@ -176,7 +156,7 @@ const PersonalInfo = () => {
             </View>
 
             {/* Formulario */}
-            {loading ? (
+            {!user ? (
               <View className="flex-1 items-center justify-center py-12">
                 <Text className="text-white text-lg">Cargando...</Text>
               </View>

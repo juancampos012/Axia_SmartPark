@@ -1,11 +1,13 @@
 import React from 'react';
 import { View, Text, Pressable, Alert } from 'react-native';
 import { useForm, Controller } from 'react-hook-form';
+import { useRouter } from 'expo-router';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
 import Checkbox from '../../atoms/Checkbox';
-import { registerAuth } from '../../../../libs/auth';
-import type { RegisterDTO } from '../../../../interfaces/Auth';
+import { registerAuth } from '../../../libs/auth';
+import type { RegisterDTO } from '../../../interfaces/Auth';
+import { useAuth } from '../../../context/AuthContext';
 
 interface OriginalFormValues {
   firstName: string;
@@ -27,6 +29,9 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) => {
+  const router = useRouter();
+  const { signIn } = useAuth();
+  
   const {
     control,
     handleSubmit,
@@ -87,6 +92,20 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         return;
       }
 
+      // Si el registro fue exitoso y no requiere verificación
+      // Opcional: hacer login automático si el backend devuelve tokens
+      if (result.user) {
+        Alert.alert('Éxito', result.message || 'Cuenta creada exitosamente', [
+          {
+            text: 'OK',
+            onPress: () => {
+              reset();
+              onLoginPress?.(); // Redirigir a login
+            }
+          }
+        ]);
+      }
+
       onSubmit?.({
         firstName: data.firstName,
         lastName: data.lastName,
@@ -95,15 +114,6 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         phone: data.phone
       });
 
-      Alert.alert('Éxito', result.message || 'Cuenta creada exitosamente', [
-        {
-          text: 'OK',
-          onPress: () => {
-            reset();
-            onLoginPress?.();
-          }
-        }
-      ]);
     } catch (err: any) {
       let errorMessage = 'No se pudo registrar';
       
