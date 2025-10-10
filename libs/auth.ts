@@ -120,17 +120,6 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");
     }
 
-    // Guardar tokens y datos del usuario
-    await saveTokens({
-      accessToken: dataResponse.data.tokens.accessToken,
-      refreshToken: dataResponse.data.tokens.refreshToken || "",
-    });
-
-    await saveUserData(dataResponse.data.user);
-
-    await AsyncStorage.getItem("accessToken");
-
-
     return dataResponse;
   } catch (error: any) {    
     // Si hay información adicional sobre intentos de login, incluirla en el error

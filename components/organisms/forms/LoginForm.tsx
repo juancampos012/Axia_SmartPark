@@ -7,6 +7,7 @@ import Button from '../../atoms/Button';
 import { LoginDTO } from '../../../interfaces/Auth';
 import { loginAuth } from '../../../libs/auth';
 import { router } from 'expo-router';
+import { useAuth } from '../../../context/AuthContext';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -27,12 +28,19 @@ const LoginForm: React.FC<LoginFormProps> = ({
       password: ''
     }
   });
+  const { signIn } = useAuth();
 
   const submitForm = async (data: LoginDTO) => {
     try {
-      await loginAuth(data);
+      const response = await loginAuth(data);
+
+      // Guardamos usuario y tokens en el contexto y en AsyncStorage
+      await signIn(response.data.user, response.data.tokens.accessToken, response.data.tokens.refreshToken);
+
+      // Redirigimos a la pantalla principal
       router.dismissAll();
-      router.replace('/(tabs)/home');
+      router.replace("/(tabs)/home");
+
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error(error);
