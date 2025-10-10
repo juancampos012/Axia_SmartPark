@@ -22,6 +22,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onGooglePress,
   onFacebookPress
 }) => {
+  const { signIn } = useAuth();
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginDTO>({
     defaultValues: {
       email: '',
@@ -33,14 +34,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
   const submitForm = async (data: LoginDTO) => {
     try {
       const response = await loginAuth(data);
-
-      // Guardamos usuario y tokens en el contexto y en AsyncStorage
-      await signIn(response.data.user, response.data.tokens.accessToken, response.data.tokens.refreshToken);
-
-      // Redirigimos a la pantalla principal
-      router.dismissAll();
-      router.replace("/(tabs)/home");
-
+      
+      // Guardar en el AuthContext
+      await signIn(
+        response.data.user,
+        response.data.tokens.accessToken,
+        response.data.tokens.refreshToken
+      );
+      
+       router.dismissAll();
+      // Navegar a las tabs
+      router.replace('/(tabs)/home');
+      
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error(error);
