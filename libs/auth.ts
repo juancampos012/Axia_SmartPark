@@ -1,6 +1,6 @@
 import { LoginDTO, RegisterDTO, ForgotPasswordDTO, ResetPasswordDTO, LoginResponse } from "../interfaces/Auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+import { EXPO_PUBLIC_API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
 const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
 

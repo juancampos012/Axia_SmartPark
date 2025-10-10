@@ -7,6 +7,7 @@ import Button from '../../atoms/Button';
 import { LoginDTO } from '../../../interfaces/Auth';
 import { loginAuth } from '../../../libs/auth';
 import { router } from 'expo-router';
+import { useAuth } from '../../../context/AuthContext';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -21,6 +22,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onGooglePress,
   onFacebookPress
 }) => {
+  const { signIn } = useAuth();
   const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginDTO>({
     defaultValues: {
       email: '',
@@ -30,9 +32,18 @@ const LoginForm: React.FC<LoginFormProps> = ({
 
   const submitForm = async (data: LoginDTO) => {
     try {
-      await loginAuth(data);
-      router.dismissAll();
+      const response = await loginAuth(data);
+      
+      // Guardar en el AuthContext
+      await signIn(
+        response.data.user,
+        response.data.tokens.accessToken,
+        response.data.tokens.refreshToken
+      );
+      
+      // Navegar a las tabs
       router.replace('/(tabs)/home');
+      
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error(error);
