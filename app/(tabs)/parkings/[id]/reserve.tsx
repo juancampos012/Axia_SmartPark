@@ -1,17 +1,21 @@
-import React, { useState, useMemo, useCallback } from "react";
-import { View, Text, ScrollView, Pressable, Modal, Platform,Alert, ActivityIndicator, } from "react-native";
+import React, { useState, useMemo, useCallback, useEffect } from "react";
+import { View, ScrollView, Text, Alert, ActivityIndicator } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import DateTimePicker from "@react-native-community/datetimepicker";
 import { Ionicons } from "@expo/vector-icons";
-import Button from "../../../../components/atoms/Button";
-import ParkingSpotGrid from "../../../../components/molecules/ParkingSpotGrid";
-import VehiclePickerModal from "../../../../components/molecules/VehiclePickerModal";
-import { DateTimeSelector } from "../../../../components/atoms/DateTimeSelector";
-import { FloorSelector } from "../../../../components/atoms/FloorSelector";
-import { ReservationSummary } from "../../../../components/atoms/ReservationSummary";
+import { fetchMyVehicles } from '../../../../libs/vehicles';
+import { createReservation } from '../../../../libs/reservations';
 
-// Types
+// Components
+import VehicleSelection from "../../../../components/organisms/parking/VehicleSelection";
+import FloorSelection from "../../../../components/organisms/parking/FloorSelection";
+import ReservationForm from "../../../../components/organisms/forms/ReservationForm";
+import DateTimeModal from "../../../../components/molecules/parking/DateTimeModal";
+import { DateTimeSelector } from "../../../../components/atoms/DateTimeSelector";
+import Button from "../../../../components/atoms/Button";
+import { Vehicle } from "../../../../interfaces/vehicle";
+
+// Types - MOVER LAS INTERFACES FUERA DEL COMPONENTE
 interface ParkingSpot {
   id: string;
   number: string;
@@ -20,7 +24,7 @@ interface ParkingSpot {
   floor: number;
 }
 
-interface Floor {
+interface ParkingFloor {
   id: string;
   number: number;
   name: string;
@@ -33,45 +37,30 @@ interface Parking {
   id: string;
   name: string;
   address: string;
-  hourlyRate: number;
-  hourlyCarRate?: number;
-  hourlyMotorcycleRate?: number;
-  floors: Floor[];
-  rating: number;
+  hourlyCarRate: number;
+  hourlyMotorcycleRate: number;
+  dailyRate: number;
+  monthlyRate: number;
+  floors: number;
+  totalCapacity: number;
+  availableSpots: number;
+  status: 'OPEN' | 'CLOSED' | 'FULL' | 'MAINTENANCE';
+  schedule: string;
+  description: string;
   features: string[];
+  parkingFloors: any[];
+  parkingSpots: any[];
 }
-
-interface Vehicle {
-  id: string;
-  licensePlate: string;
-  type: "car" | "motorcycle";
-  model: string;
-  carBrand: string;
-}
-
-// Mock vehicles data
-const MOCK_VEHICLES: Vehicle[] = [
-  {
-    id: "1",
-    licensePlate: "ABC123",
-    type: "car",
-    model: "Corolla",
-    carBrand: "Toyota",
-  },
-  {
-    id: "2",
-    licensePlate: "XYZ789",
-    type: "motorcycle",
-    model: "Ninja 400",
-    carBrand: "Kawasaki",
-  },
-];
 
 const Reserve = () => {
   const router = useRouter();
-  const params = useLocalSearchParams();
-  
-  // State
+  const params = useLocalSearchParams<{ parkingData?: string }>();
+
+  // TODOS LOS HOOKS PRIMERO - sin returns tempranos entre ellos
+  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
+  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(null);
+  const [loadingVehicles, setLoadingVehicles] = useState(true);
+  const [errorVehicles, setErrorVehicles] = useState<string | null>(null);
   const [selectedDate, setSelectedDate] = useState(() => {
     const date = new Date();
     date.setHours(date.getHours() + 1, 0, 0, 0);
@@ -88,54 +77,96 @@ const Reserve = () => {
     return date;
   });
   const [selectedSpot, setSelectedSpot] = useState<ParkingSpot | null>(null);
-  const [selectedVehicle, setSelectedVehicle] = useState<Vehicle | null>(MOCK_VEHICLES[0]);
   const [selectedFloor, setSelectedFloor] = useState(1);
   const [showVehiclePicker, setShowVehiclePicker] = useState(false);
   const [openModal, setOpenModal] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
+  // Helper functions - deben estar definidas antes de los useMemo
+  const mapSpotStatus = (status: string): "available" | "occupied" | "reserved" | "maintenance" => {
+    switch (status) {
+      case 'AVAILABLE': return 'available';
+      case 'OCCUPIED': return 'occupied';
+      case 'RESERVED': return 'reserved';
+      case 'MAINTENANCE': return 'maintenance';
+      default: return 'available';
+    }
+  };
+
+  const mapSpotType = (spotType: string): "car" | "motorcycle" | "disabled" => {
+    switch (spotType) {
+      case 'STANDARD': return 'car';
+      case 'ELECTRIC': return 'car';
+      case 'HANDICAPPED': return 'disabled';
+      case 'MOTORCYCLE': return 'motorcycle';
+      default: return 'car';
+    }
+  };
+
+  // Cargar vehículos del usuario
+  useEffect(() => {
+    const loadVehicles = async () => {
+      try {
+        setLoadingVehicles(true);
+        setErrorVehicles(null);
+        const userVehicles = await fetchMyVehicles();
+        setVehicles(userVehicles);
+        if (userVehicles.length > 0) {
+          setSelectedVehicle(userVehicles[0]);
+        }
+      } catch (error: any) {
+        console.error('Error cargando vehículos:', error);
+        setErrorVehicles(error.message || 'No se pudieron cargar tus vehículos');
+      } finally {
+        setLoadingVehicles(false);
+      }
+    };
+
+    loadVehicles();
+  }, []);
+
   // Parse parking data from params
-  const parking = useMemo(() => {
+  const parking = useMemo((): Parking | null => {
     try {
-      return params.data ? JSON.parse(params.data as string) : null;
+      return params.parkingData ? JSON.parse(params.parkingData as string) : null;
     } catch (error) {
       console.error('Error parsing parking data:', error);
       return null;
     }
-  }, [params.data]);
+  }, [params.parkingData]);
 
-  // Early return if no parking data
-  if (!parking) {
-    return (
-      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
-        <Text className="text-white text-lg text-center mb-4">
-          No se pudo cargar la información del estacionamiento
-        </Text>
-        <Button 
-          title="Volver" 
-          onPress={() => router.back()} 
-          variant="secondary" 
-        />
-      </SafeAreaView>
-    );
-  }
+  const transformedParkingData = useMemo(() => {
+    if (!parking) return null;
 
-  const currentFloor = parking.floors?.find((f: Floor) => f.number === selectedFloor);
+    const floors: ParkingFloor[] = parking.parkingFloors?.map(floor => {
+      const floorSpots = parking.parkingSpots?.filter(spot => spot.floorId === floor.id) || [];
+      
+      const transformedSpots: ParkingSpot[] = floorSpots.map(spot => ({
+        id: spot.id,
+        number: spot.spotNumber,
+        status: mapSpotStatus(spot.status),
+        type: mapSpotType(spot.spotType),
+        floor: floor.floorNumber
+      }));
 
-  // Filtrar espacios según el tipo de vehículo seleccionado
-  const filteredSpots = useMemo(() => {
-    if (!currentFloor?.spots) return [];
-    
-    if (selectedVehicle?.type === "motorcycle") {
-      return currentFloor.spots.filter((spot: ParkingSpot) => 
-        spot.type === "motorcycle" || spot.type === "disabled"
-      );
-    } else {
-      return currentFloor.spots.filter((spot: ParkingSpot) => 
-        spot.type === "car" || spot.type === "disabled"
-      );
-    }
-  }, [currentFloor, selectedVehicle]);
+      const availableSpots = transformedSpots.filter(spot => spot.status === "available").length;
+
+      return {
+        id: floor.id,
+        number: floor.floorNumber,
+        name: floor.name || `Piso ${floor.floorNumber}`,
+        totalSpots: transformedSpots.length,
+        availableSpots: availableSpots,
+        spots: transformedSpots
+      };
+    }) || [];
+
+    return {
+      ...parking,
+      floors: floors,
+      features: parking.features || []
+    };
+  }, [parking]);
 
   // Format functions
   const formatDate = (d: Date) =>
@@ -158,12 +189,10 @@ const Reserve = () => {
     const hours = Math.ceil(diffMs / (1000 * 60 * 60));
     const totalHours = Math.max(hours, 1);
     
-    let rate = 3000;
+    let rate = parking?.hourlyCarRate || 3000;
     
     if (selectedVehicle?.type === "motorcycle") {
-      rate = parking.hourlyMotorcycleRate || parking.hourlyRate || 3000;
-    } else {
-      rate = parking.hourlyCarRate || parking.hourlyRate || 3000;
+      rate = parking?.hourlyMotorcycleRate || 2000;
     }
     
     const totalPrice = rate * totalHours;
@@ -194,7 +223,7 @@ const Reserve = () => {
   }, [selectedDate, startTime, endTime]);
 
   // Event handlers
-  const handleSpotPress = useCallback((spot: ParkingSpot) => {
+  const handleSpotPress = useCallback((spot: any) => {
     if (spot.status === "available") {
       setSelectedSpot(spot);
     } else {
@@ -223,82 +252,72 @@ const Reserve = () => {
     setSelectedSpot(null);
   }, []);
 
-  const DateTimeModal = ({ type, visible, onClose }: { 
-    type: string; 
-    visible: boolean; 
-    onClose: () => void;
-  }) => {
-    const [tempValue, setTempValue] = useState(() => {
-      if (type === "date") return selectedDate;
-      if (type === "start") return startTime;
-      return endTime;
-    });
-
-    const handleConfirm = () => {
-      if (tempValue) {
-        handleDateTimeChange(type, tempValue);
-      }
-      onClose();
-    };
-
+  // AHORA LOS RETURNS TEMPRANOS - después de todos los Hooks
+  if (!parking) {
     return (
-      <Modal
-        transparent
-        animationType="fade"
-        visible={visible}
-        onRequestClose={onClose}
-      >
-        <View className="flex-1 bg-black/70 items-center justify-center p-4">
-          <View className="bg-axia-darkGray rounded-2xl p-6 w-full max-w-md">
-            <Text className="text-white text-center font-primaryBold mb-4 text-lg">
-              {type === "date"
-                ? "Selecciona una fecha"
-                : type === "start"
-                ? "Hora de inicio"
-                : "Hora de fin"}
-            </Text>
-            
-            <DateTimePicker
-              value={tempValue}
-              mode={type === "date" ? "date" : "time"}
-              display="spinner"
-              minimumDate={type === "date" ? new Date() : undefined}
-              onChange={(event, selected) => {
-                if (selected) {
-                  setTempValue(selected);
-                }
-              }}
-              style={{ height: Platform.OS === "ios" ? 200 : 150 }}
-              textColor="#FFFFFF"
-            />
-            
-            <View className="flex-row gap-3 mt-4">
-              <Pressable
-                onPress={onClose}
-                className="flex-1 bg-axia-gray/30 rounded-xl py-3 active:scale-95"
-                accessibilityLabel="Cancelar selección"
-                accessibilityRole="button"
-              >
-                <Text className="text-white text-center font-primaryBold text-lg">
-                  Cancelar
-                </Text>
-              </Pressable>
-              <Pressable
-                onPress={handleConfirm}
-                className="flex-1 bg-axia-green rounded-xl py-3 active:scale-95"
-                accessibilityLabel="Confirmar selección"
-                accessibilityRole="button"
-              >
-                <Text className="text-axia-black text-center font-primaryBold text-lg">
-                  Confirmar
-                </Text>
-              </Pressable>
-            </View>
-          </View>
+      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
+        <View className="items-center px-6">
+          <Ionicons name="warning-outline" size={48} color="#6B7280" />
+          <Text className="text-white text-lg font-primaryBold mt-4 text-center">
+            No se pudo cargar la información del estacionamiento
+          </Text>
+          <Button 
+            title="Volver" 
+            onPress={() => router.back()} 
+            variant="secondary" 
+          />
         </View>
-      </Modal>
+      </SafeAreaView>
     );
-  };
+  }
+
+  if (loadingVehicles) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+        <View className="flex-1 justify-center items-center">
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text className="text-white mt-2">Cargando tus vehículos...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (errorVehicles) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+        <View className="flex-1 justify-center items-center px-6">
+          <Ionicons name="warning-outline" size={48} color="#6B7280" />
+          <Text className="text-white text-center mt-4">{errorVehicles}</Text>
+          <Button 
+            title="Reintentar" 
+            onPress={() => window.location.reload()} 
+            variant="secondary" 
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (vehicles.length === 0) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+        <View className="flex-1 justify-center items-center px-6">
+          <Ionicons name="car-outline" size={48} color="#6B7280" />
+          <Text className="text-white text-lg font-primaryBold mt-4 text-center">
+            No tienes vehículos registrados
+          </Text>
+          <Text className="text-axia-gray text-center mt-2 mb-6">
+            Para realizar una reserva, primero necesitas agregar un vehículo a tu cuenta.
+          </Text>
+          <Button 
+            title="Agregar Vehículo" 
+            onPress={() => router.push('/vehicles/add')} 
+            variant="primary" 
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   const handleReserve = async () => {
     if (!selectedSpot) {
@@ -319,65 +338,63 @@ const Reserve = () => {
     try {
       setLoading(true);
 
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      // Crear fechas combinadas
+      const reservationStart = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        startTime.getHours(),
+        startTime.getMinutes()
+      );
+
+      const reservationEnd = new Date(
+        selectedDate.getFullYear(),
+        selectedDate.getMonth(),
+        selectedDate.getDate(),
+        endTime.getHours(),
+        endTime.getMinutes()
+      );
 
       const reservationData = {
-        id: `res_${Date.now()}`,
-        parkingId: parking.id,
         parkingSpotId: selectedSpot.id,
         vehicleId: selectedVehicle.id,
-        startTime: new Date(
-          selectedDate.getFullYear(),
-          selectedDate.getMonth(),
-          selectedDate.getDate(),
-          startTime.getHours(),
-          startTime.getMinutes()
-        ).toISOString(),
-        endTime: new Date(
-          selectedDate.getFullYear(),
-          selectedDate.getMonth(),
-          selectedDate.getDate(),
-          endTime.getHours(),
-          endTime.getMinutes()
-        ).toISOString(),
-        status: "CONFIRMED",
-        totalAmount: totalPrice,
-        createdAt: new Date().toISOString(),
+        startTime: reservationStart.toISOString(),
+        endTime: reservationEnd.toISOString(),
       };
 
-      router.push({
-        pathname: `/parkings/${parking.id}/reserve/confirm`,
-        params: { 
-          reservationId: reservationData.id,
-          data: JSON.stringify({
-            ...reservationData,
-            parkingName: parking.name,
-            address: parking.address,
-            spotNumber: selectedSpot.number,
-            floor: selectedFloor,
-            hours: totalHours,
-            totalPrice: totalPrice,
-            hourlyRate: hourlyRate,
-            vehicle: selectedVehicle,
-            features: parking.features
-          })
-        }
-      });
+      await createReservation(reservationData);
+
+      alert("Reserva creada con éxito");
+
+      router.replace('/parkings/');
 
     } catch (error: any) {
       console.error("Error creating reservation:", error);
-      Alert.alert(
-        "Error al reservar",
-        "No se pudo completar la reserva. Inténtalo de nuevo."
-      );
+      
+      // Manejar diferentes tipos de errores
+      let errorMessage = "No se pudo completar la reserva. Inténtalo de nuevo.";
+      
+      if (error.message.includes('conflicto') || error.message.includes('conflict')) {
+        errorMessage = "Ya existe una reserva en conflicto para este horario. Por favor selecciona otro horario.";
+      } else if (error.message.includes('vehicle')) {
+        errorMessage = "Error con el vehículo seleccionado. Verifica que el vehículo esté registrado correctamente.";
+      } else if (error.message.includes('parking spot')) {
+        errorMessage = "El espacio de parqueo no está disponible. Por favor selecciona otro espacio.";
+      } else if (error.message.includes('Session expired')) {
+        errorMessage = "Tu sesión ha expirado. Por favor inicia sesión nuevamente.";
+        // Opcional: redirigir al login
+        // router.push('/login');
+      }
+
+      Alert.alert("Error al reservar", errorMessage);
     } finally {
       setLoading(false);
     }
   };
 
+  // Render principal
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      {/* Loading Overlay */}
       {loading && (
         <View className="absolute inset-0 bg-black/50 z-50 justify-center items-center">
           <View className="bg-axia-darkGray rounded-2xl p-6 items-center">
@@ -389,45 +406,24 @@ const Reserve = () => {
 
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         <View className="p-6">
-          {/* Header */}
           <View className="mb-6">
             <Text className="text-white text-2xl font-primaryBold text-center">
               Reservar Espacio
             </Text>
             <Text className="text-axia-gray text-center mt-2">
-              {parking.name} - {parking.address}
+              {parking?.name ?? ""} - {parking?.address ?? ""}
             </Text>
           </View>
 
-          {/* Vehicle Selection */}
-          <View className="bg-axia-darkGray rounded-2xl p-5 mb-6">
-            <Text className="text-white text-lg font-primaryBold mb-4">
-              Vehículo
-            </Text>
-            
-            <Pressable
-              onPress={() => setShowVehiclePicker(true)}
-              className="bg-axia-gray/30 rounded-xl p-4 flex-row justify-between items-center active:scale-95"
-              accessibilityLabel="Seleccionar vehículo"
-              accessibilityRole="button"
-            >
-              <View className="flex-row items-center">
-                <Ionicons name="car-sport" size={20} color="#10B981" />
-                <View className="ml-3">
-                  <Text className="text-white font-primaryBold">
-                    {selectedVehicle?.carBrand} {selectedVehicle?.model}
-                  </Text>
-                  <Text className="text-axia-gray text-sm font-primary">
-                    {selectedVehicle?.licensePlate} • {selectedVehicle?.type === "car" ? "Carro" : "Moto"}
-                  </Text>
-                </View>
-              </View>
-              <Ionicons name="chevron-down" size={20} color="#6B7280" />
-            </Pressable>
-          </View>
+          <VehicleSelection
+            selectedVehicle={selectedVehicle}
+            vehicles={vehicles}
+            onVehicleSelect={setSelectedVehicle}
+            showPicker={showVehiclePicker}
+            onShowPicker={setShowVehiclePicker}
+          />
 
-          {/* Date & Time Selection */}
-          <View className="bg-axia-darkGray rounded-2xl p-5 mb-6">
+          <View className="bg-axia-darkGray rounded-2xl p-5 mb-6 mt-4">
             <Text className="text-white text-lg font-primaryBold mb-4">
               Fecha y Horario
             </Text>
@@ -456,7 +452,6 @@ const Reserve = () => {
               accessibilityLabel="Seleccionar hora de fin"
             />
 
-            {/* Duration Summary */}
             <View className={`rounded-lg p-3 mt-3 ${
               isValidReservation ? 'bg-axia-green/10' : 'bg-yellow-500/10'
             }`}>
@@ -469,120 +464,50 @@ const Reserve = () => {
             </View>
           </View>
 
-          {/* Date/Time Modals */}
-          {["date", "start", "end"].map((type) => (
+          {(["date", "start", "end"] as ("date" | "start" | "end")[]).map((type) => (
             <DateTimeModal
               key={type}
               type={type}
               visible={openModal === type}
               onClose={() => setOpenModal(null)}
+              onChange={handleDateTimeChange}
+              selectedDate={selectedDate}
+              startTime={startTime}
+              endTime={endTime}
             />
           ))}
 
-          {/* Floor Selection */}
-          <View className="bg-axia-darkGray rounded-2xl p-5 mb-6">
-            <Text className="text-white text-lg font-primaryBold mb-4">
-              Seleccionar Piso
-            </Text>
-            
-            <FloorSelector
-              floors={parking.floors || []}
-              selectedFloor={selectedFloor}
-              onFloorSelect={handleFloorSelect}
-            />
+          <FloorSelection
+            floors={transformedParkingData?.floors || []}
+            selectedFloor={selectedFloor}
+            selectedSpot={selectedSpot}
+            selectedVehicle={selectedVehicle}
+            onFloorSelect={handleFloorSelect}
+            onSpotPress={handleSpotPress}
+          />
 
-            {/* Parking Spot Grid */}
-            {currentFloor && (
-              <View className="mt-4">
-                <Text className="text-white font-primaryBold mb-4 text-center">
-                  Piso {currentFloor.number} - {filteredSpots.filter((spot: ParkingSpot) => spot.status === 'available').length} espacios disponibles para {selectedVehicle?.type === 'car' ? 'carros' : 'motos'}
-                </Text>
-
-                <View className="bg-axia-black/50 rounded-xl p-4 min-h-80">
-                  {filteredSpots.length > 0 ? (
-                    <ParkingSpotGrid
-                      spots={filteredSpots}
-                      selectedSpot={selectedSpot}
-                      onSpotPress={handleSpotPress}
-                    />
-                  ) : (
-                    <View className="items-center justify-center py-12">
-                      <Ionicons
-                        name="alert-circle-outline"
-                        size={48}
-                        color="#6B7280"
-                      />
-                      <Text className="text-axia-gray text-lg font-primary mt-4 text-center">
-                        No hay espacios {selectedVehicle?.type === 'car' ? 'para carros' : 'para motos'} en este piso
-                      </Text>
-                    </View>
-                  )}
-                </View>
-
-                {/* Legend */}
-                <View className="flex-row flex-wrap justify-center gap-4 mt-4 mb-4">
-                  {[
-                    { color: "#10B981", label: "Disponible" },
-                    { color: "#EF4444", label: "Ocupado" },
-                    { color: "#F59E0B", label: "Reservado" },
-                    { color: "#6B7280", label: "Mantenimiento" },
-                  ].map((item, index) => (
-                    <View key={index} className="flex-row items-center">
-                      <View
-                        className="w-3 h-3 rounded-full mr-2"
-                        style={{ backgroundColor: item.color }}
-                      />
-                      <Text className="text-axia-gray text-xs">{item.label}</Text>
-                    </View>
-                  ))}
-                </View>
-
-                {/* Informational Note */}
-                <View className="bg-axia-darkGray/30 rounded-lg p-3">
-                  <View className="flex-row items-start">
-                    <Ionicons
-                      name="information-circle"
-                      size={16}
-                      color="#6B7280"
-                      className="mt-0.5 mr-2"
-                    />
-                    <Text className="text-axia-gray text-xs font-primary flex-1">
-                      Mostrando solo espacios para {selectedVehicle?.type === 'car' ? 'carros' : 'motos'}. Los espacios para discapacitados están disponibles para ambos tipos de vehículos.
-                    </Text>
-                  </View>
-                </View>
-              </View>
-            )}
-          </View>
-
-          {/* Reservation Summary */}
           {selectedSpot && (
-            <ReservationSummary
-              selectedSpot={selectedSpot}
-              selectedFloor={selectedFloor}
-              selectedVehicle={selectedVehicle}
+            <ReservationForm
               selectedDate={selectedDate}
               startTime={startTime}
               endTime={endTime}
               totalHours={totalHours}
-              hourlyRate={hourlyRate}
               totalPrice={totalPrice}
+              isValidReservation={isValidReservation}
               formatDate={formatDate}
               formatTime={formatTime}
             />
           )}
 
-          {/* Reserve Button */}
           <Button
             title={selectedSpot ? "Confirmar Reserva" : "Selecciona un espacio"}
             onPress={handleReserve}
             variant={selectedSpot ? "primary" : "secondary"}
             size="large"
-            className="mb-6 shadow-lg shadow-axia-green/25"
+            className="mt-4 mb-6 shadow-lg shadow-axia-green/25"
             disabled={!selectedSpot || !selectedVehicle || !isValidReservation || loading}
           />
 
-          {/* Important Information */}
           <View className="bg-axia-darkGray/50 rounded-2xl p-4">
             <View className="flex-row items-center mb-2">
               <Ionicons name="information-circle" size={20} color="#10B981" />
@@ -599,15 +524,6 @@ const Reserve = () => {
           </View>
         </View>
       </ScrollView>
-
-      {/* Vehicle Picker Modal */}
-      <VehiclePickerModal
-        visible={showVehiclePicker}
-        vehicles={MOCK_VEHICLES}
-        selectedVehicle={selectedVehicle}
-        onSelect={setSelectedVehicle}
-        onClose={() => setShowVehiclePicker(false)}
-      />
     </SafeAreaView>
   );
 };

@@ -1,92 +1,90 @@
-import React, { useState } from 'react';
-import { View, Text, ScrollView, Pressable, Image, Alert } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, ScrollView, Pressable, Image, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import Button from '../../../../components/atoms/Button';
-
-interface ParkingSpot {
-  id: string;
-  number: string;
-  status: 'available' | 'occupied' | 'reserved' | 'maintenance';
-  type: 'car' | 'motorcycle' | 'disabled';
-  floor: number;
-}
-
-interface Floor {
-  id: string;
-  number: number;
-  name: string;
-  totalSpots: number;
-  availableSpots: number;
-  spots: ParkingSpot[];
-}
-
-interface Parking {
-  id: string;
-  name: string;
-  address: string;
-  hourlyCarRate: number;
-  hourlyMotorcycleRate: number;
-  rating: number;
-  totalSpots: number;
-  availableSpots: number;
-  distance: number;
-  image: string;
-  features: string[];
-  open24h: boolean;
-  security: boolean;
-  covered: boolean;
-  description: string;
-  operatingHours: string;
-  floors: Floor[];
-}
+import { fetchParkingById } from '../../../../libs/parking';
+import { Parking } from '../../../../interfaces/parking';
 
 const ParkingDetail = () => {
   const router = useRouter();
-  const params = useLocalSearchParams();
+  const params = useLocalSearchParams<{ id: string; parkingData?: string }>();
   const [isFavorite, setIsFavorite] = useState(false);
+  const [parking, setParking] = useState<Parking | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  // Obtener los datos del estacionamiento desde los parámetros
-  const parkingData = params.data ? JSON.parse(params.data as string) : null;
+  // Cargar datos del estacionamiento
+  useEffect(() => {
+    const loadParkingData = async () => {
+      try {
+        setLoading(true);
+        setError(null);
 
-  if (!parkingData) {
-    return (
-      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
-        <Text className="text-white">No se pudo cargar la información del estacionamiento</Text>
-      </SafeAreaView>
-    );
-  }
+        // Primero intentar con datos de parámetros
+        if (params.parkingData) {
+          const parkingFromParams = JSON.parse(params.parkingData);
+          setParking(parkingFromParams);
+          setLoading(false);
+          return;
+        }
 
-  const parking: Parking = {
-    id: parkingData.id,
-    name: parkingData.name,
-    address: parkingData.address,
-    hourlyCarRate: parkingData.hourlyCarRate,
-    hourlyMotorcycleRate: parkingData.hourlyMotorcycleRate,
-    rating: parkingData.rating,
-    totalSpots: parkingData.totalSpots,
-    availableSpots: parkingData.availableSpots,
-    distance: parkingData.distance,
-    image: parkingData.image || 'https://dimobaservicios.com/wp-content/uploads/2023/11/que-hace-un-auxiliar-parking.png',
-    features: parkingData.features || [],
-    open24h: parkingData.open24h || true,
-    security: parkingData.security || true,
-    covered: parkingData.covered || false,
-    description: parkingData.description || 'Estacionamiento seguro y moderno ubicado en una zona estratégica de la ciudad.',
-    operatingHours: parkingData.operatingHours || 'Abierto las 24 horas',
-    floors: parkingData.floors || [] // Asegurar que floors esté incluido
+        // Si no hay datos en parámetros, cargar del backend
+        if (params.id) {
+          const parkingFromBackend = await fetchParkingById(params.id);
+          setParking(parkingFromBackend);
+        } else {
+          throw new Error('No parking ID provided');
+        }
+      } catch (err) {
+        console.error('Error loading parking:', err);
+        setError(err instanceof Error ? err.message : 'Error loading parking');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadParkingData();
+  }, [params.id, params.parkingData]);
+
+  // Generar características basadas en datos reales del backend
+  const getParkingFeatures = (): string[] => {
+    if (!parking) return ['Estacionamiento seguro'];
+    
+    const features: string[] = [...parking.features];
+    
+    // Agregar características basadas en estado
+    if (parking.status === 'OPEN') features.push('Abierto ahora');
+    
+    // Agregar características basadas en horarios
+    if (parking.schedule?.includes('24')) {
+      features.push('24/7');
+    }
+    
+    // Agregar características por capacidad
+    if (parking.totalCapacity >= 50) {
+      features.push('Amplia capacidad');
+    }
+    
+    // Agregar características por pisos
+    if (parking.floors > 1) {
+      features.push('Múltiples pisos');
+    }
+    
+    return features.length > 0 ? features : ['Estacionamiento seguro'];
   };
 
+  // Handlers
   const handleGoBack = () => {
     router.back();
   };
 
   const handleReservePress = () => {
-    // Enviar todos los datos del estacionamiento a la pantalla de reserva
+    if (!parking) return;
+    
     router.push({
       pathname: `/parkings/${parking.id}/reserve`,
-      params: { data: JSON.stringify(parking) }
+      params: { parkingData: JSON.stringify(parking) }
     });
   };
 
@@ -101,15 +99,55 @@ const ParkingDetail = () => {
   };
 
   const handleViewOnMap = () => {
-    console.log('Ver en mapa');
+    if (!parking) return;
+    console.log('Ver en mapa:', {
+      latitude: parking.latitude,
+      longitude: parking.longitude,
+      name: parking.name
+    });
   };
 
   const handleShare = () => {
-    console.log('Compartir estacionamiento');
+    if (!parking) return;
+    console.log('Compartir estacionamiento:', parking.name);
   };
 
-  // Calcular total de espacios disponibles sumando todos los pisos
-  const totalAvailableSpots = parking.floors?.reduce((total, floor) => total + floor.availableSpots, 0) || parking.availableSpots;
+  // Estados de carga y error
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
+        <ActivityIndicator size="large" color="#10B981" />
+        <Text className="text-white text-lg font-primary mt-4">
+          Cargando información del estacionamiento...
+        </Text>
+      </SafeAreaView>
+    );
+  }
+
+  if (error || !parking) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
+        <View className="items-center px-6">
+          <Ionicons name="warning-outline" size={48} color="#6B7280" />
+          <Text className="text-white text-lg font-primaryBold mt-4 text-center">
+            {error || 'No se pudo cargar la información del estacionamiento'}
+          </Text>
+          <Pressable
+            onPress={() => router.back()}
+            className="bg-axia-green px-6 py-3 rounded-xl mt-6"
+          >
+            <Text className="text-axia-black font-primaryBold">Volver</Text>
+          </Pressable>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Datos calculados
+  const displayRating = parking.rating > 0 ? parking.rating : 4.0;
+  const reviewCount = parking.ratingCount > 0 ? parking.ratingCount : Math.floor(displayRating * 25);
+  const features = getParkingFeatures();
+  const isAvailable = parking.availableSpots > 0 && parking.status === 'OPEN';
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
@@ -143,6 +181,22 @@ const ParkingDetail = () => {
               />
             </Pressable>
           </View>
+
+          {/* Badge de estado */}
+          <View className="absolute bottom-4 right-4">
+            <View className={`px-3 py-1 rounded-full ${
+              parking.status === 'OPEN' ? 'bg-axia-green/20' : 
+              parking.status === 'CLOSED' ? 'bg-red-500/20' : 'bg-yellow-500/20'
+            }`}>
+              <Text className={`text-sm font-primaryBold ${
+                parking.status === 'OPEN' ? 'text-axia-green' : 
+                parking.status === 'CLOSED' ? 'text-red-500' : 'text-yellow-500'
+              }`}>
+                {parking.status === 'OPEN' ? 'Abierto' : 
+                 parking.status === 'CLOSED' ? 'Cerrado' : 'En mantenimiento'}
+              </Text>
+            </View>
+          </View>
         </View>
 
         <View className="flex-1 px-6 py-6">
@@ -164,17 +218,17 @@ const ParkingDetail = () => {
               <View className="flex-row items-center">
                 <Ionicons name="star" size={20} color="#F59E0B" />
                 <Text className="text-white font-primaryBold text-lg ml-1">
-                  {parking.rating}
+                  {displayRating.toFixed(1)}
                 </Text>
                 <Text className="text-axia-gray text-sm font-primary ml-1">
-                  ({Math.floor(parking.rating * 25)} reviews)
+                  ({reviewCount} reviews)
                 </Text>
               </View>
               
               <View className="flex-row items-center">
                 <Ionicons name="navigate" size={16} color="#10B981" />
                 <Text className="text-axia-green text-sm font-primaryBold ml-1">
-                  {parking.distance} km
+                  {parking.distance?.toFixed(1)} km
                 </Text>
               </View>
             </View>
@@ -187,19 +241,19 @@ const ParkingDetail = () => {
                 Disponibilidad
               </Text>
               <View className={`flex-row items-center px-3 py-1 rounded-full ${
-                totalAvailableSpots > 10 ? 'bg-axia-green/20' : 
-                totalAvailableSpots > 0 ? 'bg-yellow-500/20' : 'bg-red-500/20'
+                parking.availableSpots > 10 ? 'bg-axia-green/20' : 
+                parking.availableSpots > 0 ? 'bg-yellow-500/20' : 'bg-red-500/20'
               }`}>
                 <View className={`w-2 h-2 rounded-full mr-2 ${
-                  totalAvailableSpots > 10 ? 'bg-axia-green' : 
-                  totalAvailableSpots > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                  parking.availableSpots > 10 ? 'bg-axia-green' : 
+                  parking.availableSpots > 0 ? 'bg-yellow-500' : 'bg-red-500'
                 }`} />
                 <Text className={`text-sm font-primaryBold ${
-                  totalAvailableSpots > 10 ? 'text-axia-green' : 
-                  totalAvailableSpots > 0 ? 'text-yellow-500' : 'text-red-500'
+                  parking.availableSpots > 10 ? 'text-axia-green' : 
+                  parking.availableSpots > 0 ? 'text-yellow-500' : 'text-red-500'
                 }`}>
-                  {totalAvailableSpots > 10 ? 'Disponible' : 
-                   totalAvailableSpots > 0 ? 'Pocos espacios' : 'Completo'}
+                  {parking.availableSpots > 10 ? 'Disponible' : 
+                   parking.availableSpots > 0 ? 'Pocos espacios' : 'Completo'}
                 </Text>
               </View>
             </View>
@@ -209,24 +263,28 @@ const ParkingDetail = () => {
                 Espacios disponibles
               </Text>
               <Text className="text-white font-primaryBold">
-                {totalAvailableSpots} / {parking.totalSpots}
+                {parking.availableSpots} / {parking.totalCapacity}
               </Text>
             </View>
 
             {/* Información de pisos */}
-            {parking.floors && parking.floors.length > 0 && (
+            {parking.floors > 0 && (
               <View className="mt-3 pt-3 border-t border-axia-gray/20">
                 <Text className="text-axia-gray text-sm font-primary mb-2">
-                  Distribución por pisos:
+                  Distribución:
                 </Text>
-                {parking.floors.map(floor => (
-                  <View key={floor.id} className="flex-row justify-between items-center py-1">
-                    <Text className="text-axia-gray text-xs font-primary">{floor.name}</Text>
-                    <Text className="text-white text-xs font-primaryBold">
-                      {floor.availableSpots} disp.
-                    </Text>
-                  </View>
-                ))}
+                <View className="flex-row justify-between items-center py-1">
+                  <Text className="text-axia-gray text-xs font-primary">Total de pisos</Text>
+                  <Text className="text-white text-xs font-primaryBold">
+                    {parking.floors} pisos
+                  </Text>
+                </View>
+                <View className="flex-row justify-between items-center py-1">
+                  <Text className="text-axia-gray text-xs font-primary">Capacidad total</Text>
+                  <Text className="text-white text-xs font-primaryBold">
+                    {parking.totalCapacity} espacios
+                  </Text>
+                </View>
               </View>
             )}
           </View>
@@ -234,14 +292,14 @@ const ParkingDetail = () => {
           {/* Precios */}
           <View className="bg-axia-darkGray rounded-2xl p-5 mb-6">
             <Text className="text-white text-lg font-primaryBold mb-4">
-              Tarifas por hora
+              Tarifas
             </Text>
             
-            <View className="space-y-3">
+            <View className="space-y-4">
               <View className="flex-row justify-between items-center">
                 <View className="flex-row items-center">
                   <Ionicons name="car-sport" size={20} color="#10B981" />
-                  <Text className="text-white font-primary ml-3">Vehículo</Text>
+                  <Text className="text-white font-primary ml-3">Vehículo por hora</Text>
                 </View>
                 <Text className="text-axia-green font-primaryBold text-lg">
                   COP {parking.hourlyCarRate.toLocaleString()}
@@ -251,12 +309,36 @@ const ParkingDetail = () => {
               <View className="flex-row justify-between items-center">
                 <View className="flex-row items-center">
                   <Ionicons name="bicycle" size={20} color="#10B981" />
-                  <Text className="text-white font-primary ml-3">Motocicleta</Text>
+                  <Text className="text-white font-primary ml-3">Motocicleta por hora</Text>
                 </View>
                 <Text className="text-axia-green font-primaryBold text-lg">
                   COP {parking.hourlyMotorcycleRate.toLocaleString()}
                 </Text>
               </View>
+
+              {parking.dailyRate > 0 && (
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <Ionicons name="calendar" size={20} color="#10B981" />
+                    <Text className="text-white font-primary ml-3">Tarifa diaria</Text>
+                  </View>
+                  <Text className="text-axia-green font-primaryBold text-lg">
+                    COP {parking.dailyRate.toLocaleString()}
+                  </Text>
+                </View>
+              )}
+
+              {parking.monthlyRate > 0 && (
+                <View className="flex-row justify-between items-center">
+                  <View className="flex-row items-center">
+                    <Ionicons name="business" size={20} color="#10B981" />
+                    <Text className="text-white font-primary ml-3">Tarifa mensual</Text>
+                  </View>
+                  <Text className="text-axia-green font-primaryBold text-lg">
+                    COP {parking.monthlyRate.toLocaleString()}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
 
@@ -267,7 +349,7 @@ const ParkingDetail = () => {
             </Text>
             
             <View className="flex-row flex-wrap">
-              {parking.features.map((feature, index) => (
+              {features.map((feature, index) => (
                 <View key={index} className="flex-row items-center mr-4 mb-3">
                   <Ionicons name="checkmark-circle" size={16} color="#10B981" />
                   <Text className="text-white font-primary ml-2">
@@ -283,10 +365,10 @@ const ParkingDetail = () => {
             <Text className="text-white text-lg font-primaryBold mb-3">
               Horario de atención
             </Text>
-            <View className="flex-row items-center">
+            <View className="flex-row items-start">
               <Ionicons name="time-outline" size={20} color="#10B981" />
-              <Text className="text-white font-primary ml-3">
-                {parking.operatingHours}
+              <Text className="text-white font-primary ml-3 flex-1">
+                {parking.schedule}
               </Text>
             </View>
           </View>
@@ -305,12 +387,24 @@ const ParkingDetail = () => {
           <View className="space-y-4 pb-8">
             <Pressable
               onPress={handleReservePress}
-              className="bg-axia-green py-4 rounded-xl items-center shadow-lg shadow-axia-green/25 active:scale-95" 
+              disabled={!isAvailable}
+              className={`py-4 rounded-xl items-center shadow-lg active:scale-95 ${
+                !isAvailable ? 'bg-axia-gray/50' : 'bg-axia-green shadow-axia-green/25'
+              }`} 
             >
               <View className="flex-row items-center justify-center">
-                <Ionicons name="calendar" size={20} color="#000000" />
-                <Text className="text-axia-black font-primaryBold text-lg ml-2">
-                  Reservar ahora
+                <Ionicons 
+                  name="calendar" 
+                  size={20} 
+                  color={!isAvailable ? "#6B7280" : "#000000"} 
+                />
+                <Text className={`font-primaryBold text-lg ml-2 ${
+                  !isAvailable ? 'text-axia-gray' : 'text-axia-black'
+                }`}>
+                  {!isAvailable ? 
+                    (parking.availableSpots === 0 ? 'Sin espacios disponibles' : 'Estacionamiento cerrado') 
+                    : 'Reservar ahora'
+                  }
                 </Text>
               </View>
             </Pressable>
@@ -318,7 +412,7 @@ const ParkingDetail = () => {
             <View className="flex-row space-x-4">
               <Pressable
                 onPress={handleViewOnMap}
-                className="flex-1 bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 mr-4 mt-8"
+                className="flex-1 bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 mt-4 mr-4"
               >
                 <View className="flex-row items-center justify-center">
                   <Ionicons name="map-outline" size={20} color="#10B981" />
@@ -330,18 +424,17 @@ const ParkingDetail = () => {
               
               <Pressable
                 onPress={handleShare}
-                className="flex-1 bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 ml-4 mt-8"
+                className="flex-1 bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 mt-4 ml-4"
               >
                 <View className="flex-row items-center justify-center">
                   <Ionicons name="share-social-outline" size={20} color="#10B981" />
-                  <Text className="text-axia-green font-primaryBold text-lg ml-2">
+                  <Text className="text-axia-green font-primaryBold text-lg ml-">
                     Compartir
                   </Text>
                 </View>
               </Pressable>
             </View>
           </View>
-
         </View>
       </ScrollView>
     </SafeAreaView>

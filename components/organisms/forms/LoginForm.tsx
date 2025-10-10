@@ -29,6 +29,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       password: ''
     }
   });
+  const { signIn } = useAuth();
 
   const submitForm = async (data: LoginDTO) => {
     try {
@@ -41,6 +42,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
         response.data.tokens.refreshToken
       );
       
+       router.dismissAll();
       // Navegar a las tabs
       router.replace('/(tabs)/home');
       

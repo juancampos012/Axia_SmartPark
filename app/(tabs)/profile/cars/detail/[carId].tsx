@@ -1,52 +1,78 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-const fetchCarById = async (id: string) => {
-  return {
-    id,
-    brand: 'Toyota',
-    model: 'Swift',
-    year: 2022,
-    plate: 'ABC 123',
-    color: 'Rojo',
-    mileage: 15000,
-  };
-};
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { fetchMyVehicles } from '../../../../../libs/vehicles';
 
 interface Car {
   id: string;
-  brand: string;
+  carBrand: string;
   model: string;
-  year: number;
-  plate: string;
+  licensePlate: string;
   color?: string;
-  mileage?: number;
+  year?: number;
+  engineType?: string;
 }
 
 export default function CarDetails() {
   const router = useRouter();
+  const navigation = useNavigation();
   const params = useLocalSearchParams<{ carId: string }>();
   const [car, setCar] = useState<Car | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const loadCar = async () => {
-      if (params.carId) {
-        const data = await fetchCarById(params.carId);
-        setCar(data);
+    const loadCarData = async () => {
+      try {
+        const vehicles = await fetchMyVehicles();
+        const foundCar: Car | undefined = vehicles.find((vehicle: Car) => vehicle.id === params.carId);
+        setCar(foundCar || null);
+      } catch (error) {
+        console.error('Error loading car details:', error);
+      } finally {
+        setLoading(false);
       }
     };
-    loadCar();
+
+    loadCarData();
   }, [params.carId]);
+
+  // Configurar el header de la navegación
+  useEffect(() => {
+    navigation.setOptions({
+      headerShown: false,
+    });
+  }, [navigation]);
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
+        <View className="items-center">
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text className="text-white text-lg font-primary mt-4">
+            Cargando información del vehículo...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!car) {
     return (
       <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
         <View className="items-center">
           <Ionicons name="car-sport" size={48} color="#6B7280" />
-          <Text className="text-white text-lg font-primary mt-4">Cargando información del vehículo...</Text>
+          <Text className="text-white text-lg font-primary mt-4 text-center">
+            No se encontró información del vehículo
+          </Text>
+          <Pressable 
+            onPress={() => router.back()}
+            className="bg-axia-green px-6 py-3 rounded-xl mt-6"
+          >
+            <Text className="text-axia-black font-primaryBold">Volver</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -78,7 +104,7 @@ export default function CarDetails() {
           {/* Información principal */}
           <View className="bg-axia-darkGray rounded-2xl p-6 mb-6">
             <Text className="text-white text-2xl font-primaryBold mb-2 text-center">
-              {car.brand} {car.model}
+              {car.carBrand} {car.model}
             </Text>
             <Text className="text-axia-gray text-base font-primary text-center mb-6">
               {car.year} • {car.color}
@@ -91,15 +117,15 @@ export default function CarDetails() {
                   <Ionicons name="pricetag-outline" size={20} color="#6B7280" />
                   <Text className="text-axia-gray font-primary ml-3">Placa</Text>
                 </View>
-                <Text className="text-white font-primaryBold">{car.plate}</Text>
+                <Text className="text-white font-primaryBold">{car.licensePlate}</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-3 border-b border-axia-gray/20">
                 <View className="flex-row items-center">
-                  <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-                  <Text className="text-axia-gray font-primary ml-3">Año</Text>
+                  <MaterialCommunityIcons name="engine-outline" size={24} color="#6B7280" />
+                  <Text className="text-axia-gray font-primary ml-3">Tipo de motor</Text>
                 </View>
-                <Text className="text-white font-primaryBold">{car.year}</Text>
+                <Text className="text-white font-primaryBold">{car.engineType}</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-3 border-b border-axia-gray/20">
@@ -107,18 +133,8 @@ export default function CarDetails() {
                   <Ionicons name="color-palette-outline" size={20} color="#6B7280" />
                   <Text className="text-axia-gray font-primary ml-3">Color</Text>
                 </View>
-                <Text className="text-white font-primaryBold">{car.color}</Text>
+                <Text className="text-white font-primaryBold">{car.color || 'No especificado'}</Text>
               </View>
-
-              {car.mileage !== undefined && (
-                <View className="flex-row justify-between items-center py-3">
-                  <View className="flex-row items-center">
-                    <Ionicons name="speedometer-outline" size={20} color="#6B7280" />
-                    <Text className="text-axia-gray font-primary ml-3">Kilometraje</Text>
-                  </View>
-                  <Text className="text-white font-primaryBold">{car.mileage.toLocaleString()} km</Text>
-                </View>
-              )}
             </View>
           </View>
 
@@ -132,7 +148,7 @@ export default function CarDetails() {
             </Pressable>
             
             <Pressable 
-              onPress={() => console.log('Editar vehículo')}
+              onPress={() => console.log('Editar vehículo', car.id)}
               className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95"
             >
               <Text className="text-white font-primaryBold text-lg">Editar Información</Text>
