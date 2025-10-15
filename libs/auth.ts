@@ -1,8 +1,7 @@
 import { LoginDTO, RegisterDTO, ForgotPasswordDTO, ResetPasswordDTO, LoginResponse } from "../interfaces/Auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { EXPO_PUBLIC_API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 // Función auxiliar para manejar respuestas
 const handleResponse = async (response: Response) => {
@@ -106,6 +105,9 @@ const saveUserData = async (user: any) => {
 // Login
 export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
   try {
+    console.log('[loginAuth] Enviando a:', `${API_BASE_URL}/auth/login`);
+    console.log('[loginAuth] Body:', JSON.stringify(body));
+    
     const response = await fetch(`${API_BASE_URL}/auth/login`, {
       method: "POST",
       headers: {
@@ -113,8 +115,11 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
       },
       body: JSON.stringify(body),
     });
+    
+    console.log('🔵 [loginAuth] Status:', response.status);
 
     const dataResponse = await handleResponse(response);
+    console.log('🔵 [loginAuth] Respuesta procesada:', JSON.stringify(dataResponse, null, 2));
 
     if (!dataResponse.data?.tokens?.accessToken || !dataResponse.data?.user) {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");
