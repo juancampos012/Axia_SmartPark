@@ -78,11 +78,11 @@ const Profile = () => {
   };
 
   const handleViewAllCars = () => {
-    router.push('/(cars)/my-cars');
+    router.push('/(tabs)/profile/cars');
   };
 
   const handleAddCar = () => {
-    router.push('/profile/cars/add');
+    router.push('/(tabs)/profile/cars/add');
   };
 
   return (
