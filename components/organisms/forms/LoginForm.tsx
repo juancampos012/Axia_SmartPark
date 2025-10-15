@@ -29,7 +29,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
       password: ''
     }
   });
-  const { signIn } = useAuth();
 
   const submitForm = async (data: LoginDTO) => {
     try {

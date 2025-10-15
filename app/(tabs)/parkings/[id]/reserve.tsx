@@ -338,55 +338,80 @@ const Reserve = () => {
     try {
       setLoading(true);
 
-      // Crear fechas combinadas
-      const reservationStart = new Date(
+      // Crear las fechas completas combinando fecha seleccionada con horas
+      const reservationStartTime = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
         startTime.getHours(),
-        startTime.getMinutes()
+        startTime.getMinutes(),
+        0
       );
 
-      const reservationEnd = new Date(
+      const reservationEndTime = new Date(
         selectedDate.getFullYear(),
         selectedDate.getMonth(),
         selectedDate.getDate(),
         endTime.getHours(),
-        endTime.getMinutes()
+        endTime.getMinutes(),
+        0
       );
 
-      const reservationData = {
-        parkingSpotId: selectedSpot.id,
-        vehicleId: selectedVehicle.id,
-        startTime: reservationStart.toISOString(),
-        endTime: reservationEnd.toISOString(),
+      // Función helper para formatear fechas (MM/DD/YYYY)
+      const formatDate = (date: Date) => {
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const year = date.getFullYear();
+        return `${month}/${day}/${year}`;
       };
 
-      await createReservation(reservationData);
+      // Función helper para formatear horas (12h format)
+      const formatTime = (date: Date) => {
+        const hours = date.getHours();
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const ampm = hours >= 12 ? 'PM' : 'AM';
+        const displayHours = hours % 12 || 12;
+        return `${displayHours}:${minutes} ${ampm}`;
+      };
 
-      alert("Reserva creada con éxito");
+      // Preparar datos completos para el flujo de pago
+      // IMPORTANTE: Estos datos se usarán en payment/method.tsx para crear la reservación + pago
+      const reservationPaymentData = {
+        // Datos para crear la reservación en el backend
+        parkingSpotId: selectedSpot.id, // REQUERIDO
+        vehicleId: selectedVehicle.id,   // REQUERIDO
+        startTime: reservationStartTime.toISOString(), // REQUERIDO (ISO string)
+        endTime: reservationEndTime.toISOString(),     // REQUERIDO (ISO string)
+        totalAmount: totalPrice, //  REQUERIDO para el pago
+        
+        // Datos para mostrar en la UI de pago
+        parkingId: parking?.id,
+        parkingName: parking?.name || 'Parqueadero',
+        address: parking?.address || '',
+        spotNumber: selectedSpot.number,
+        date: formatDate(selectedDate),
+        startTimeFormatted: formatTime(reservationStartTime),
+        endTimeFormatted: formatTime(reservationEndTime),
+        duration: `${totalHours} hora${totalHours > 1 ? 's' : ''}`,
+        hourlyRate: totalPrice / totalHours,
+        
+        // Datos opcionales del usuario (si los necesitas)
+        guestName: undefined, // Puedes agregar un campo para esto
+        guestContact: undefined
+      };
 
-      router.replace('/parkings/');
+      console.log('Datos de reservación para pago:', reservationPaymentData);
 
+      // Navegar a la pantalla de método de pago
+      router.push({
+        pathname: '/(tabs)/reservations/payment/method',
+        params: {
+          reservationData: JSON.stringify(reservationPaymentData)
+        }
+      });
     } catch (error: any) {
-      console.error("Error creating reservation:", error);
-      
-      // Manejar diferentes tipos de errores
-      let errorMessage = "No se pudo completar la reserva. Inténtalo de nuevo.";
-      
-      if (error.message.includes('conflicto') || error.message.includes('conflict')) {
-        errorMessage = "Ya existe una reserva en conflicto para este horario. Por favor selecciona otro horario.";
-      } else if (error.message.includes('vehicle')) {
-        errorMessage = "Error con el vehículo seleccionado. Verifica que el vehículo esté registrado correctamente.";
-      } else if (error.message.includes('parking spot')) {
-        errorMessage = "El espacio de parqueo no está disponible. Por favor selecciona otro espacio.";
-      } else if (error.message.includes('Session expired')) {
-        errorMessage = "Tu sesión ha expirado. Por favor inicia sesión nuevamente.";
-        // Opcional: redirigir al login
-        // router.push('/login');
-      }
-
-      Alert.alert("Error al reservar", errorMessage);
+      console.error('Error al preparar la reserva:', error);
+      Alert.alert('Error', 'No se pudo procesar la reserva. Intenta nuevamente.');
     } finally {
       setLoading(false);
     }
@@ -399,7 +424,7 @@ const Reserve = () => {
         <View className="absolute inset-0 bg-black/50 z-50 justify-center items-center">
           <View className="bg-axia-darkGray rounded-2xl p-6 items-center">
             <ActivityIndicator size="large" color="#10B981" />
-            <Text className="text-white font-primaryBold mt-4">Creando reserva...</Text>
+            <Text className="text-white font-primaryBold mt-4">Preparando reserva...</Text>
           </View>
         </View>
       )}
@@ -500,7 +525,7 @@ const Reserve = () => {
           )}
 
           <Button
-            title={selectedSpot ? "Confirmar Reserva" : "Selecciona un espacio"}
+            title={selectedSpot ? "Continuar al Pago" : "Selecciona un espacio"}
             onPress={handleReserve}
             variant={selectedSpot ? "primary" : "secondary"}
             size="large"
@@ -518,8 +543,8 @@ const Reserve = () => {
             <Text className="text-axia-gray text-sm font-primary leading-5">
               • Tu espacio estará reservado de {formatTime(startTime)} a{" "}
               {formatTime(endTime)} el {formatDate(selectedDate)}{"\n"}
-              • Puedes cancelar hasta 30 minutos antes{"\n"}
-              • El pago se realiza al llegar al estacionamiento
+              • El pago se procesa de forma segura{"\n"}
+              • Puedes cancelar hasta 2 horas antes sin cargo
             </Text>
           </View>
         </View>
