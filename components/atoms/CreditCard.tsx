@@ -7,8 +7,9 @@ interface CreditCardProps {
   cardNumber?: string;
   cardholderName?: string;
   expiryDate?: string;
-  cardType?: 'visa' | 'mastercard' | 'amex' | 'discover' | 'diners' | 'unknown';
+  cardType?: 'visa' | 'mastercard' | 'amex' | 'discover' | 'diners' | 'unknown' | 'VISA' | 'MASTERCARD' | 'AMEX' | 'DISCOVER' | 'DINERS';
   variant?: 'default' | 'dark' | 'pink';
+  lastFourDigits?: string; // Para compatibilidad con backend
 }
 
 const CreditCard: React.FC<CreditCardProps> = ({
@@ -16,10 +17,16 @@ const CreditCard: React.FC<CreditCardProps> = ({
   cardholderName = '',
   expiryDate = '',
   cardType = 'visa',
-  variant = 'default'
+  variant = 'default',
+  lastFourDigits
 }) => {
   // Formatear número de tarjeta para mostrar solo los últimos 4 dígitos
   const formatCardNumber = (number: string) => {
+    // Si se proporciona lastFourDigits directamente (del backend), usarlo
+    if (lastFourDigits) {
+      return `•••• •••• •••• ${lastFourDigits}`;
+    }
+    
     const cleaned = number.replace(/\s/g, '');
     if (cleaned.length === 0) return '•••• •••• •••• ••••';
     if (cleaned.length <= 4) return `•••• •••• •••• ${cleaned}`;
@@ -30,10 +37,13 @@ const CreditCard: React.FC<CreditCardProps> = ({
   // Formatear fecha de expiración
   const formatExpiryDate = (date: string) => {
     if (!date) return '•• / ••';
-    const cleaned = date.replace(/\s/g, '');
+    const cleaned = date.replace(/\s/g, '').replace('/', '');
     if (cleaned.length <= 2) return `${cleaned} / ••`;
     return `${cleaned.slice(0, 2)} / ${cleaned.slice(2, 4)}`;
   };
+  
+  // Normalizar el tipo de tarjeta (convertir a minúsculas)
+  const normalizedCardType = cardType.toLowerCase() as 'visa' | 'mastercard' | 'amex' | 'discover' | 'diners' | 'unknown';
 
   // Colores según variante
   const gradientColors = {
@@ -57,22 +67,22 @@ const CreditCard: React.FC<CreditCardProps> = ({
         
         {/* Logo de la tarjeta */}
         <View className="items-center justify-center">
-          {cardType === 'visa' && (
+          {normalizedCardType === 'visa' && (
             <FontAwesome name="cc-visa" size={50} color="#FFFFFF" />
           )}
-          {cardType === 'mastercard' && (
+          {normalizedCardType === 'mastercard' && (
             <FontAwesome name="cc-mastercard" size={50} color="#FFFFFF" />
           )}
-          {cardType === 'amex' && (
+          {normalizedCardType === 'amex' && (
             <FontAwesome name="cc-amex" size={50} color="#FFFFFF" />
           )}
-          {cardType === 'discover' && (
+          {normalizedCardType === 'discover' && (
             <FontAwesome name="cc-discover" size={50} color="#FFFFFF" />
           )}
-          {cardType === 'diners' && (
+          {normalizedCardType === 'diners' && (
             <FontAwesome name="cc-diners-club" size={50} color="#FFFFFF" />
           )}
-          {cardType === 'unknown' && (
+          {normalizedCardType === 'unknown' && (
             <View className="w-12 h-8 bg-white/20 rounded" />
           )}
         </View>

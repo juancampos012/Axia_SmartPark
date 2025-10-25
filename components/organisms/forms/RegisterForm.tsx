@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text, Pressable, Alert, Linking } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { View, Text, Pressable, Linking } from 'react-native';
+import { Controller } from 'react-hook-form';
+import { Ionicons } from '@expo/vector-icons';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
 import Checkbox from '../../atoms/Checkbox';
-import { registerAuth } from '../../../libs/auth';
-import type { RegisterDTO } from '../../../interfaces/Auth';
-import { Ionicons } from '@expo/vector-icons';
+import { useRegisterForm } from '../../../hooks/useRegisterForm';
 
 interface OriginalFormValues {
   firstName: string;
@@ -16,11 +15,6 @@ interface OriginalFormValues {
   phone: string;
 }
 
-type FormValues = OriginalFormValues & {
-  confirmPassword: string;
-  acceptTerms: boolean;
-};
-
 interface RegisterFormProps {
   onSubmit?: (data: OriginalFormValues) => void;
   onLoginPress?: () => void;
@@ -29,97 +23,11 @@ interface RegisterFormProps {
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) => {
   const {
     control,
-    handleSubmit,
-    formState: { errors, isSubmitting },
-    watch,
-    reset
-  } = useForm<FormValues>({
-    defaultValues: {
-      firstName: '',
-      lastName: '',
-      email: '',
-      password: '',
-      confirmPassword: '',
-      phone: '',
-      acceptTerms: false
-    }
-  });
-
-  const passwordValue = watch('password');
-
-  const submitForm = async (data: FormValues) => {
-    try {
-      if (data.password !== data.confirmPassword) {
-        Alert.alert('Error', 'Las contraseñas no coinciden');
-        return;
-      }
-      if (!data.acceptTerms) {
-        Alert.alert('Términos', 'Debes aceptar los términos y condiciones');
-        return;
-      }
-
-      const payload: RegisterDTO & { confirmPassword?: string; acceptTerms?: boolean } = {
-        name: data.firstName.trim(),
-        lastName: data.lastName.trim(),
-        email: data.email.trim().toLowerCase(),
-        password: data.password,
-        phoneNumber: data.phone.trim(),
-        confirmPassword: data.confirmPassword,
-        acceptTerms: data.acceptTerms
-      };
-
-      const result = await registerAuth(payload as any);
-
-      if (result.verificationRequired) {
-        Alert.alert(
-          'Verificación requerida', 
-          'Te hemos enviado un email de verificación. Por favor revisa tu bandeja de entrada y sigue las instrucciones.',
-          [
-            {
-              text: 'OK',
-              onPress: () => {
-                reset();
-                onLoginPress?.();
-              }
-            }
-          ]
-        );
-        return;
-      }
-
-      onSubmit?.({
-        firstName: data.firstName,
-        lastName: data.lastName,
-        email: data.email,
-        password: data.password,
-        phone: data.phone
-      });
-
-      Alert.alert('Éxito', result.message || 'Cuenta creada exitosamente', [
-        {
-          text: 'OK',
-          onPress: () => {
-            reset();
-            onLoginPress?.();
-          }
-        }
-      ]);
-    } catch (err: any) {
-      let errorMessage = 'No se pudo registrar';
-      
-      if (err.message) {
-        if (err.message.includes('email') && err.message.includes('already')) {
-          errorMessage = 'Este email ya está registrado. Intenta con otro email o inicia sesión.';
-        } else if (err.message.includes('phone')) {
-          errorMessage = 'Este número de teléfono ya está registrado.';
-        } else {
-          errorMessage = err.message;
-        }
-      }
-      
-      Alert.alert('Error en registro', errorMessage);
-    }
-  };
+    errors,
+    isSubmitting,
+    passwordValue,
+    handleSubmit
+  } = useRegisterForm({ onSuccess: onSubmit, onLoginPress });
 
   const handleOpenTerms = () => {
     // Aquí puedes agregar la URL de tus términos y condiciones
@@ -317,7 +225,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
       {/* Botón de registro */}
       <Button
         title="Crear cuenta"
-        onPress={handleSubmit(submitForm)}
+        onPress={handleSubmit}
         loading={isSubmitting}
         className="w-full mb-8 shadow-lg shadow-axia-green/25"
         size="large"

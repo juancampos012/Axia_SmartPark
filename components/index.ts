@@ -13,7 +13,7 @@ export { default as SearchHeader } from './molecules/parking/SearchHeader';
 // Organism components exports
 export { default as ParkingsList } from './organisms/parking/ParkingsList';
 export { default as ParkingsFilterSection } from './organisms/parking/ParkingsFilterSection';
-export { default as FloatingActionButton } from './organisms/parking/FloatingActionButton';
+// export { default as FloatingActionButton } from './organisms/parking/FloatingActionButton';
 
 // Types exports
 export type { Parking } from './molecules/parking/ParkingCard';

@@ -4,6 +4,8 @@ import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
 const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
 
+// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+
 // Función auxiliar para manejar respuestas
 const handleResponse = async (response: Response) => {
     let data;

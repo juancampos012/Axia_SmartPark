@@ -1,23 +1,18 @@
-/**
- * PAYMENTS SERVICE
- * 
- * Servicio para manejar operaciones de pagos con el backend.
- * Incluye manejo de errores y autenticación.
- */
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 import { 
-  PaymentResponse, 
+  PaymentResponse,
+  PaymentWithRelations,
   CreatePaymentDTO, 
   UpdatePaymentDTO, 
   PaymentSearchFilters,
   PaymentSearchResult,
-  PaymentStats
+  UserPaymentStats
 } from '../interfaces/payment';
 import { ApiResponse } from '../interfaces/ApiTypes';
 
 const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 /**
  * Interfaz para crear reservación con pago en una transacción
@@ -244,15 +239,35 @@ export const createPayment = async (data: CreatePaymentDTO): Promise<PaymentResp
 };
 
 /**
- * Obtener mis pagos
+ * Obtener mis pagos con paginación y filtros
  * GET /api/payments/my
  */
-export const getMyPayments = async (page: number = 1, pageSize: number = 10): Promise<PaymentSearchResult> => {
+export const fetchMyPayments = async (
+  page: number = 1,
+  limit: number = 20,
+  filters?: PaymentSearchFilters
+): Promise<PaymentSearchResult> => {
   try {
     const token = await getAuthToken();
     
+    // Construir query params
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    // Agregar filtros si existen
+    if (filters) {
+      if (filters.status) params.append('status', filters.status);
+      if (filters.paymentMethod) params.append('paymentMethod', filters.paymentMethod);
+      if (filters.amountFrom) params.append('amountFrom', filters.amountFrom.toString());
+      if (filters.amountTo) params.append('amountTo', filters.amountTo.toString());
+      if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
+      if (filters.dateTo) params.append('dateTo', filters.dateTo);
+    }
+    
     const response = await fetch(
-      `${API_BASE_URL}/payments/my?page=${page}&pageSize=${pageSize}`,
+      `${API_BASE_URL}/payments/my?${params.toString()}`,
       {
         method: 'GET',
         headers: {
@@ -277,11 +292,14 @@ export const getMyPayments = async (page: number = 1, pageSize: number = 10): Pr
   }
 };
 
+// Mantener alias para compatibilidad
+export const getMyPayments = fetchMyPayments;
+
 /**
- * Obtener un pago por ID
+ * Obtener un pago por ID con relaciones completas
  * GET /api/payments/:id
  */
-export const getPaymentById = async (id: string): Promise<PaymentResponse> => {
+export const fetchPaymentById = async (id: string): Promise<PaymentWithRelations> => {
   try {
     const token = await getAuthToken();
     
@@ -292,7 +310,7 @@ export const getPaymentById = async (id: string): Promise<PaymentResponse> => {
       }
     });
 
-    const result: ApiResponse<PaymentResponse> = await response.json();
+    const result: ApiResponse<PaymentWithRelations> = await response.json();
 
     if (!response.ok || !result.success) {
       throw new Error(result.message || 'Error al obtener el pago');
@@ -307,6 +325,9 @@ export const getPaymentById = async (id: string): Promise<PaymentResponse> => {
     return handleApiError(error);
   }
 };
+
+// Mantener alias para compatibilidad
+export const getPaymentById = fetchPaymentById;
 
 /**
  * Obtener pago por ID de reservación
@@ -376,7 +397,7 @@ export const updatePayment = async (id: string, data: UpdatePaymentDTO): Promise
  * Obtener mis estadísticas de pagos
  * GET /api/payments/stats/my
  */
-export const getMyPaymentStats = async (): Promise<PaymentStats> => {
+export const fetchMyPaymentStats = async (): Promise<UserPaymentStats> => {
   try {
     const token = await getAuthToken();
     
@@ -387,7 +408,7 @@ export const getMyPaymentStats = async (): Promise<PaymentStats> => {
       }
     });
 
-    const result: ApiResponse<PaymentStats> = await response.json();
+    const result: ApiResponse<UserPaymentStats> = await response.json();
 
     if (!response.ok || !result.success) {
       throw new Error(result.message || 'Error al obtener las estadísticas');
@@ -402,6 +423,9 @@ export const getMyPaymentStats = async (): Promise<PaymentStats> => {
     return handleApiError(error);
   }
 };
+
+// Mantener alias para compatibilidad
+export const getMyPaymentStats = fetchMyPaymentStats;
 
 /**
  * Eliminar un pago (solo Super Admin)

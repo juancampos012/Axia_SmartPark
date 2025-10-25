@@ -3,6 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
 
 const API_BASE_URL = ENV_API_BASE_URL || 'http://172.20.10.4:3001/api';
+// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 // Función auxiliar para guardar datos del usuario
 const saveUserData = async (user: any) => {

@@ -1,65 +1,31 @@
-import React, { useState } from "react";
-import { ScrollView, View, Text, Pressable, Alert } from "react-native";
+import React from "react";
+import { ScrollView, View, Text, Pressable } from "react-native";
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from "expo-router";
 import Input from "../../../../../components/atoms/Input";
-import { createVehicle, VehicleTypeUpper, EngineType } from "../../../../../libs/vehicles";
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useAddCarForm } from "../../../../../hooks/useAddCarForm";
 
 export default function AddCarScreen() {
-  const router = useRouter();
-
-  const [brand, setBrand] = useState("");
-  const [model, setModel] = useState("");
-  const [plate, setPlate] = useState("");
-  const [color, setColor] = useState("");
-  const [type, setType] = useState<VehicleTypeUpper>('CAR');
-  const [engineType, setEngineType] = useState<EngineType | undefined>('GASOLINE');
-  const [isSubmitting, setIsSubmitting] = useState(false);
-
-  const validateInputs = () => {
-    if (!brand.trim() || !model.trim() || !plate.trim() || !color.trim()) {
-      Alert.alert('Campos requeridos', 'Marca, modelo, color y placa son obligatorios.');
-      return false;
-    }
-    // Normalize and validate Colombian plate format: ABC123 or ABC 123
-    const normalizedPlate = plate.toUpperCase().replace(/\s+/g, '');
-    if (!/^[A-Z]{3}[0-9]{3}$/.test(normalizedPlate)) {
-      Alert.alert('Placa inválida', 'Formato válido: ABC123 (3 letras y 3 números).');
-      return false;
-    }
-    return true;
-  };
-
-  const handleSave = async () => {
-    if (!validateInputs()) return;
-    try {
-      setIsSubmitting(true);
-      const payload = {
-        type,
-        licensePlate: plate.toUpperCase(),
-        model: model.trim(),
-        carBrand: brand.trim(),
-        color: color.trim(),
-        engineType, // Incluir engineType
-      } as const;
-      await createVehicle(payload);
-      Alert.alert('Vehículo creado', 'Tu vehículo se guardó correctamente.', [
-        { text: 'OK', onPress: () => router.back() }
-      ]);
-    } catch (err: any) {
-      const message = err?.message || 'No se pudo crear el vehículo.';
-      Alert.alert('Error', message);
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
-    
-  const handleGoBack = () => {
-    router.back();
-  };
+  const {
+    brand,
+    model,
+    plate,
+    color,
+    type,
+    engineType,
+    isSubmitting,
+    setBrand,
+    setModel,
+    setPlate,
+    setColor,
+    setType,
+    setEngineType,
+    handleSave,
+    handleGoBack,
+    handleCancel,
+  } = useAddCarForm();
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black">
@@ -213,7 +179,7 @@ export default function AddCarScreen() {
         </Pressable>
 
         {/* Cancelar */}
-        <Pressable onPress={() => router.push('/(tabs)/profile')} className="mt-4">
+        <Pressable onPress={handleCancel} className="mt-4">
           <Text className="text-axia-gray text-center text-base">
             Cancelar
           </Text>

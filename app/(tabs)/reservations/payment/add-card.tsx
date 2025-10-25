@@ -250,9 +250,9 @@ const AddNewCard = () => {
               </View>
 
               {/* Fecha de expiración y CVV */}
-              <View className="flex-row space-x-4">
+              <View className="flex-row">
                 {/* Fecha de expiración */}
-                <View className="flex-1">
+                <View className="flex-1 mr-1">
                   <Text className="text-axia-gray text-sm font-primary mb-2">
                     Fecha de vencimiento
                   </Text>
@@ -279,7 +279,7 @@ const AddNewCard = () => {
                 </View>
 
                 {/* CVV */}
-                <View className="flex-1">
+                <View className="flex-1 ml-1">
                   <Text className="text-axia-gray text-sm font-primary mb-2">
                     CVV / CCV
                   </Text>

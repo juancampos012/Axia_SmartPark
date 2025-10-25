@@ -1,7 +1,8 @@
 import React from 'react';
 import { View, Text, Pressable } from 'react-native';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
 import Input from '../../atoms/Input';
+import { usePersonalInfoForm } from '../../../hooks/usePersonalInfoForm';
 
 interface PersonalInfoFormData {
   firstName: string;
@@ -20,36 +21,21 @@ interface PersonalInfoFormProps {
 }
 
 const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
-  initialData = {
-    firstName: '',
-    lastName: '',
-    email: '',
-    phone: '',
-    active: true,
-    createdAt: ''
-  },
+  initialData,
   isEditing = false,
   onSubmit,
   onCancel
 }) => {
-
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<PersonalInfoFormData>({
-    defaultValues: initialData
+  const { 
+    control, 
+    errors, 
+    handleSubmit, 
+    handleCancelPress 
+  } = usePersonalInfoForm({ 
+    initialData, 
+    onSubmit, 
+    onCancel 
   });
-
-  const submitForm = (data: PersonalInfoFormData) => {
-    if (onSubmit) {
-      onSubmit(data);
-    }
-  };
-
-  const handleCancelPress = () => {
-    // Restaurar valores originales
-    reset(initialData);
-    if (onCancel) {
-      onCancel();
-    }
-  };
 
   return (
     <View className="w-full px-6">
@@ -215,7 +201,7 @@ const PersonalInfoForm: React.FC<PersonalInfoFormProps> = ({
       {isEditing && (
         <View className="mt-8 flex-row space-x-4">
           <Pressable
-            onPress={handleSubmit(submitForm)}
+            onPress={handleSubmit}
             className="flex-1 bg-axia-green py-4 rounded-xl items-center justify-center mr-2"
           >
             <Text className="text-axia-black text-lg font-primaryBold">

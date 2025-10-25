@@ -1,116 +1,31 @@
-import React, { useState, useEffect } from 'react';
-import { View, Text, ScrollView, Pressable, Image, Alert, ActivityIndicator } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, Pressable, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-import { fetchParkingById } from '../../../../libs/parking';
-import { Parking } from '../../../../interfaces/parking';
+import { useParkingDetail } from '../../../../hooks/useParkingDetail';
 
 const ParkingDetail = () => {
-  const router = useRouter();
   const params = useLocalSearchParams<{ id: string; parkingData?: string }>();
-  const [isFavorite, setIsFavorite] = useState(false);
-  const [parking, setParking] = useState<Parking | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  // Cargar datos del estacionamiento
-  useEffect(() => {
-    const loadParkingData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-
-        // Primero intentar con datos de parámetros
-        if (params.parkingData) {
-          const parkingFromParams = JSON.parse(params.parkingData);
-          setParking(parkingFromParams);
-          setLoading(false);
-          return;
-        }
-
-        // Si no hay datos en parámetros, cargar del backend
-        if (params.id) {
-          const parkingFromBackend = await fetchParkingById(params.id);
-          setParking(parkingFromBackend);
-        } else {
-          throw new Error('No parking ID provided');
-        }
-      } catch (err) {
-        console.error('Error loading parking:', err);
-        setError(err instanceof Error ? err.message : 'Error loading parking');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadParkingData();
-  }, [params.id, params.parkingData]);
-
-  // Generar características basadas en datos reales del backend
-  const getParkingFeatures = (): string[] => {
-    if (!parking) return ['Estacionamiento seguro'];
-    
-    const features: string[] = [...parking.features];
-    
-    // Agregar características basadas en estado
-    if (parking.status === 'OPEN') features.push('Abierto ahora');
-    
-    // Agregar características basadas en horarios
-    if (parking.schedule?.includes('24')) {
-      features.push('24/7');
-    }
-    
-    // Agregar características por capacidad
-    if (parking.totalCapacity >= 50) {
-      features.push('Amplia capacidad');
-    }
-    
-    // Agregar características por pisos
-    if (parking.floors > 1) {
-      features.push('Múltiples pisos');
-    }
-    
-    return features.length > 0 ? features : ['Estacionamiento seguro'];
-  };
-
-  // Handlers
-  const handleGoBack = () => {
-    router.back();
-  };
-
-  const handleReservePress = () => {
-    if (!parking) return;
-    
-    router.push({
-      pathname: `/parkings/${parking.id}/reserve`,
-      params: { parkingData: JSON.stringify(parking) }
-    });
-  };
-
-  const handleFavoritePress = () => {
-    setIsFavorite(!isFavorite);
-    Alert.alert(
-      isFavorite ? 'Removido de favoritos' : 'Agregado a favoritos',
-      isFavorite 
-        ? 'El estacionamiento ha sido removido de tus favoritos'
-        : 'El estacionamiento ha sido agregado a tus favoritos'
-    );
-  };
-
-  const handleViewOnMap = () => {
-    if (!parking) return;
-    console.log('Ver en mapa:', {
-      latitude: parking.latitude,
-      longitude: parking.longitude,
-      name: parking.name
-    });
-  };
-
-  const handleShare = () => {
-    if (!parking) return;
-    console.log('Compartir estacionamiento:', parking.name);
-  };
+  
+  const {
+    parking,
+    loading,
+    error,
+    isFavorite,
+    features,
+    displayRating,
+    reviewCount,
+    isAvailable,
+    handleGoBack,
+    handleReservePress,
+    handleFavoritePress,
+    handleViewOnMap,
+    handleShare,
+  } = useParkingDetail({
+    parkingId: params.id,
+    parkingData: params.parkingData
+  });
 
   // Estados de carga y error
   if (loading) {
@@ -133,7 +48,7 @@ const ParkingDetail = () => {
             {error || 'No se pudo cargar la información del estacionamiento'}
           </Text>
           <Pressable
-            onPress={() => router.back()}
+            onPress={handleGoBack}
             className="bg-axia-green px-6 py-3 rounded-xl mt-6"
           >
             <Text className="text-axia-black font-primaryBold">Volver</Text>
@@ -142,12 +57,6 @@ const ParkingDetail = () => {
       </SafeAreaView>
     );
   }
-
-  // Datos calculados
-  const displayRating = parking.rating > 0 ? parking.rating : 4.0;
-  const reviewCount = parking.ratingCount > 0 ? parking.ratingCount : Math.floor(displayRating * 25);
-  const features = getParkingFeatures();
-  const isAvailable = parking.availableSpots > 0 && parking.status === 'OPEN';
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>

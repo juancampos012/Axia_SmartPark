@@ -1,50 +1,18 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams, useNavigation } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { fetchMyVehicles } from '../../../../../libs/vehicles';
-
-interface Car {
-  id: string;
-  carBrand: string;
-  model: string;
-  licensePlate: string;
-  color?: string;
-  year?: number;
-  engineType?: string;
-}
+import { useCarDetailScreen } from '../../../../../hooks/useCarDetailScreen';
 
 export default function CarDetails() {
-  const router = useRouter();
-  const navigation = useNavigation();
-  const params = useLocalSearchParams<{ carId: string }>();
-  const [car, setCar] = useState<Car | null>(null);
-  const [loading, setLoading] = useState(true);
-
-  useEffect(() => {
-    const loadCarData = async () => {
-      try {
-        const vehicles = await fetchMyVehicles();
-        const foundCar: Car | undefined = vehicles.find((vehicle: Car) => vehicle.id === params.carId);
-        setCar(foundCar || null);
-      } catch (error) {
-        console.error('Error loading car details:', error);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadCarData();
-  }, [params.carId]);
-
-  // Configurar el header de la navegación
-  useEffect(() => {
-    navigation.setOptions({
-      headerShown: false,
-    });
-  }, [navigation]);
+  const {
+    car,
+    loading,
+    handleGoBack,
+    handleEdit,
+    handleBackToVehicles,
+  } = useCarDetailScreen();
 
   if (loading) {
     return (
@@ -68,7 +36,7 @@ export default function CarDetails() {
             No se encontró información del vehículo
           </Text>
           <Pressable 
-            onPress={() => router.back()}
+            onPress={handleGoBack}
             className="bg-axia-green px-6 py-3 rounded-xl mt-6"
           >
             <Text className="text-axia-black font-primaryBold">Volver</Text>
@@ -86,7 +54,7 @@ export default function CarDetails() {
           {/* Header */}
           <View className="flex-row items-center mb-8">
             <Pressable 
-              onPress={() => router.back()}
+              onPress={handleGoBack}
               className="w-10 h-10 rounded-full bg-axia-darkGray items-center justify-center mr-4 active:scale-95"
             >
               <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
@@ -141,14 +109,14 @@ export default function CarDetails() {
           {/* Acciones */}
           <View className="space-y-4">
             <Pressable 
-              onPress={() => router.back()} 
+              onPress={handleBackToVehicles}
               className="bg-axia-green py-4 rounded-xl items-center mb-6 active:scale-95"
             >
               <Text className="text-axia-black font-primaryBold text-lg">Volver a Mis Vehículos</Text>
             </Pressable>
             
             <Pressable 
-              onPress={() => console.log('Editar vehículo', car.id)}
+              onPress={handleEdit}
               className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95"
             >
               <Text className="text-white font-primaryBold text-lg">Editar Información</Text>

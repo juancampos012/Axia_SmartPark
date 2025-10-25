@@ -1,102 +1,25 @@
-import React, { useState, useCallback } from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, Alert, RefreshControl } from 'react-native';
+import React from 'react';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter, useFocusEffect } from 'expo-router';
-import { fetchMyVehicles } from '../../../../libs/vehicles';
-
-interface Vehicle {
-  id: string;
-  type: 'CAR' | 'MOTORCYCLE';
-  licensePlate: string;
-  model: string;
-  carBrand: string;
-  color?: string;
-  engineType?: 'GASOLINE' | 'ELECTRIC' | 'HYBRID';
-  year?: number;
-  createdAt?: string;
-  updatedAt?: string;
-}
+import { useCarsScreen } from '../../../../hooks/useCarsScreen';
 
 const AllVehiclesScreen = () => {
-  const router = useRouter();
-  const [vehicles, setVehicles] = useState<Vehicle[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const loadVehicles = async () => {
-    try {
-      setError(null);
-      const data = await fetchMyVehicles();
-      setVehicles(data || []);
-    } catch (err: any) {
-      console.error('Error loading vehicles:', err);
-      setError(err.message || 'Error al cargar los vehículos');
-      Alert.alert('Error', err.message || 'No se pudieron cargar los vehículos');
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
-
-  // Cargar vehículos al entrar a la pantalla
-  useFocusEffect(
-    useCallback(() => {
-      setLoading(true);
-      loadVehicles();
-    }, [])
-  );
-
-  const handleRefresh = () => {
-    setRefreshing(true);
-    loadVehicles();
-  };
-
-  const handleGoBack = () => {
-    router.back();
-  };
-
-  const handleAddVehicle = () => {
-    router.push('/(tabs)/profile/cars/add');
-  };
-
-  const handleVehiclePress = (vehicle: Vehicle) => {
-    router.push({
-      pathname: `/(tabs)/profile/cars/detail/${vehicle.id}` as any,
-      params: { vehicleData: JSON.stringify(vehicle) }
-    });
-  };
-
-  const getVehicleIcon = (type: string) => {
-    return type === 'MOTORCYCLE' ? 'bicycle' : 'car-sport';
-  };
-
-  const getEngineTypeIcon = (engineType?: string): { icon: string; color: string } | null => {
-    if (!engineType) return null;
-    
-    const iconMap: { [key: string]: { icon: string; color: string } } = {
-      'GASOLINE': { icon: 'water', color: '#F59E0B' }, // Amber para gasolina
-      'ELECTRIC': { icon: 'flash', color: '#10B981' }, // Verde para eléctrico
-      'HYBRID': { icon: 'leaf', color: '#06B6D4' } // Cyan para híbrido
-    };
-    
-    return iconMap[engineType] || null;
-  };
-
-  const getEngineTypeLabel = (engineType?: string) => {
-    if (!engineType) return null;
-    const labels: { [key: string]: string } = {
-      'GASOLINE': 'Gasolina',
-      'ELECTRIC': 'Eléctrico',
-      'HYBRID': 'Híbrido'
-    };
-    return labels[engineType] || engineType;
-  };
-
-  const getVehicleTypeLabel = (type: string) => {
-    return type === 'MOTORCYCLE' ? 'Moto' : 'Carro';
-  };
+  const {
+    vehicles,
+    loading,
+    refreshing,
+    hasVehicles,
+    vehicleCountText,
+    getVehicleIcon,
+    getEngineTypeIcon,
+    getEngineTypeLabel,
+    getVehicleTypeLabel,
+    handleRefresh,
+    handleGoBack,
+    handleAddVehicle,
+    handleVehiclePress,
+  } = useCarsScreen();
 
   if (loading && !refreshing) {
     return (

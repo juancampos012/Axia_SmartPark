@@ -1,104 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Reservation {
-  id: string;
-  parkingName: string;
-  address: string;
-  time: string;
-  date: string;
-  status: 'active' | 'completed' | 'cancelled';
-  spot?: string;
-}
+import { useReservationsScreen } from '../../../hooks/useReservationsScreen';
 
 const Reservations = () => {
-  const router = useRouter();
-
-  const [currentReservation, setCurrentReservation] = useState<Reservation | null>({
-    id: '1',
-    parkingName: 'Parqueadero central',
-    address: 'Cra 23 #54-72',
-    time: '3:00 PM - 5:00 PM',
-    date: '08/17/2025',
-    status: 'active',
-    spot: 'Puesto 23'
-  });
-
-  const [reservationHistory, setReservationHistory] = useState<Reservation[]>([
-    {
-      id: '2',
-      parkingName: 'Estacionamiento La Seriedad',
-      address: 'Av. Principal #123',
-      time: '10:00 AM - 12:00 PM',
-      date: '01/09/2025',
-      status: 'completed'
-    },
-    {
-      id: '3',
-      parkingName: 'Rio Parking',
-      address: 'Calle del Río #45-67',
-      time: '2:00 PM - 4:00 PM',
-      date: '01/09/2025',
-      status: 'cancelled'
-    },
-    {
-      id: '4',
-      parkingName: 'Star Parking',
-      address: 'Diagonal 89 #34-21',
-      time: '9:00 AM - 11:00 AM',
-      date: '01/09/2025',
-      status: 'completed'
-    }
-  ]);
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Activa';
-      case 'completed':
-        return 'Finalizada';
-      case 'cancelled':
-        return 'Cancelada';
-      default:
-        return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return '#10B981';
-      case 'completed':
-        return '#6B7280';
-      case 'cancelled':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'flash';
-      case 'completed':
-        return 'checkmark-circle';
-      case 'cancelled':
-        return 'close-circle';
-      default:
-        return 'help-circle';
-    }
-  };
-
-  const handleReservationPress = (reservation: Reservation) => {
-    router.push({
-      pathname: `/reservations/${reservation.id}`,
-      params: { data: JSON.stringify(reservation) },
-    });
-  };
+  const {
+    currentReservation,
+    reservationHistory,
+    hasActiveReservation,
+    totalHistoryCount,
+    getStatusText,
+    getStatusColor,
+    getStatusIcon,
+    handleReservationPress,
+    handleNewReservation,
+  } = useReservationsScreen();
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
@@ -204,7 +121,7 @@ const Reservations = () => {
                   Encuentra y reserva tu próximo estacionamiento
                 </Text>
                 <Pressable
-                  onPress={() => router.push('/(parking)')}
+                  onPress={handleNewReservation}
                   className="bg-axia-green px-8 py-4 rounded-xl flex-row items-center shadow-lg shadow-axia-green/25 active:scale-95"
                 >
                   <Ionicons name="add" size={20} color="#000000" />
@@ -223,7 +140,7 @@ const Reservations = () => {
                 Historial de Reservas
               </Text>
               <Text className="text-axia-gray text-sm font-primary">
-                {reservationHistory.length} reservas
+                {totalHistoryCount} reservas
               </Text>
             </View>
 

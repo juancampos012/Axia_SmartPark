@@ -13,14 +13,20 @@ module.exports = {
         axia: {
           // Negro principal
           black: '#0F1115',
-          // Gris oscuro
-          darkGray: '#2C2C2C',
+          // Gris oscuro (para fondos de cards)
+          'dark-gray': '#1F2937',
+          'darkGray': '#2C2C2C',
           // Gris medio
           gray: '#8C8C8C',
+          // Gris claro (para textos secundarios)
+          'gray-light': '#9CA3AF',
+          'gray-dark': '#374151',
           // Blanco
           white: '#FFFFFF',
           // Verde principal
           green: '#006B54',
+          // Verde lima (accent)
+          lime: '#A3E636',
           // Púrpura principal
           purple: '#780BB7',
           // Azul principal

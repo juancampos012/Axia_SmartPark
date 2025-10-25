@@ -1,10 +1,3 @@
-/**
- * PAYMENT METHODS SERVICE
- * 
- * Servicio para manejar operaciones de métodos de pago con el backend.
- * Incluye tokenización segura y manejo de tarjetas.
- */
-
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 import { 
@@ -17,6 +10,7 @@ import {
 import { ApiResponse } from '../interfaces/ApiTypes';
 
 const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 /**
  * Helper para obtener el token de autenticación

@@ -3,6 +3,7 @@ import { refreshToken } from './auth';
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
 const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 export async function fetchMyVehicles() {
   try {
@@ -69,8 +70,8 @@ export type VehicleTypeUpper = 'CAR' | 'MOTORCYCLE';
 export type EngineType = 'GASOLINE' | 'ELECTRIC' | 'HYBRID';
 
 export interface CreateVehicleDTO {
-  type: VehicleTypeUpper; // Backend expects uppercase enum
-  licensePlate: string;   // Will be normalized server-side; send ABC123 or ABC 123
+  type: VehicleTypeUpper; 
+  licensePlate: string;   
   model: string;
   carBrand: string;
   color: string;
