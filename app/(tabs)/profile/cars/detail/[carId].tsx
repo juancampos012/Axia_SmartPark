@@ -1,9 +1,10 @@
-import React from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
 import { useCarDetailScreen } from '../../../../../hooks/useCarDetailScreen';
+import { useDeleteVehicle } from '../../../../../hooks/udeDeleteCar';
 
 export default function CarDetails() {
   const {
@@ -13,6 +14,23 @@ export default function CarDetails() {
     handleEdit,
     handleBackToVehicles,
   } = useCarDetailScreen();
+
+  const { isDeleting, confirmDelete } = useDeleteVehicle({
+    onSuccess: handleBackToVehicles,
+  });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+
+  const handleDeletePress = () => {
+    if (!car) return;
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!car) return;
+    setShowDeleteModal(false);
+    confirmDelete(car as any);
+  };
 
   if (loading) {
     return (
@@ -59,7 +77,17 @@ export default function CarDetails() {
             >
               <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
             </Pressable>
-            <Text className="text-white text-2xl font-primaryBold">Detalle del Vehículo</Text>
+            
+            <Text className="text-white text-2xl font-primaryBold flex-1">Detalle del Vehículo</Text>
+            
+            {/* Botón de eliminar como bolita */}
+            <Pressable 
+              onPress={handleDeletePress}
+              disabled={isDeleting}
+              className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 items-center justify-center active:scale-95 disabled:opacity-50"
+            >
+              <Ionicons name="trash-outline" size={16} color="#EF4444" />
+            </Pressable>
           </View>
 
           {/* Icono del vehículo */}
@@ -110,14 +138,18 @@ export default function CarDetails() {
           <View className="space-y-4">
             <Pressable 
               onPress={handleBackToVehicles}
-              className="bg-axia-green py-4 rounded-xl items-center mb-6 active:scale-95"
+              disabled={isDeleting}
+              className="bg-axia-green py-4 rounded-xl items-center mb-6 active:scale-95 disabled:opacity-50"
             >
-              <Text className="text-axia-black font-primaryBold text-lg">Volver a Mis Vehículos</Text>
+              <Text className="text-axia-black font-primaryBold text-lg">
+                {isDeleting ? 'Eliminando...' : 'Volver a Mis Vehículos'}
+              </Text>
             </Pressable>
             
             <Pressable 
               onPress={handleEdit}
-              className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95"
+              disabled={isDeleting}
+              className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95 disabled:opacity-50"
             >
               <Text className="text-white font-primaryBold text-lg">Editar Información</Text>
             </Pressable>
@@ -136,6 +168,42 @@ export default function CarDetails() {
 
         </View>
       </ScrollView>
+
+      {/* Modal de confirmación */}
+      <Modal visible={showDeleteModal} transparent animationType="fade">
+        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          <View className="bg-axia-darkGray rounded-2xl p-6 w-full max-w-sm border border-red-500/20">
+            <View className="items-center mb-6">
+              <View className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 items-center justify-center mb-4">
+                <Ionicons name="trash-outline" size={28} color="#EF4444" />
+              </View>
+              <Text className="text-white text-xl font-primaryBold text-center mb-2">
+                Eliminar Vehículo
+              </Text>
+              <Text className="text-axia-gray text-center text-sm">
+                ¿Estás seguro de eliminar tu {car.carBrand} {car.model} ({car.licensePlate})?
+              </Text>
+            </View>
+            
+            <View className="flex-row space-x-3">
+              <Pressable 
+                onPress={() => setShowDeleteModal(false)}
+                className="flex-1 bg-axia-gray/30 py-3 rounded-xl active:opacity-70"
+              >
+                <Text className="text-white font-primaryBold text-center">Cancelar</Text>
+              </Pressable>
+              <Pressable 
+                onPress={handleConfirmDelete}
+                className="flex-1 bg-red-500 py-3 rounded-xl active:opacity-70"
+              >
+                <Text className="text-white font-primaryBold text-center">
+                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }

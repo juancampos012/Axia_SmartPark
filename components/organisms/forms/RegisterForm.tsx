@@ -21,33 +21,27 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) => {
-  const {
-    control,
-    errors,
-    isSubmitting,
-    passwordValue,
-    handleSubmit
-  } = useRegisterForm({ onSuccess: onSubmit, onLoginPress });
+  const { control, errors, isSubmitting, passwordValue, handleSubmit } = useRegisterForm({
+    onSuccess: onSubmit,
+    onLoginPress
+  });
 
   const handleOpenTerms = () => {
-    // Aquí puedes agregar la URL de tus términos y condiciones
     Linking.openURL('https://tu-sitio.com/terminos');
   };
 
+  // Extrae errores individuales de la contraseña si existen
+  const passwordErrors = errors.password?.message
+    ? (Array.isArray(errors.password.message) ? errors.password.message : [errors.password.message])
+    : [];
+
   return (
     <View className="w-full">
-      {/* Campos del formulario con iconos */}
       <View className="space-y-4 mb-6">
+        {/* Nombre */}
         <Controller
           control={control}
           name="firstName"
-          rules={{
-            required: 'El nombre es requerido',
-            validate: {
-              letters: (value) =>
-                /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(value) || 'El nombre solo puede contener letras',
-            }
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Nombre"
@@ -60,16 +54,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
           )}
         />
 
+        {/* Apellido */}
         <Controller
           control={control}
           name="lastName"
-          rules={{
-            required: 'El apellido es requerido',
-            validate: {
-              letters: (value) =>
-                /^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/.test(value) || 'El apellido solo puede contener letras',
-            }
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Apellido"
@@ -82,16 +70,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
           )}
         />
 
+        {/* Email */}
         <Controller
           control={control}
           name="email"
-          rules={{
-            required: 'El email es requerido',
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'El email no es válido'
-            }
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Correo electrónico"
@@ -105,26 +87,10 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
           )}
         />
 
+        {/* Teléfono */}
         <Controller
           control={control}
           name="phone"
-          rules={{
-            required: 'El teléfono es requerido',
-            minLength: { value: 10, message: 'El teléfono debe tener mínimo 10 dígitos' },
-            maxLength: { value: 10, message: 'El teléfono debe tener máximo 10 dígitos' },
-            validate: {
-              colombianFormat: (value) => {
-                const cleanPhone = value.replace(/\D/g, '');
-                if (cleanPhone.length !== 10) {
-                  return 'El teléfono debe tener exactamente 10 dígitos';
-                }
-                if (!/^[1-8]|^3[0-9]/.test(cleanPhone)) {
-                  return 'Formato de teléfono colombiano no válido';
-                }
-                return true;
-              }
-            }
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Teléfono (ej: 3001234567)"
@@ -140,40 +106,34 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
           )}
         />
 
+        {/* Contraseña */}
         <Controller
           control={control}
           name="password"
-          rules={{
-            required: 'La contraseña es requerida',
-            minLength: { value: 7, message: 'Debe contener mínimo 7 caracteres' },
-            validate: {
-              hasUppercase: (value) =>
-                /[A-Z]/.test(value) || 'Debe contener al menos una mayúscula',
-              hasSpecialChar: (value) =>
-                /[!@#$%^&*()_+\-=[\]{};':"\\|,.<>?]/.test(value) ||
-                'Debe contener al menos un carácter especial',
-            },
-          }}
           render={({ field: { onChange, value } }) => (
-            <Input
-              placeholder="Contraseña"
-              value={value}
-              onChangeText={onChange}
-              secureTextEntry
-              autoCapitalize="none"
-              error={errors.password?.message}
-              leftIcon={<Ionicons name="lock-closed-outline" size={20} color="#6B7280" />}
-            />
+            <>
+              <Input
+                placeholder="Contraseña"
+                value={value}
+                onChangeText={onChange}
+                secureTextEntry
+                autoCapitalize="none"
+                error={undefined} // mostramos errores separados debajo
+                leftIcon={<Ionicons name="lock-closed-outline" size={20} color="#6B7280" />}
+              />
+              {passwordErrors.map((msg, idx) => (
+                <Text key={idx} className="text-red-400 text-xs mt-1 ml-1">
+                  {msg}
+                </Text>
+              ))}
+            </>
           )}
         />
 
+        {/* Confirmar contraseña */}
         <Controller
           control={control}
           name="confirmPassword"
-          rules={{
-            required: 'Confirma tu contraseña',
-            validate: (value) => value === passwordValue || 'Las contraseñas no coinciden'
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Confirmar contraseña"
@@ -192,21 +152,14 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
       <Controller
         control={control}
         name="acceptTerms"
-        rules={{ validate: (v) => v === true || 'Debes aceptar los términos' }}
         render={({ field: { onChange, value } }) => (
           <View className="bg-axia-darkGray/50 rounded-2xl p-4 mb-6">
             <View className="flex-row items-start">
               <Checkbox value={value} onValueChange={onChange} />
-              <Pressable 
-                onPress={() => onChange(!value)} 
-                className="flex-1 ml-3"
-              >
+              <Pressable onPress={() => onChange(!value)} className="flex-1 ml-3">
                 <Text className="text-axia-gray text-sm font-primary leading-5">
                   Acepto los{' '}
-                  <Text 
-                    className="text-axia-green font-primaryBold"
-                    onPress={handleOpenTerms}
-                  >
+                  <Text className="text-axia-green font-primaryBold" onPress={handleOpenTerms}>
                     términos y condiciones
                   </Text>{' '}
                   de Axia SmartPark
@@ -236,13 +189,8 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
         <Text className="text-axia-gray text-base font-primary mb-2">
           ¿Ya tienes una cuenta?
         </Text>
-        <Pressable 
-          onPress={onLoginPress}
-          className="active:scale-95"
-        >
-          <Text className="text-axia-green text-lg font-primaryBold">
-            Iniciar sesión
-          </Text>
+        <Pressable onPress={onLoginPress} className="active:scale-95">
+          <Text className="text-axia-green text-lg font-primaryBold">Iniciar sesión</Text>
         </Pressable>
       </View>
     </View>

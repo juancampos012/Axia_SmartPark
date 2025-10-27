@@ -2,7 +2,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { refreshToken } from './auth'; 
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
 // const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 export async function fetchMyVehicles() {
@@ -138,6 +138,76 @@ export async function createVehicle(body: CreateVehicleDTO) {
     return result.data;
   } catch (error) {
     console.error('Error creating vehicle:', error);
+    throw error;
+  }
+}
+
+export async function deleteVehicle(vehicleId: string) {
+  try {
+    let accessToken = await AsyncStorage.getItem('accessToken');
+    const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
+
+    if (!accessToken || !storedRefreshToken) {
+      throw new Error('No authentication tokens found');
+    }
+
+    // Helper to perform the DELETE request
+    const makeRequest = async (currentToken: string) => {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+        method: 'DELETE',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json',
+        },
+      });
+      return response;
+    };
+
+    // First attempt
+    let response = await makeRequest(accessToken);
+
+    // If unauthorized, try to refresh token
+    if (response.status === 401) {
+      try {
+        const newTokens = await refreshToken();
+        accessToken = newTokens.accessToken;
+        response = await makeRequest(accessToken);
+      } catch (refreshError) {
+        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+
+    // Handle specific error cases based on backend responses
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Error ${response.status}`;
+      
+      try {
+        const errorData = errorText ? JSON.parse(errorText) : {};
+        
+        // Manejar errores específicos del backend
+        if (errorData.code === 'ACTIVE_RESERVATIONS') {
+          errorMessage = 'No se puede eliminar el vehículo porque tiene reservas activas. Cancela las reservas primero.';
+        } else if (errorData.code === 'VEHICLE_NOT_FOUND') {
+          errorMessage = 'El vehículo no fue encontrado.';
+        } else if (errorData.code === 'UNAUTHORIZED_VEHICLE_ACCESS') {
+          errorMessage = 'No tienes permisos para eliminar este vehículo.';
+        } else {
+          errorMessage = errorData.message || errorMessage;
+        }
+        
+      } catch {
+        if (errorText) errorMessage = errorText;
+      }
+      
+      throw new Error(errorMessage);
+    }
+
+    // For successful deletion, return success message
+    return { success: true, message: 'Vehículo eliminado correctamente' };
+  } catch (error) {
+    console.error('Error deleting vehicle:', error);
     throw error;
   }
 }

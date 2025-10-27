@@ -148,7 +148,7 @@ export const useReservationsScreen = () => {
   }, [router]);
 
   const handleNewReservation = useCallback(() => {
-    router.push('/(tabs)/parkings');
+    router.push('/(tabs)/parkings/');
   }, [router]);
 
   // Valores computados

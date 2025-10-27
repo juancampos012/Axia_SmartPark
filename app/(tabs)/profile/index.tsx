@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import React, { useState, useCallback } from 'react';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useProfileScreen } from '../../../hooks/useProfileScreen';
@@ -10,17 +10,46 @@ const Profile = () => {
     userCars,
     loading,
     menuItems,
-    hasVehicles,
-    displayName,
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
+    refreshProfileData, // si tu hook tiene una función de refresco, úsala aquí
   } = useProfileScreen();
+
+  const [refreshing, setRefreshing] = useState(false);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      // si tu hook tiene una función de recarga, úsala
+      if (refreshProfileData) {
+        await refreshProfileData();
+      } else {
+        // si no, podrías forzar una recarga general
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+      }
+    } catch (error) {
+      console.error('Error al refrescar perfil:', error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshProfileData]);
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+      <ScrollView
+        className="flex-1"
+        showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={['#10B981']} // color del spinner en Android
+            tintColor="#10B981" // color del spinner en iOS
+          />
+        }
+      >
         <View className="flex-1 px-6 pt-8">
           {/* Header */}
           <View className="items-center mb-12">
@@ -72,7 +101,7 @@ const Profile = () => {
             </View>
           </View>
 
-          {/* Sección Mis Vehículos */}
+          {/* Mis Vehículos */}
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-6">
               <View>

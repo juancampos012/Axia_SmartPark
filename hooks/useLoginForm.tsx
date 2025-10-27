@@ -1,9 +1,10 @@
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { loginAuth } from '../libs/auth';
-import { LoginDTO } from '../interfaces/Auth';
+import { LoginSchema, LoginFormData } from '../schemas/loginSchema';
 
 interface UseLoginFormProps {
   onSuccess?: () => void;
@@ -16,14 +17,15 @@ export const useLoginForm = ({ onSuccess }: UseLoginFormProps = {}) => {
     control, 
     handleSubmit, 
     formState: { errors, isSubmitting } 
-  } = useForm<LoginDTO>({
+  } = useForm<LoginFormData>({
+    resolver: zodResolver(LoginSchema),
     defaultValues: {
       email: '',
       password: ''
     }
   });
 
-  const submitForm = async (data: LoginDTO) => {
+  const submitForm = async (data: LoginFormData) => {
     try {
       const response = await loginAuth(data);
       

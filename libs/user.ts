@@ -2,7 +2,7 @@ import { UserUpdateDTO } from "../interfaces/User";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://172.20.10.4:3001/api';
+const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
 // const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 // Función auxiliar para guardar datos del usuario
@@ -201,6 +201,21 @@ export const getUserStats = async (): Promise<any> => {
         throw error;
     }
 };
+
+// Refrescar los datos del perfil del usuario
+export const refreshProfileData = async (): Promise<any> => {
+    try {
+        const updatedProfile = await fetchUserProfile();
+        if (updatedProfile) {
+            await saveUserData(updatedProfile);
+        }
+        return updatedProfile;
+    } catch (error) {
+        console.error("Error al refrescar los datos del perfil:", error);
+        throw error;
+    }
+};
+
 
 // Funciones auxiliares exportadas
 export { getUserData, saveUserData, removeUserData };

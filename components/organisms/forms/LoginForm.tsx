@@ -29,13 +29,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Controller
           control={control}
           name="email"
-          rules={{
-            required: 'El email es obligatorio',
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Email inválido'
-            }
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Correo electrónico"
@@ -52,7 +45,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Controller
           control={control}
           name="password"
-          rules={{ required: 'La contraseña es obligatoria' }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Contraseña"
