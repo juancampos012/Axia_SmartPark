@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
-import { fetchUserProfile } from '../libs/user';
+import { fetchUserProfile, refreshProfileData } from '../libs/user';
 import { fetchMyVehicles } from '../libs/vehicles';
 
 interface Car {
@@ -26,62 +26,54 @@ export const useProfileScreen = () => {
   const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
   const [userCars, setUserCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Menú items - datos estáticos
+  // Menú items
   const menuItems: MenuItem[] = [
-    {
-      id: '1',
-      icon: 'person-outline',
-      title: 'Información personal',
-      route: '/profile/personal-info',
-    },
-    {
-      id: '2',
-      icon: 'lock-closed-outline',
-      title: 'Seguridad',
-      route: '/profile/security',
-    },
-    {
-      id: '3',
-      icon: 'card-outline',
-      title: 'Tarjeta de débito',
-      route: '/profile/payment-methods',
-    },
-    {
-      id: '4',
-      icon: 'receipt-outline',
-      title: 'Historial de Pagos',
-      route: '/profile/payments-history',
-    },
+    { id: '1', icon: 'person-outline', title: 'Información personal', route: '/profile/personal-info' },
+    { id: '2', icon: 'lock-closed-outline', title: 'Seguridad', route: '/profile/security' },
+    { id: '3', icon: 'card-outline', title: 'Tarjeta de débito', route: '/profile/payment-methods' },
+    { id: '4', icon: 'receipt-outline', title: 'Historial de Pagos', route: '/profile/payments-history' },
   ];
 
-  // Cargar datos del perfil y vehículos
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const [profile, vehicles] = await Promise.all([
-          fetchUserProfile(),
-          fetchMyVehicles(),
-        ]);
-        
-        setUserProfile(profile);
-        setUserCars(vehicles);
-      } catch (err: any) {
-        console.error('Error loading profile or vehicles:', err);
-        setError(err.message || 'Error al cargar la información');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+  // Cargar perfil y vehículos
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [profile, vehicles] = await Promise.all([
+        fetchUserProfile(),
+        fetchMyVehicles(),
+      ]);
+      setUserProfile(profile);
+      setUserCars(vehicles);
+    } catch (err: any) {
+      console.error('Error loading profile or vehicles:', err);
+      setError(err.message || 'Error al cargar la información');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Handlers
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // 🔄 Función para refrescar el perfil manualmente (pull-to-refresh)
+  const handleRefreshProfile = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshProfileData();
+      await loadData();
+    } catch (error) {
+      console.error("Error al refrescar el perfil:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadData]);
+
+  // Handlers de navegación
   const handleMenuItemPress = useCallback((route: string) => {
     router.push(route as any);
   }, [router]);
@@ -98,7 +90,7 @@ export const useProfileScreen = () => {
     router.push('/(tabs)/profile/cars/add');
   }, [router]);
 
-  // Valores computados
+  // Valores derivados
   const hasVehicles = userCars.length > 0;
   const displayName = userProfile?.name || 'Usuario';
 
@@ -107,17 +99,21 @@ export const useProfileScreen = () => {
     userProfile,
     userCars,
     loading,
+    refreshing,
     error,
     menuItems,
-    
-    // Valores computados
+
+    // Valores derivados
     hasVehicles,
     displayName,
-    
+
     // Handlers
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
+
+    // 🔄 Nueva función para refrescar datos
+    refreshProfileData: handleRefreshProfile,
   };
 };

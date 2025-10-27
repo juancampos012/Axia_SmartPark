@@ -4,7 +4,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import PersonalInfoForm from '../../../../components/organisms/forms/PersonalInfoForm';
-import { useForm } from 'react-hook-form';
 import { fetchUserProfile, updateUserProfile, deleteUserAccount } from '../../../../libs/user';
 
 interface PersonalInfoFormData {
@@ -46,18 +45,6 @@ const PersonalInfo = () => {
       setLoading(false);
     }
   };
-
-  const { control, handleSubmit, formState: { errors }, reset } = useForm<PersonalInfoFormData>({
-    defaultValues: userData || {
-      firstName: '',
-      lastName: '',
-      email: '',
-      phone: '',
-      active: true,
-      createdAt: ''
-    }
-  });
-
   const handleGoBack = () => {
     router.back();
   };

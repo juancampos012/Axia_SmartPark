@@ -11,7 +11,7 @@ import {
 } from '../interfaces/payment';
 import { ApiResponse } from '../interfaces/ApiTypes';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
 // const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 /**
