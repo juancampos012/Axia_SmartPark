@@ -1,3 +1,4 @@
+import { CarFormData } from "../schemas/carSchema";
 export interface Vehicle {
   id: string;
   licensePlate: string;
@@ -9,4 +10,9 @@ export interface Vehicle {
   year?: number;
   createdAt?: string;
   updatedAt?: string;
+}
+
+export interface AddCarFormProps {
+  onSubmit: (data: CarFormData) => void;
+  onCancel: () => void;
 }

@@ -1,23 +1,18 @@
 import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from 'react-native';
 import { registerAuth } from '../libs/auth';
 import type { RegisterDTO } from '../interfaces/Auth';
-
-interface OriginalFormValues {
-  firstName: string;
-  lastName: string;
-  email: string;
-  password: string;
-  phone: string;
-}
-
-type FormValues = OriginalFormValues & {
-  confirmPassword: string;
-  acceptTerms: boolean;
-};
+import { RegisterSchema, type RegisterFormData } from '../schemas/registerSchema';
 
 interface UseRegisterFormProps {
-  onSuccess?: (data: OriginalFormValues) => void;
+  onSuccess?: (data: {
+    firstName: string;
+    lastName: string;
+    email: string;
+    password: string;
+    phone: string;
+  }) => void;
   onLoginPress?: () => void;
 }
 
@@ -28,7 +23,8 @@ export const useRegisterForm = ({ onSuccess, onLoginPress }: UseRegisterFormProp
     formState: { errors, isSubmitting },
     watch,
     reset
-  } = useForm<FormValues>({
+  } = useForm<RegisterFormData>({
+    resolver: zodResolver(RegisterSchema),
     defaultValues: {
       firstName: '',
       lastName: '',
@@ -42,33 +38,15 @@ export const useRegisterForm = ({ onSuccess, onLoginPress }: UseRegisterFormProp
 
   const passwordValue = watch('password');
 
-  const validatePasswords = (data: FormValues): boolean => {
-    if (data.password !== data.confirmPassword) {
-      Alert.alert('Error', 'Las contraseñas no coinciden');
-      return false;
-    }
-    return true;
-  };
-
-  const validateTerms = (data: FormValues): boolean => {
-    if (!data.acceptTerms) {
-      Alert.alert('Términos', 'Debes aceptar los términos y condiciones');
-      return false;
-    }
-    return true;
-  };
-
-  const buildPayload = (data: FormValues): RegisterDTO => {
-    return {
-      name: data.firstName.trim(),
-      lastName: data.lastName.trim(),
-      email: data.email.trim().toLowerCase(),
-      password: data.password,
-      phoneNumber: data.phone.trim(),
-      confirmPassword: data.confirmPassword,
-      acceptTerms: data.acceptTerms
-    } as any;
-  };
+  const buildPayload = (data: RegisterFormData): RegisterDTO => ({
+    name: data.firstName.trim(),
+    lastName: data.lastName.trim(),
+    email: data.email.trim().toLowerCase(),
+    password: data.password,
+    phoneNumber: data.phone.trim(),
+    confirmPassword: data.confirmPassword,
+    acceptTerms: data.acceptTerms
+  } as any);
 
   const handleVerificationRequired = (result: any) => {
     Alert.alert(
@@ -86,7 +64,7 @@ export const useRegisterForm = ({ onSuccess, onLoginPress }: UseRegisterFormProp
     );
   };
 
-  const handleRegistrationSuccess = (result: any, data: FormValues) => {
+  const handleRegistrationSuccess = (result: any, data: RegisterFormData) => {
     onSuccess?.({
       firstName: data.firstName,
       lastName: data.lastName,
@@ -122,11 +100,8 @@ export const useRegisterForm = ({ onSuccess, onLoginPress }: UseRegisterFormProp
     Alert.alert('Error en registro', errorMessage);
   };
 
-  const submitForm = async (data: FormValues) => {
+  const submitForm = async (data: RegisterFormData) => {
     try {
-      if (!validatePasswords(data)) return;
-      if (!validateTerms(data)) return;
-
       const payload = buildPayload(data);
       const result = await registerAuth(payload);
 

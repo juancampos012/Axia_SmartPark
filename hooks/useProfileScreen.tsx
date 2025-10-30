@@ -28,6 +28,7 @@ export const useProfileScreen = () => {
   const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
   const [userCars, setUserCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Menú items - dinámico según el rol
@@ -78,32 +79,43 @@ export const useProfileScreen = () => {
     return baseItems;
   }, [isAdminOrOperator]);
 
-  // Cargar datos del perfil y vehículos
-  useEffect(() => {
-    const loadData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        
-        const [profile, vehicles] = await Promise.all([
-          fetchUserProfile(),
-          fetchMyVehicles(),
-        ]);
-        
-        setUserProfile(profile);
-        setUserCars(vehicles);
-      } catch (err: any) {
-        console.error('Error loading profile or vehicles:', err);
-        setError(err.message || 'Error al cargar la información');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
+  // Cargar perfil y vehículos
+  const loadData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const [profile, vehicles] = await Promise.all([
+        fetchUserProfile(),
+        fetchMyVehicles(),
+      ]);
+      setUserProfile(profile);
+      setUserCars(vehicles);
+    } catch (err: any) {
+      console.error('Error loading profile or vehicles:', err);
+      setError(err.message || 'Error al cargar la información');
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  // Handlers
+  useEffect(() => {
+    loadData();
+  }, [loadData]);
+
+  // 🔄 Función para refrescar el perfil manualmente (pull-to-refresh)
+  const handleRefreshProfile = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshProfileData();
+      await loadData();
+    } catch (error) {
+      console.error("Error al refrescar el perfil:", error);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [loadData]);
+
+  // Handlers de navegación
   const handleMenuItemPress = useCallback((route: string) => {
     router.push(route as any);
   }, [router]);
@@ -120,7 +132,7 @@ export const useProfileScreen = () => {
     router.push('/(tabs)/profile/cars/add');
   }, [router]);
 
-  // Valores computados
+  // Valores derivados
   const hasVehicles = userCars.length > 0;
   const displayName = userProfile?.name || 'Usuario';
 
@@ -129,17 +141,21 @@ export const useProfileScreen = () => {
     userProfile,
     userCars,
     loading,
+    refreshing,
     error,
     menuItems,
-    
-    // Valores computados
+
+    // Valores derivados
     hasVehicles,
     displayName,
-    
+
     // Handlers
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
+
+    // 🔄 Nueva función para refrescar datos
+    refreshProfileData: handleRefreshProfile,
   };
 };

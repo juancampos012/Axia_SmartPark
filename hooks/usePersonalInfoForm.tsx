@@ -1,13 +1,7 @@
-import { useForm } from 'react-hook-form';
-
-interface PersonalInfoFormData {
-  firstName: string;
-  lastName: string;
-  email: string;
-  phone: string;
-  active: boolean;
-  createdAt: string;
-}
+import { useForm, Control, FieldErrors } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { Alert } from "react-native";
+import { PersonalInfoSchema, PersonalInfoFormData } from "../schemas/personalInfoSchema";
 
 interface UsePersonalInfoFormProps {
   initialData?: PersonalInfoFormData;
@@ -15,49 +9,50 @@ interface UsePersonalInfoFormProps {
   onCancel?: () => void;
 }
 
-const defaultData: PersonalInfoFormData = {
-  firstName: '',
-  lastName: '',
-  email: '',
-  phone: '',
-  active: true,
-  createdAt: ''
-};
-
 export const usePersonalInfoForm = ({
-  initialData = defaultData,
+  initialData,
   onSubmit,
-  onCancel
-}: UsePersonalInfoFormProps = {}) => {
-  
-  const { 
-    control, 
-    handleSubmit, 
-    formState: { errors }, 
-    reset 
+  onCancel,
+}: UsePersonalInfoFormProps) => {
+  const {
+    control,
+    handleSubmit,
+    formState: { errors, isSubmitting },
+    reset,
   } = useForm<PersonalInfoFormData>({
-    defaultValues: initialData
+    resolver: zodResolver(PersonalInfoSchema),
+    defaultValues: {
+      firstName: initialData?.firstName || "",
+      lastName: initialData?.lastName || "",
+      email: initialData?.email || "",
+      phone: initialData?.phone || "",
+      active: initialData?.active ?? true,
+      createdAt: initialData?.createdAt || "",
+    },
+    mode: "onChange",
   });
 
+  // Función que se ejecuta al enviar el formulario
   const submitForm = (data: PersonalInfoFormData) => {
-    if (onSubmit) {
-      onSubmit(data);
+    try {
+      onSubmit?.(data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert("Error", "Ocurrió un problema al guardar los datos.");
     }
   };
 
+  // Función para cancelar edición y resetear valores
   const handleCancelPress = () => {
-    // Restaurar valores originales
-    reset(initialData);
-    if (onCancel) {
-      onCancel();
-    }
+    if (initialData) reset(initialData);
+    onCancel?.();
   };
 
   return {
     control,
-    errors,
+    errors: errors as FieldErrors<PersonalInfoFormData>,
+    isSubmitting, // ✅ ahora disponible en el componente
     handleSubmit: handleSubmit(submitForm),
     handleCancelPress,
-    resetForm: () => reset(initialData)
   };
 };
