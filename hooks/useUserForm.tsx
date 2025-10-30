@@ -8,7 +8,7 @@ import {
   createUserFormSchema, 
   updateUserFormSchema, 
   type CreateUserFormData 
-} from '../Schemas/userFormSchema';
+} from '../schemas/userFormSchema';
 import { ZodError } from 'zod';
 
 export const useUserForm = (userId?: string) => {

@@ -1,9 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { refreshToken } from './auth'; 
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 export async function fetchMyVehicles() {
   try {
@@ -76,6 +76,15 @@ export interface CreateVehicleDTO {
   carBrand: string;
   color: string;
   engineType?: EngineType;
+}
+
+export interface UpdateVehicleDTO {
+  type?: VehicleTypeUpper;
+  licensePlate?: string;
+  model?: string;
+  carBrand?: string;
+  color?: string;
+  engineType?: EngineType | null;
 }
 
 // Create a new vehicle for the authenticated user
@@ -208,6 +217,64 @@ export async function deleteVehicle(vehicleId: string) {
     return { success: true, message: 'Vehículo eliminado correctamente' };
   } catch (error) {
     console.error('Error deleting vehicle:', error);
+    throw error;
+  }
+}
+
+// Update an existing vehicle
+export async function updateVehicle(vehicleId: string, body: UpdateVehicleDTO) {
+  try {
+    let accessToken = await AsyncStorage.getItem('accessToken');
+    const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
+
+    if (!accessToken || !storedRefreshToken) {
+      throw new Error('No authentication tokens found');
+    }
+
+    const makeRequest = async (currentToken: string) => {
+      const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
+        method: 'PUT',
+        headers: {
+          'Authorization': `Bearer ${currentToken}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(body),
+      });
+      return response;
+    };
+
+    let response = await makeRequest(accessToken);
+
+    if (response.status === 401) {
+      try {
+        const newTokens = await refreshToken();
+        accessToken = newTokens.accessToken;
+        response = await makeRequest(accessToken);
+      } catch (refreshError) {
+        await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
+        throw new Error('Session expired. Please login again.');
+      }
+    }
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      let errorMessage = `Error ${response.status}`;
+      try {
+        const errorData = errorText ? JSON.parse(errorText) : {};
+        errorMessage = errorData.message || errorMessage;
+        if (errorData.errors && Array.isArray(errorData.errors)) {
+          errorMessage = errorData.errors.join(', ');
+        }
+      } catch {
+        if (errorText) errorMessage = errorText;
+      }
+      throw new Error(errorMessage);
+    }
+
+    const result = await response.json();
+    return result.data;
+  } catch (error) {
+    console.error('Error updating vehicle:', error);
     throw error;
   }
 }

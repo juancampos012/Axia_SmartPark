@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 import { 
   PaymentResponse,
   PaymentWithRelations,
@@ -11,8 +11,8 @@ import {
 } from '../interfaces/payment';
 import { ApiResponse } from '../interfaces/ApiTypes';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 /**
  * Interfaz para crear reservación con pago en una transacción

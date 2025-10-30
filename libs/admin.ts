@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { refreshToken } from './auth';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 import {
   AdminUsersResponse,
   AdminUserResponse,
@@ -12,7 +12,8 @@ import {
   UpdateParkingDTO,
 } from "../interfaces/Admin";
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+// const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 // Wrapper para requests autenticados
 async function authenticatedRequest(endpoint: string, options: RequestInit = {}) {
