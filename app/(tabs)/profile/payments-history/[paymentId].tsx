@@ -15,6 +15,14 @@ const PaymentDetail = () => {
   
   const [payment, setPayment] = useState<PaymentWithRelations | null>(null);
   const [loading, setLoading] = useState(true);
+  
+  const COLORS = {
+    success: '#268D65',
+    warning: '#f59e0b',
+    error: '#dc2626',
+    green: '#006B54',
+    grayLight: '#9CA3AF'
+  };
 
   useEffect(() => {
     loadPayment();
@@ -56,8 +64,8 @@ const PaymentDetail = () => {
           <View className="w-10" />
         </View>
         
-        <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#A3E636" />
+          <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color={COLORS.green} />
           <Text className="text-axia-gray-light text-sm font-pregular mt-4">
             Cargando detalles...
           </Text>
@@ -77,8 +85,8 @@ const PaymentDetail = () => {
           <View className="w-10" />
         </View>
         
-        <View className="flex-1 items-center justify-center px-6">
-          <Ionicons name="alert-circle-outline" size={64} color="#EF4444" />
+          <View className="flex-1 items-center justify-center px-6">
+          <Ionicons name="alert-circle-outline" size={64} color={COLORS.error} />
           <Text className="text-white text-lg font-pbold mt-4">
             Pago no encontrado
           </Text>
@@ -108,18 +116,18 @@ const PaymentDetail = () => {
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         {/* Estado y Monto Principal */}
         <View className="px-6 mb-6">
-          <View className="bg-axia-dark-gray rounded-3xl p-6 items-center">
+          <View className="bg-axia-darkGray rounded-3xl p-6 items-center">
             <View className="mb-4">
               <Ionicons
                 name={isSuccessful ? 'checkmark-circle' : isPending ? 'time' : 'close-circle'}
                 size={64}
-                color={isSuccessful ? '#10B981' : isPending ? '#F59E0B' : '#EF4444'}
+                color={isSuccessful ? COLORS.success : isPending ? COLORS.warning : COLORS.error}
               />
             </View>
             
             <Text
               className="text-lg font-pbold mb-2"
-              style={{ color: isSuccessful ? '#10B981' : isPending ? '#F59E0B' : '#EF4444' }}
+              style={{ color: isSuccessful ? COLORS.success : isPending ? COLORS.warning : COLORS.error }}
             >
               {getStatusText(payment.status)}
             </Text>
@@ -149,11 +157,11 @@ const PaymentDetail = () => {
               />
             </View>
           ) : (
-            <View className="bg-axia-dark-gray rounded-2xl p-4 flex-row items-center">
-              <Ionicons
+            <View className="bg-axia-darkGray rounded-2xl p-4 flex-row items-center">
+                    <Ionicons
                 name={payment.paymentMethod === 'CREDIT_CARD' ? 'card' : payment.paymentMethod === 'DEBIT_CARD' ? 'card-outline' : 'cash'}
                 size={24}
-                color="#A3E636"
+                color={COLORS.green}
               />
               <Text className="text-white text-base font-pmedium ml-3">
                 {getMethodText(payment.paymentMethod)}
@@ -167,7 +175,7 @@ const PaymentDetail = () => {
           <View className="px-6 mb-6">
             <Text className="text-white text-lg font-pbold mb-3">Información de la Reserva</Text>
             
-            <View className="bg-axia-dark-gray rounded-2xl p-4">
+            <View className="bg-axia-darkGray rounded-2xl p-4">
               {/* Parqueadero */}
               {payment.reservation.parkingSpot?.parking && (
                 <View className="mb-4 pb-4 border-b border-axia-gray-dark">
@@ -175,7 +183,7 @@ const PaymentDetail = () => {
                     PARQUEADERO
                   </Text>
                   <View className="flex-row items-start">
-                    <Ionicons name="location" size={20} color="#A3E636" />
+                    <Ionicons name="location" size={20} color={COLORS.green} />
                     <View className="ml-3 flex-1">
                       <Text className="text-white text-base font-pmedium">
                         {payment.reservation.parkingSpot.parking.name}
@@ -184,7 +192,7 @@ const PaymentDetail = () => {
                         {payment.reservation.parkingSpot.parking.address}
                       </Text>
                       {payment.reservation.parkingSpot.spotNumber && (
-                        <Text className="text-axia-lime text-sm font-pmedium mt-2">
+                        <Text className="text-axia-green text-sm font-pmedium mt-2">
                           Puesto: {payment.reservation.parkingSpot.spotNumber}
                         </Text>
                       )}
@@ -195,12 +203,12 @@ const PaymentDetail = () => {
 
               {/* Vehículo */}
               {payment.reservation.vehicle && (
-                <View className="mb-4 pb-4 border-b border-axia-gray-dark">
+                <View className="mb-4 pb-4 border-b border-axia-darkGray">
                   <Text className="text-axia-gray-light text-xs font-pregular mb-2">
                     VEHÍCULO
                   </Text>
                   <View className="flex-row items-center">
-                    <Ionicons name="car-sport" size={20} color="#A3E636" />
+                    <Ionicons name="car-sport" size={20} color={COLORS.green} />
                     <View className="ml-3">
                       <Text className="text-white text-base font-pmedium">
                         {payment.reservation.vehicle.carBrand} {payment.reservation.vehicle.model}
@@ -219,7 +227,7 @@ const PaymentDetail = () => {
                   HORARIO
                 </Text>
                 <View className="flex-row items-center mb-2">
-                  <Ionicons name="enter-outline" size={18} color="#10B981" />
+                  <Ionicons name="enter-outline" size={18} color={COLORS.success} />
                   <Text className="text-axia-gray-light text-sm font-pregular ml-2">
                     Entrada:
                   </Text>
@@ -228,7 +236,7 @@ const PaymentDetail = () => {
                   </Text>
                 </View>
                 <View className="flex-row items-center">
-                  <Ionicons name="exit-outline" size={18} color="#EF4444" />
+                  <Ionicons name="exit-outline" size={18} color={COLORS.error} />
                   <Text className="text-axia-gray-light text-sm font-pregular ml-2">
                     Salida:
                   </Text>
@@ -245,7 +253,7 @@ const PaymentDetail = () => {
         <View className="px-6 mb-6">
           <Text className="text-white text-lg font-pbold mb-3">Detalles de Transacción</Text>
           
-          <View className="bg-axia-dark-gray rounded-2xl p-4">
+          <View className="bg-axia-darkGray rounded-2xl p-4">
             <View className="flex-row justify-between items-center mb-3">
               <Text className="text-axia-gray-light text-sm font-pregular">ID de Pago</Text>
               <Text className="text-white text-sm font-pmedium">
@@ -277,8 +285,8 @@ const PaymentDetail = () => {
             </View>
 
             {payment.failureReason && (
-              <View className="mt-3 pt-3 border-t border-axia-gray-dark">
-                <Text className="text-red-500 text-xs font-pregular mb-1">RAZÓN DEL FALLO</Text>
+                <View className="mt-3 pt-3 border-t border-axia-gray-dark">
+                <Text className="text-error text-xs font-pregular mb-1">RAZÓN DEL FALLO</Text>
                 <Text className="text-white text-sm font-pregular">
                   {payment.failureReason}
                 </Text>
@@ -291,15 +299,15 @@ const PaymentDetail = () => {
         {isSuccessful && (
           <View className="px-6 mb-8">
             <TouchableOpacity
-              className="bg-axia-dark-gray rounded-xl p-4 flex-row items-center justify-center"
+              className="bg-axia-darkGray rounded-xl p-4 flex-row items-center justify-center"
               activeOpacity={0.7}
               onPress={() => {
                 // Aquí podrías implementar funcionalidad para descargar recibo
                 console.log('Descargar recibo');
               }}
             >
-              <Ionicons name="download-outline" size={20} color="#A3E636" />
-              <Text className="text-axia-lime text-base font-pmedium ml-2">
+              <Ionicons name="download-outline" size={20} color={"axia-green"} />
+              <Text className="text-axia-green text-base font-pmedium ml-2">
                 Descargar Recibo
               </Text>
             </TouchableOpacity>

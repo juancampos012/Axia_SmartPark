@@ -24,6 +24,15 @@ const PaymentsHistory = () => {
     loadMore,
   } = usePaymentHistory();
 
+  const COLORS = {
+    success: '#268D65', // tailwind 'success'
+    warning: '#f59e0b', // tailwind 'warning'
+    error: '#dc2626',   // tailwind 'error'
+    grayLight: '#9CA3AF',
+    green: '#006B54',
+    grayDark: '#374151'
+  };
+
   const handleGoBack = () => {
     router.back();
   };
@@ -54,10 +63,12 @@ const PaymentsHistory = () => {
     const isPending = payment.status === PaymentStatus.PENDING;
     const isFailed = payment.status === PaymentStatus.FAILED;
 
+    
+
     return (
       <TouchableOpacity
         onPress={() => handlePaymentPress(payment)}
-        className="bg-axia-dark-gray rounded-2xl p-4 mb-4"
+        className="bg-axia-darkGray rounded-2xl p-4 mb-4"
         activeOpacity={0.7}
       >
         {/* Header con estado y monto */}
@@ -70,11 +81,11 @@ const PaymentsHistory = () => {
               <Ionicons
                 name={isSuccessful ? 'checkmark-circle' : isPending ? 'time' : 'close-circle'}
                 size={16}
-                color={isSuccessful ? '#10B981' : isPending ? '#F59E0B' : '#EF4444'}
+                color={isSuccessful ? COLORS.success : isPending ? COLORS.warning : COLORS.error}
               />
               <Text
                 className="text-sm font-pmedium ml-1"
-                style={{ color: isSuccessful ? '#10B981' : isPending ? '#F59E0B' : '#EF4444' }}
+                style={{ color: isSuccessful ? COLORS.success : isPending ? COLORS.warning : COLORS.error }}
               >
                 {getStatusText(payment.status)}
               </Text>
@@ -95,7 +106,7 @@ const PaymentsHistory = () => {
         {payment.reservation && (
           <View className="border-t border-axia-gray-dark pt-3 mb-3">
             <View className="flex-row items-center mb-2">
-              <Ionicons name="location" size={16} color="#9CA3AF" />
+              <Ionicons name="location" size={16} color={COLORS.grayLight} />
               <Text className="text-white text-sm font-pmedium ml-2" numberOfLines={1}>
                 {payment.reservation.parkingSpot?.parking?.name || 'Parqueadero'}
               </Text>
@@ -103,7 +114,7 @@ const PaymentsHistory = () => {
             
             {payment.reservation.vehicle && (
               <View className="flex-row items-center">
-                <Ionicons name="car" size={16} color="#9CA3AF" />
+                <Ionicons name="car" size={16} color={COLORS.grayLight} />
                 <Text className="text-axia-gray-light text-sm font-pregular ml-2">
                   {payment.reservation.vehicle.carBrand} {payment.reservation.vehicle.model} · {payment.reservation.vehicle.licensePlate}
                 </Text>
@@ -118,7 +129,7 @@ const PaymentsHistory = () => {
             <Ionicons
               name={payment.paymentMethod === 'CREDIT_CARD' ? 'card' : payment.paymentMethod === 'DEBIT_CARD' ? 'card-outline' : 'cash'}
               size={16}
-              color="#9CA3AF"
+              color={COLORS.grayLight}
             />
             <Text className="text-axia-gray-light text-sm font-pregular ml-2">
               {getMethodText(payment.paymentMethod)}
@@ -130,7 +141,7 @@ const PaymentsHistory = () => {
             )}
           </View>
           
-          <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
+          <Ionicons name="chevron-forward" size={20} color={COLORS.grayLight} />
         </View>
       </TouchableOpacity>
     );
@@ -148,7 +159,7 @@ const PaymentsHistory = () => {
         </View>
         
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color="#A3E636" />
+          <ActivityIndicator size="large" color={COLORS.lime} />
           <Text className="text-axia-gray-light text-sm font-pregular mt-4">
             Cargando pagos...
           </Text>
@@ -171,7 +182,7 @@ const PaymentsHistory = () => {
       {/* Estadísticas resumen */}
       {stats && (
         <View className="px-6 pb-4">
-          <View className="bg-axia-dark-gray rounded-2xl p-4">
+          <View className="bg-axia-darkGray rounded-2xl p-4">
             <View className="flex-row justify-between mb-3">
               <View className="flex-1">
                 <Text className="text-axia-gray-light text-xs font-pregular mb-1">
@@ -194,13 +205,13 @@ const PaymentsHistory = () => {
             
             <View className="flex-row justify-between pt-3 border-t border-axia-gray-dark">
               <View>
-                <Text className="text-green-500 text-sm font-pmedium">
+                <Text className="text-axia-green text-sm font-pmedium">
                   {stats.successfulPayments} Exitosos
                 </Text>
               </View>
               {stats.failedPayments > 0 && (
                 <View>
-                  <Text className="text-red-500 text-sm font-pmedium">
+                  <Text className="text-error text-sm font-pmedium">
                     {stats.failedPayments} Fallidos
                   </Text>
                 </View>
@@ -217,19 +228,19 @@ const PaymentsHistory = () => {
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 24 }}
         refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#A3E636"
-            colors={['#A3E636']}
-          />
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={handleRefresh}
+              tintColor={COLORS.green}
+              colors={[COLORS.green]}
+            />
         }
         onEndReached={loadMore}
         onEndReachedThreshold={0.5}
         ListFooterComponent={
           hasMore ? (
             <View className="py-4">
-              <ActivityIndicator size="small" color="#A3E636" />
+              <ActivityIndicator size="small" color={COLORS.green} />
             </View>
           ) : null
         }
