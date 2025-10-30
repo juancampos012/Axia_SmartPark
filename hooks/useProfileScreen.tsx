@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserProfile } from '../libs/user';
 import { fetchMyVehicles } from '../libs/vehicles';
@@ -102,11 +102,21 @@ export const useProfileScreen = () => {
     loadData();
   }, [loadData]);
 
-  // 🔄 Función para refrescar el perfil manualmente (pull-to-refresh)
+  // Refrescar datos cada vez que la pantalla gana foco (por ejemplo, al volver desde detalle/eliminar)
+  useFocusEffect(
+    useCallback(() => {
+      setLoading(true);
+      loadData();
+    }, [loadData])
+  );
+
+  // Función para refrescar el perfil manualmente (pull-to-refresh)
   const handleRefreshProfile = useCallback(async () => {
     setRefreshing(true);
     try {
-      await refreshProfileData();
+      // Llamamos directamente a loadData para refrescar información.
+      // Antes se intentaba llamar a `refreshProfileData` (no definida en este scope),
+      // lo cual provocaba un ReferenceError.
       await loadData();
     } catch (error) {
       console.error("Error al refrescar el perfil:", error);
@@ -155,7 +165,7 @@ export const useProfileScreen = () => {
     handleViewAllCars,
     handleAddCar,
 
-    // 🔄 Nueva función para refrescar datos
+    // Nueva función para refrescar datos
     refreshProfileData: handleRefreshProfile,
   };
 };

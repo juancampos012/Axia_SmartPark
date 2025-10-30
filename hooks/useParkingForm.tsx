@@ -3,7 +3,7 @@ import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { updateParking, updateParkingRates, fetchParkingByIdAdmin } from '../libs/admin';
 import { AdminParkingInfo, UpdateParkingDTO } from '../interfaces/Admin';
-import { updateParkingFormSchema } from '../Schemas/parkingFormSchema';
+import { updateParkingFormSchema } from '../schemas/parkingFormSchema';
 import { ZodError } from 'zod';
 
 export const useParkingForm = (onSuccess?: () => void, onError?: () => void) => {

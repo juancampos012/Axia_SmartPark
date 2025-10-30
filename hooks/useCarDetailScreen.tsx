@@ -50,8 +50,9 @@ export const useCarDetailScreen = () => {
   };
 
   const handleEdit = () => {
-    console.log('Editar vehículo', car?.id);
-    // TODO: Implementar navegación a editar vehículo
+    if (!car) return;
+    // Navegar a la pantalla de edición
+    router.push(`/(tabs)/profile/cars/edit/${car.id}` as any);
   };
 
   const handleBackToVehicles = () => {

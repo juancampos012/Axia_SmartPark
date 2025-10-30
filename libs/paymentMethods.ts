@@ -1,5 +1,5 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 import { 
   PaymentMethodResponse,
   PaymentMethodWithStats,
@@ -9,8 +9,8 @@ import {
 } from '../interfaces/paymentMethod';
 import { ApiResponse } from '../interfaces/ApiTypes';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 /**
  * Helper para obtener el token de autenticación

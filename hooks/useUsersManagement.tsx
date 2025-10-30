@@ -9,7 +9,6 @@ import {
   AdminUserListItem,
   AdminUserFilters,
 } from '../interfaces/Admin';
-// ARREGLO: Importar 'Role' directamente desde 'interfaces/User.ts'
 import { Role } from '../interfaces/User'; 
 
 /**
@@ -27,7 +26,6 @@ export const useUsersManagement = () => {
   const [hasMore, setHasMore] = useState(true);
   const [totalUsers, setTotalUsers] = useState(0);
   
-  // ARREGLO: Cambiado 'filters' a 'searchQuery' para que coincida con fetchUsers
   const [searchQuery, setSearchQuery] = useState<string | undefined>();
   
   const loadingRef = useRef(false);
@@ -54,7 +52,7 @@ export const useUsersManagement = () => {
 
       const response = await fetchUsers(pageNum, 20, currentSearchQuery);
       
-      console.log('📦 useUsersManagement - Response:', {
+      console.log('useUsersManagement - Response:', {
         success: response.success,
         usersCount: response.data?.users?.length || 0,
         total: response.data?.pagination?.total || 0,

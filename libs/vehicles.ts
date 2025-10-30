@@ -1,10 +1,9 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { refreshToken } from './auth'; 
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
-import { Vehicle } from '../interfaces/vehicle';
+// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 export async function fetchMyVehicles() {
   try {
@@ -77,6 +76,15 @@ export interface CreateVehicleDTO {
   carBrand: string;
   color: string;
   engineType?: EngineType;
+}
+
+export interface UpdateVehicleDTO {
+  type?: VehicleTypeUpper;
+  licensePlate?: string;
+  model?: string;
+  carBrand?: string;
+  color?: string;
+  engineType?: EngineType | null;
 }
 
 // Create a new vehicle for the authenticated user
@@ -213,15 +221,8 @@ export async function deleteVehicle(vehicleId: string) {
   }
 }
 
-export interface UpdateVehicleData {
-  carBrand: string;
-  model: string;
-  licensePlate: string;
-  engineType: string;
-  color: string;
-}
-
-export async function updateVehicle(vehicleId: string, body: UpdateVehicleData): Promise<Vehicle> {
+// Update an existing vehicle
+export async function updateVehicle(vehicleId: string, body: UpdateVehicleDTO) {
   try {
     let accessToken = await AsyncStorage.getItem('accessToken');
     const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
@@ -230,7 +231,6 @@ export async function updateVehicle(vehicleId: string, body: UpdateVehicleData):
       throw new Error('No authentication tokens found');
     }
 
-    // Helper to perform the PUT request
     const makeRequest = async (currentToken: string) => {
       const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
         method: 'PUT',
@@ -243,59 +243,36 @@ export async function updateVehicle(vehicleId: string, body: UpdateVehicleData):
       return response;
     };
 
-    // First attempt
     let response = await makeRequest(accessToken);
 
-    // If unauthorized, try to refresh token
     if (response.status === 401) {
       try {
-        console.log('Token expirado, intentando refresh...');
         const newTokens = await refreshToken();
         accessToken = newTokens.accessToken;
         response = await makeRequest(accessToken);
       } catch (refreshError) {
-        console.error('Error refreshing token:', refreshError);
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
         throw new Error('Session expired. Please login again.');
       }
     }
 
-    // Handle specific error cases based on backend responses
     if (!response.ok) {
       const errorText = await response.text();
       let errorMessage = `Error ${response.status}`;
-      
       try {
         const errorData = errorText ? JSON.parse(errorText) : {};
-        
-        // Manejar errores específicos del backend basados en tu código
-        if (response.status === 404) {
-          errorMessage = 'El vehículo no fue encontrado.';
-        } else if (response.status === 403) {
-          errorMessage = 'No tienes permisos para editar este vehículo.';
-        } else if (errorData.code === 'DUPLICATE_LICENSE_PLATE') {
-          errorMessage = 'Ya existe un vehículo con esta placa.';
-        } else if (errorData.code === 'ACTIVE_RESERVATIONS') {
-          errorMessage = 'No se puede modificar el vehículo porque tiene reservas activas.';
-        } else {
-          errorMessage = errorData.message || errorMessage;
-        }
-        
-        // Si hay errores de validación específicos
+        errorMessage = errorData.message || errorMessage;
         if (errorData.errors && Array.isArray(errorData.errors)) {
           errorMessage = errorData.errors.join(', ');
         }
-        
       } catch {
         if (errorText) errorMessage = errorText;
       }
-      
       throw new Error(errorMessage);
     }
 
     const result = await response.json();
-    // Basado en tu backend, asumo que retorna el vehículo actualizado
-    return result.data || result;
+    return result.data;
   } catch (error) {
     console.error('Error updating vehicle:', error);
     throw error;

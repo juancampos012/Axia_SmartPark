@@ -1,10 +1,10 @@
 import { LoginDTO, RegisterDTO, ForgotPasswordDTO, ResetPasswordDTO, LoginResponse } from "../interfaces/Auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
 
-// const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 // Función auxiliar para manejar respuestas
 const handleResponse = async (response: Response) => {

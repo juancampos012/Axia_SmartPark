@@ -159,7 +159,7 @@ const PaymentsHistory = () => {
         </View>
         
         <View className="flex-1 items-center justify-center">
-          <ActivityIndicator size="large" color={COLORS.lime} />
+          <ActivityIndicator size="large" color={COLORS.green} />
           <Text className="text-axia-gray-light text-sm font-pregular mt-4">
             Cargando pagos...
           </Text>
