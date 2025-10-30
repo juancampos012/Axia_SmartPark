@@ -10,28 +10,60 @@ type AuthContextType = {
   user: AuthUserData | null;
   loading: boolean;
   isConnected: boolean;
+  parkingId: string | null;
   signIn: (user: AuthUserData, accessToken: string, refreshToken: string) => Promise<void>;
   signOut: () => Promise<void>;
   refreshUserProfile: () => Promise<void>;
   updateUserProfile: (data: UserUpdateDTO) => Promise<void>;
   isAuthenticated: boolean;
+  isAdmin: boolean;
+  isOperator: boolean;
+  isAdminOrOperator: boolean;
 };
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   loading: true,
   isConnected: true,
+  parkingId: null,
   signIn: async () => {},
   signOut: async () => {},
   refreshUserProfile: async () => {},
   updateUserProfile: async () => {},
   isAuthenticated: false,
+  isAdmin: false,
+  isOperator: false,
+  isAdminOrOperator: false,
 });
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<AuthUserData | null>(null);
   const [loading, setLoading] = useState(true);
   const [isConnected, setIsConnected] = useState(true);
+
+  // Computed values
+  const parkingId = user?.parkingId || null;
+  const isAuthenticated = !!user;
+  const isAdmin = user?.role === 'ADMIN';
+  const isOperator = user?.role === 'OPERATOR';
+  const isAdminOrOperator = isAdmin || isOperator;
+
+  // Debug logging cuando cambia el usuario
+  useEffect(() => {
+    if (user) {
+      console.log('👤 AuthContext - User State Updated:', {
+        id: user.id,
+        email: user.email,
+        role: user.role,
+        parkingId: user.parkingId,
+        isAdmin,
+        isOperator,
+        isAdminOrOperator
+      });
+    } else {
+      console.log('👤 AuthContext - No user authenticated');
+    }
+  }, [user, isAdmin, isOperator, isAdminOrOperator]);
 
   // Verificar conexión a Internet
   useEffect(() => {
@@ -83,12 +115,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const signIn = async (userData: AuthUserData, accessToken: string, refreshToken: string) => {
     // No verificamos red aquí porque el login ya se completó exitosamente
     try {
+      console.log('AuthContext - SignIn called with:', {
+        userId: userData.id,
+        email: userData.email,
+        role: userData.role,
+        parkingId: userData.parkingId,
+        hasAccessToken: !!accessToken,
+        hasRefreshToken: !!refreshToken
+      });
+      
       await AsyncStorage.setItem("accessToken", accessToken);
       await AsyncStorage.setItem("refreshToken", refreshToken);
       await saveUserData(userData);
       setUser(userData);
+      
     } catch (error) {
-      console.error('Error in signIn:', error);
       throw error;
     }
   };
@@ -134,19 +175,21 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     }
   };
 
-  const isAuthenticated = !!user;
-
   return (
     <AuthContext.Provider 
       value={{ 
         user, 
         loading, 
         isConnected,
+        parkingId,
         signIn, 
         signOut, 
         refreshUserProfile,
         updateUserProfile,
-        isAuthenticated 
+        isAuthenticated,
+        isAdmin,
+        isOperator,
+        isAdminOrOperator
       }}
     >
       {children}

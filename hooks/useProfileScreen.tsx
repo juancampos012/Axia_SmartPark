@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter } from 'expo-router';
-import { fetchUserProfile, refreshProfileData } from '../libs/user';
+import { useAuth } from '../context/AuthContext';
+import { fetchUserProfile } from '../libs/user';
 import { fetchMyVehicles } from '../libs/vehicles';
 
 interface Car {
@@ -21,6 +22,7 @@ interface MenuItem {
 
 export const useProfileScreen = () => {
   const router = useRouter();
+  const { isAdminOrOperator } = useAuth();
 
   // Estados
   const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
@@ -29,13 +31,53 @@ export const useProfileScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Menú items
-  const menuItems: MenuItem[] = [
-    { id: '1', icon: 'person-outline', title: 'Información personal', route: '/profile/personal-info' },
-    { id: '2', icon: 'lock-closed-outline', title: 'Seguridad', route: '/profile/security' },
-    { id: '3', icon: 'card-outline', title: 'Tarjeta de débito', route: '/profile/payment-methods' },
-    { id: '4', icon: 'receipt-outline', title: 'Historial de Pagos', route: '/profile/payments-history' },
-  ];
+  // Menú items - dinámico según el rol
+  const menuItems: MenuItem[] = useMemo(() => {
+    const baseItems = [
+      {
+        id: '1',
+        icon: 'person-outline',
+        title: 'Información personal',
+        route: '/profile/personal-info',
+      },
+      {
+        id: '2',
+        icon: 'star-outline',
+        title: 'Mis Reseñas',
+        route: '/profile/reviews',
+      },
+      {
+        id: '3',
+        icon: 'lock-closed-outline',
+        title: 'Seguridad',
+        route: '/profile/security',
+      },
+      {
+        id: '4',
+        icon: 'card-outline',
+        title: 'Tarjeta de débito',
+        route: '/profile/payment-methods',
+      },
+      {
+        id: '5',
+        icon: 'receipt-outline',
+        title: 'Historial de Pagos',
+        route: '/profile/payments-history',
+      },
+    ];
+
+    // Agregar opción de gestión de usuarios para Admin/Operator
+    if (isAdminOrOperator) {
+      baseItems.splice(2, 0, {
+        id: 'admin-users',
+        icon: 'people-outline',
+        title: 'Gestión de Usuarios',
+        route: '/profile/users',
+      });
+    }
+
+    return baseItems;
+  }, [isAdminOrOperator]);
 
   // Cargar perfil y vehículos
   const loadData = useCallback(async () => {
