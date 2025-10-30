@@ -48,6 +48,7 @@ export interface AuthUserData {
   isVerified: boolean;
   lastLoginAt: Date | null;
   createdAt: Date;
+  parkingId?: string | null; // ID del parqueadero asignado (para OPERATOR y ADMIN)
 }
 
 // Response types

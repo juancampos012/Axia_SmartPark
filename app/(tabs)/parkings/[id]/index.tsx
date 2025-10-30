@@ -4,6 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useParkingDetail } from '../../../../hooks/useParkingDetail';
+import { ParkingReviewsSection } from '../../../../components/molecules/ParkingReviewsSection';
 
 const ParkingDetail = () => {
   const params = useLocalSearchParams<{ id: string; parkingData?: string }>();
@@ -283,7 +284,7 @@ const ParkingDetail = () => {
           </View>
 
           {/* Descripción */}
-          <View className="bg-axia-darkGray rounded-2xl p-5 mb-8">
+          <View className="bg-axia-darkGray rounded-2xl p-5 mb-6">
             <Text className="text-white text-lg font-primaryBold mb-3">
               Descripción
             </Text>
@@ -291,6 +292,12 @@ const ParkingDetail = () => {
               {parking.description}
             </Text>
           </View>
+
+          {/* Reviews Section */}
+          <ParkingReviewsSection
+            parkingId={parking.id}
+            parkingName={parking.name}
+          />
 
           {/* Botones de acción */}
           <View className="space-y-4 pb-8">

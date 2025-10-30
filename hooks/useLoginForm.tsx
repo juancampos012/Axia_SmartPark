@@ -29,6 +29,15 @@ export const useLoginForm = ({ onSuccess }: UseLoginFormProps = {}) => {
     try {
       const response = await loginAuth(data);
       
+      console.log('Login - Backend response:', {
+        hasUser: !!response.data.user,
+        userId: response.data.user?.id,
+        userEmail: response.data.user?.email,
+        userRole: response.data.user?.role,
+        parkingId: response.data.user?.parkingId,
+        hasTokens: !!response.data.tokens
+      });
+      
       // Guardar en el AuthContext
       await signIn(
         response.data.user,
@@ -41,7 +50,7 @@ export const useLoginForm = ({ onSuccess }: UseLoginFormProps = {}) => {
       
       if (onSuccess) onSuccess();
     } catch (error: any) {
-      console.error(error);
+      console.error('Login error:', error);
       Alert.alert(
         "Error de inicio de sesión", 
         error.message || "Correo o contraseña incorrectos"

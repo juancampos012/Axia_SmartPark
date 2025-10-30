@@ -168,12 +168,11 @@ export async function fetchMyReservations(
     }
 
     const url = `/reservations/my?${params.toString()}`;
-    console.log('🌐 Fetching reservations from:', url);
     
     const response = await authenticatedRequest(url);
     const result = await response.json();
 
-    console.log('📦 API Response structure:', { 
+    console.log('API Response structure:', { 
       hasData: !!result.data,
       hasDataData: !!result.data?.data,
       hasPagination: !!result.data?.pagination 
@@ -194,7 +193,7 @@ export async function fetchMyReservations(
       hasPreviousPage: apiData.pagination?.hasPrev || false,
     };
 
-    console.log('✅ Reservations adapted:', {
+    console.log('Reservations adapted:', {
       count: adaptedResult.reservations.length,
       total: adaptedResult.total,
       page: adaptedResult.currentPage
@@ -202,7 +201,7 @@ export async function fetchMyReservations(
 
     return adaptedResult;
   } catch (error) {
-    console.error('❌ Error fetchMyReservations:', error);
+    console.error('Error fetchMyReservations:', error);
     throw error;
   }
 }
