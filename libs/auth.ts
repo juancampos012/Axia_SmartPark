@@ -122,6 +122,17 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");
     }
 
+    // Mapear assignedParkingId del backend a parkingId del frontend
+    if (dataResponse.data.user) {
+      const backendUser = dataResponse.data.user as any;
+      dataResponse.data.user = {
+        ...backendUser,
+        parkingId: backendUser.assignedParkingId || backendUser.parkingId || null
+      };
+      // Eliminar el campo assignedParkingId si existe para evitar confusión
+      delete (dataResponse.data.user as any).assignedParkingId;
+    }
+
     return dataResponse;
   } catch (error: any) {    
     // Si hay información adicional sobre intentos de login, incluirla en el error
@@ -247,10 +258,14 @@ export const refreshToken = async (): Promise<{ accessToken: string; refreshToke
         const refreshTokenValue = await AsyncStorage.getItem('refreshToken');
         
         if (!refreshTokenValue) {
+            console.error('refreshToken: no value found in AsyncStorage');
             throw new Error('No hay refresh token disponible');
         }
         
-        const response = await fetch(`${API_BASE_URL}/auth/refresh-token`, {
+        // Para depuración: no imprimir el token completo por seguridad, solo su longitud
+        console.log(`refreshToken - found refresh token length: ${refreshTokenValue.length}`);
+        
+        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
@@ -258,15 +273,24 @@ export const refreshToken = async (): Promise<{ accessToken: string; refreshToke
             body: JSON.stringify({ refreshToken: refreshTokenValue })
         });
         
-        const data = await handleResponse(response);
+    const result = await handleResponse(response);
+    console.log('refreshToken - server result:', result);
+        
+        // El backend retorna: { success, message, data: { accessToken, refreshToken } }
+        const tokens = {
+            accessToken: result.data?.accessToken || result.accessToken,
+            refreshToken: result.data?.refreshToken || result.refreshToken
+        };
+        
+        if (!tokens.accessToken || !tokens.refreshToken) {
+            console.error('Tokens inválidos recibidos del refresh:', result);
+            throw new Error('No se recibieron tokens válidos del servidor');
+        }
         
         // Actualizar tokens
-        await saveTokens({
-            accessToken: data.accessToken,
-            refreshToken: data.refreshToken
-        });
+        await saveTokens(tokens);
         
-        return data;
+        return tokens;
     } catch (error) {
         console.error('Error refrescando token:', error);
         // Si falla el refresh, limpiar tokens

@@ -14,6 +14,7 @@ export interface User {
   lastName: string;
   phoneNumber: string;
   role: Role;
+  parkingId?: string | null; // ID del parqueadero asignado (para ADMIN/OPERATOR)
   isActive: boolean;
   isVerified: boolean;
   lastLoginAt?: Date;

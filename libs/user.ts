@@ -81,9 +81,19 @@ export const fetchUserProfile = async (): Promise<any> => {
 
         const responseData = await handleResponse(response);
         
-        // Guardar los datos del usuario actualizados
+        // Mapear assignedParkingId del backend a parkingId del frontend
         if (responseData.success && responseData.data) {
-            await saveUserData(responseData.data);
+            const userData = responseData.data as any;
+            const mappedUserData = {
+                ...userData,
+                parkingId: userData.assignedParkingId || userData.parkingId || null
+            };
+            // Eliminar el campo assignedParkingId si existe
+            delete mappedUserData.assignedParkingId;
+            
+            // Guardar los datos del usuario actualizados
+            await saveUserData(mappedUserData);
+            return mappedUserData;
         }
 
         return responseData.data; // Retornar solo los datos del usuario
@@ -111,9 +121,19 @@ export const updateUserProfile = async (data: UserUpdateDTO): Promise<any> => {
 
         const responseData = await handleResponse(response);
         
-        // Guardar los datos actualizados del usuario
+        // Mapear assignedParkingId del backend a parkingId del frontend
         if (responseData.success && responseData.data) {
-            await saveUserData(responseData.data);
+            const userData = responseData.data as any;
+            const mappedUserData = {
+                ...userData,
+                parkingId: userData.assignedParkingId || userData.parkingId || null
+            };
+            // Eliminar el campo assignedParkingId si existe
+            delete mappedUserData.assignedParkingId;
+            
+            // Guardar los datos actualizados del usuario
+            await saveUserData(mappedUserData);
+            return mappedUserData;
         }
 
         return responseData.data; // Retornar solo los datos actualizados

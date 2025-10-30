@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { SettingsItemProps } from '../components/organisms/settings/SettingsItem';
 
 export const useSettingsScreen = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, isAdminOrOperator } = useAuth();
   
   // Estados
   const [isDarkMode, setIsDarkMode] = useState(true);
@@ -57,6 +57,11 @@ export const useSettingsScreen = () => {
     Alert.alert("Información", "Funcionalidad de calificación próximamente");
   }, []);
 
+  const handleParkingInfo = useCallback(() => {
+    // Navegar a la tab de parkings
+    router.push('/(tabs)/parkings');
+  }, []);
+
   // Account section items
   const accountItems: SettingsItemProps[] = [
     {
@@ -75,6 +80,13 @@ export const useSettingsScreen = () => {
 
   // Application section items
   const applicationItems: SettingsItemProps[] = [
+    // Solo mostrar opción de parqueadero para Admin/Operator
+    ...(isAdminOrOperator ? [{
+      icon: 'business-outline' as any,
+      label: 'Mi parqueadero',
+      onPress: handleParkingInfo,
+      rightElement: 'chevron' as const,
+    }] : []),
     {
       icon: 'globe-outline',
       label: 'Idioma',
