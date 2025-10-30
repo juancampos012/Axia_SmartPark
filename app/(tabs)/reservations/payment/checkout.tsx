@@ -44,7 +44,7 @@ const CheckoutSuccess = () => {
 
   const handleViewReservation = () => {
     // Navegar a reservaciones
-    router.navigate('/(tabs)/reservations');
+    router.replace('/(tabs)/reservations');
   };
 
   return (
