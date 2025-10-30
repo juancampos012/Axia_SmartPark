@@ -1,11 +1,10 @@
 import React from 'react';
-import { ScrollView, View, Text, Pressable, KeyboardAvoidingView, ActivityIndicator } from 'react-native';
+import { ScrollView, View, Text, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import MapSection from '../../../components/molecules/parking/MapSection';
 import ParkingsFilterSection from '../../../components/organisms/parking/ParkingsFilterSection';
 import ParkingsList from '../../../components/organisms/parking/ParkingsList';
-import { Filter } from '../../../components/molecules/parking/FilterList';
 import { useParkingsScreen } from '../../../hooks/useParkingsScreen';
 
 const ParkingsScreen = () => {
@@ -63,7 +62,10 @@ const ParkingsScreen = () => {
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView className="flex-1" behavior="padding">
+      <KeyboardAvoidingView 
+        className="flex-1" 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      >
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="px-6 pt-8 pb-4">
             <View className="mb-3">
