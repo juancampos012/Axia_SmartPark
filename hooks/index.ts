@@ -16,6 +16,7 @@ export { useCarsScreen } from './useCarsScreen';
 export { useSettingsScreen } from './useSettingsScreen';
 export { useCarDetailScreen } from './useCarDetailScreen';
 export { useAddCarForm } from './useAddCarForm';
+export { useCarEditForm } from './useCarEditForm';
 export { useMyReviews } from './useMyReviews';
 
 // Export admin hooks

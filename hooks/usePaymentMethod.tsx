@@ -5,6 +5,7 @@ import { getUserPaymentMethods } from '../libs/paymentMethods';
 import { createReservationWithPayment, CreateReservationWithPaymentDTO } from '../libs/payments';
 import { SavedCardData, paymentMethodToSavedCard } from '../components/molecules/SavedCard';
 import { PaymentSummaryData } from '../components/molecules/PaymentSummary';
+import { scheduleReservationNotifications, testNotification } from '../libs/reservation-notifications';
 
 interface UsePaymentMethodProps {
   reservationDataRaw: any;
@@ -31,6 +32,17 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
     hourlyRate: reservationDataRaw?.hourlyRate || 3.50,
     totalAmount: reservationDataRaw?.totalAmount || 7.00
   };
+
+  // 🔔 NUEVO: Función para programar notificaciones
+  const scheduleReservationNotificationsAfterPayment = useCallback(async (reservationData: any) => {
+    try {
+      await scheduleReservationNotifications(reservationData);
+      console.log('✅ Notificaciones programadas para la reserva:', reservationData.reservation.id);
+    } catch (notificationError) {
+      console.error('❌ Error programando notificaciones:', notificationError);
+      // No mostramos alerta al usuario para no interrumpir el flujo de pago exitoso
+    }
+  }, []);
 
   // Cargar métodos de pago del backend
   const loadPaymentMethods = useCallback(async () => {
@@ -85,7 +97,7 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
     return true;
   }, [reservationDataRaw]);
 
-  // Procesar pago y crear reserva
+  // 🔔 ACTUALIZADO: Procesar pago y crear reserva + programar notificaciones
   const handleProceedToPay = useCallback(async () => {
     if (!selectedCardId) {
       Alert.alert('Error', 'Por favor selecciona un método de pago');
@@ -117,6 +129,9 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
 
       console.log('Reservación y pago creados:', result);
 
+      // 🔔 NUEVO: Programar notificaciones para esta reserva
+      await scheduleReservationNotificationsAfterPayment(result);
+
       // Navegar a la pantalla de éxito
       router.replace({
         pathname: '/(tabs)/reservations/payment/checkout',
@@ -140,7 +155,23 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
     } finally {
       setProcessing(false);
     }
-  }, [selectedCardId, validateReservationData, reservationDataRaw]);
+  }, [
+    selectedCardId, 
+    validateReservationData, 
+    reservationDataRaw, 
+    scheduleReservationNotificationsAfterPayment // 🔔 NUEVA DEPENDENCIA
+  ]);
+
+  // 🔔 NUEVO: Función para probar notificaciones (útil para debugging)
+  const handleTestNotification = useCallback(async () => {
+    try {
+      await testNotification();
+      Alert.alert('✅', 'Notificación de prueba programada para 10 segundos');
+    } catch (error) {
+      console.error('Error en notificación de prueba:', error);
+      Alert.alert('❌', 'Error al programar notificación de prueba');
+    }
+  }, []);
 
   // Navegar a agregar tarjeta
   const handleAddNewCard = useCallback((reservationDataParam?: string) => {
@@ -180,5 +211,6 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
     handleAddNewCard,
     handleSelectCard,
     handleGoBack,
+    handleTestNotification, // 🔔 NUEVO: Para testing
   };
 };

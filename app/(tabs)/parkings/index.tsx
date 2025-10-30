@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  Pressable,
-  ScrollView,
-  RefreshControl,
-  ActivityIndicator,
-  KeyboardAvoidingView,
-} from 'react-native';
+import { ScrollView, View, Text, Pressable, KeyboardAvoidingView, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -17,6 +9,7 @@ import { useParkingsScreen } from '../../../hooks/useParkingsScreen';
 import MapSection from '../../../components/molecules/parking/MapSection';
 import ParkingsFilterSection from '../../../components/organisms/parking/ParkingsFilterSection';
 import ParkingsList from '../../../components/organisms/parking/ParkingsList';
+import { useParkingsScreen } from '../../../hooks/useParkingsScreen';
 
 const statusConfig = {
   OPEN: { label: 'Abierto', color: 'bg-green-500', icon: 'checkmark-circle' },
@@ -217,45 +210,15 @@ export default function ParkingsRoute() {
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      {/* Header */}
-      <View className="px-6 py-4 flex-row items-center justify-between border-b border-axia-gray/20">
-        <Text className="text-white text-2xl font-primaryBold">
-          Mi Parqueadero
-        </Text>
-        <Pressable onPress={handleEditPress} className="p-2">
-          <Ionicons name="create-outline" size={24} color="#10B981" />
-        </Pressable>
-      </View>
-
-      <ScrollView
-        className="flex-1"
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl
-            refreshing={refreshing}
-            onRefresh={handleRefresh}
-            tintColor="#10B981"
-          />
-        }
+      <KeyboardAvoidingView 
+        className="flex-1" 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
-        <View className="px-6 py-6">
-          {/* Nombre y Estado */}
-          <View className="bg-axia-darkGray rounded-2xl p-6 mb-4">
-            <Text className="text-white text-2xl font-primaryBold mb-2">
-              {parking.name}
-            </Text>
-            <View className="flex-row items-center">
-              <View className={`${currentStatus.color} w-3 h-3 rounded-full mr-2`} />
-              <Text className="text-axia-gray font-primary">{currentStatus.label}</Text>
-            </View>
-          </View>
-
-          {/* Estadísticas rápidas */}
-          <View className="flex-row space-x-3 mb-4">
-            <View className="flex-1 bg-axia-darkGray rounded-xl p-4 mr-2">
-              <Ionicons name="car-outline" size={24} color="#10B981" />
-              <Text className="text-white text-2xl font-primaryBold mt-2">
-                {parking.actualCapacity}
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="px-6 pt-8 pb-4">
+            <View className="mb-3">
+              <Text className="text-white text-3xl font-primaryBold mb-2">
+                Encuentra tu Parqueadero
               </Text>
               <Text className="text-axia-gray text-xs font-primary">
                 Espacios disponibles

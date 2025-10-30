@@ -1,17 +1,18 @@
 import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
-import { useCarDetailScreen } from '../../../../../hooks/useCarDetailScreen';
+import { useCarDetailScreen } from '../../../../../hooks';
 import { useDeleteVehicle } from '../../../../../hooks/udeDeleteCar';
 
 export default function CarDetails() {
+  const router = useRouter();
   const {
     car,
     loading,
     handleGoBack,
-    handleEdit,
     handleBackToVehicles,
   } = useCarDetailScreen();
 
@@ -20,6 +21,7 @@ export default function CarDetails() {
   });
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // ← Estado de edición agregado
 
   const handleDeletePress = () => {
     if (!car) return;
@@ -30,6 +32,10 @@ export default function CarDetails() {
     if (!car) return;
     setShowDeleteModal(false);
     confirmDelete(car as any);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(!isEditing); // ← Toggle del modo edición
   };
 
   if (loading) {
@@ -78,17 +84,49 @@ export default function CarDetails() {
               <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
             </Pressable>
             
-            <Text className="text-white text-2xl font-primaryBold flex-1">Detalle del Vehículo</Text>
+            <Text className="text-white text-2xl font-primaryBold flex-1">
+              {isEditing ? 'Editar Vehículo' : 'Detalle del Vehículo'} {/* ← Título dinámico */}
+            </Text>
             
-            {/* Botón de eliminar como bolita */}
+            {/* Botón de editar/cancelar */}
+            <Pressable 
+              onPress={handleEdit}
+              disabled={isDeleting}
+              className={`w-10 h-10 rounded-full items-center justify-center mr-2 active:scale-95 disabled:opacity-50 ${
+                isEditing ? 'bg-red-500/20 border border-red-500/30' : 'bg-axia-green/20 border border-axia-green/30'
+              }`}
+            >
+              <Ionicons 
+                name={isEditing ? "close" : "create-outline"} 
+                size={16} 
+                color={isEditing ? "#EF4444" : "#10B981"} 
+              />
+            </Pressable>
+            
+            {/* Botón de eliminar (deshabilitado en modo edición) */}
             <Pressable 
               onPress={handleDeletePress}
-              disabled={isDeleting}
+              disabled={isDeleting || isEditing}
               className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 items-center justify-center active:scale-95 disabled:opacity-50"
             >
               <Ionicons name="trash-outline" size={16} color="#EF4444" />
             </Pressable>
           </View>
+
+          {/* Banner de modo edición (solo cuando está editando) */}
+          {isEditing && (
+            <View className="bg-axia-green/10 rounded-2xl p-4 mb-6 border border-axia-green/20">
+              <View className="flex-row items-center">
+                <Ionicons name="pencil" size={20} color="#10B981" />
+                <Text className="text-axia-green font-primaryBold ml-2">
+                  Modo edición activado
+                </Text>
+              </View>
+              <Text className="text-axia-gray text-sm font-primary mt-1">
+                Puedes modificar la información de tu vehículo
+              </Text>
+            </View>
+          )}
 
           {/* Icono del vehículo */}
           <View className="items-center mb-8">
@@ -103,7 +141,7 @@ export default function CarDetails() {
               {car.carBrand} {car.model}
             </Text>
             <Text className="text-axia-gray text-base font-primary text-center mb-6">
-              {car.year} • {car.color}
+              {car.color}
             </Text>
 
             {/* Detalles en grid */}
@@ -138,7 +176,7 @@ export default function CarDetails() {
           <View className="space-y-4">
             <Pressable 
               onPress={handleBackToVehicles}
-              disabled={isDeleting}
+              disabled={isDeleting || isEditing} 
               className="bg-axia-green py-4 rounded-xl items-center mb-6 active:scale-95 disabled:opacity-50"
             >
               <Text className="text-axia-black font-primaryBold text-lg">
@@ -151,20 +189,24 @@ export default function CarDetails() {
               disabled={isDeleting}
               className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95 disabled:opacity-50"
             >
-              <Text className="text-white font-primaryBold text-lg">Editar Información</Text>
+              <Text className="text-white font-primaryBold text-lg">
+                {isEditing ? 'Cancelar Edición' : 'Editar Información'} {/* ← Texto dinámico */}
+              </Text>
             </Pressable>
           </View>
 
-          {/* Información adicional */}
-          <View className="mt-8 p-4 bg-axia-darkGray/50 rounded-xl">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
-              <Text className="text-axia-gray font-primaryBold ml-2">Información del vehículo</Text>
+          {/* Información adicional (oculta en modo edición) */}
+          {!isEditing && (
+            <View className="mt-8 p-4 bg-axia-darkGray/50 rounded-xl">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+                <Text className="text-axia-gray font-primaryBold ml-2">Información del vehículo</Text>
+              </View>
+              <Text className="text-axia-gray text-sm font-primary">
+                Este vehículo está registrado en tu cuenta y disponible para realizar reservas en cualquier parqueadero.
+              </Text>
             </View>
-            <Text className="text-axia-gray text-sm font-primary">
-              Este vehículo está registrado en tu cuenta y disponible para realizar reservas en cualquier parqueadero.
-            </Text>
-          </View>
+          )}
 
         </View>
       </ScrollView>
