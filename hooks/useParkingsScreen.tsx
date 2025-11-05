@@ -2,6 +2,7 @@ import { useState, useMemo, useEffect, useCallback } from 'react';
 import { useRouter } from 'expo-router';
 import { fetchAllParkings } from '../libs/parking';
 import { Parking } from '../interfaces/parking';
+import { useUserLocation } from './useUserLocation';
 
 export type FilterType = 'all' | 'nearby' | 'price' | 'rating' | 'available';
 
@@ -11,6 +12,9 @@ interface UseParkingsScreenProps {
 
 export const useParkingsScreen = ({ initialFilter = 'all' }: UseParkingsScreenProps = {}) => {
   const router = useRouter();
+  
+  // Hook de ubicación del usuario
+  const { userLocation, calculateDistance, hasPermission, requestPermission } = useUserLocation();
   
   // Estados
   const [selectedFilter, setSelectedFilter] = useState<FilterType>(initialFilter);
@@ -70,6 +74,17 @@ export const useParkingsScreen = ({ initialFilter = 'all' }: UseParkingsScreenPr
   const filteredAndSortedParkings = useMemo(() => {
     let result = [...parkingData];
 
+    // Calcular distancia para cada parqueadero si tenemos ubicación del usuario
+    if (userLocation) {
+      result = result.map(parking => {
+        const distance = calculateDistance(parking.latitude, parking.longitude);
+        return {
+          ...parking,
+          distance: distance || parking.distance || 0, // Usar distancia calculada o la del backend
+        };
+      });
+    }
+
     switch (selectedFilter) {
       case 'nearby':
         result.sort((a, b) => (a.distance || 0) - (b.distance || 0));
@@ -94,7 +109,7 @@ export const useParkingsScreen = ({ initialFilter = 'all' }: UseParkingsScreenPr
       isFavorite: favorites.has(parking.id),
       totalSpots: parking.totalCapacity,
     }));
-  }, [parkingData, selectedFilter, favorites]);
+  }, [parkingData, selectedFilter, favorites, userLocation, calculateDistance]);
 
   // Calcular estadísticas
   const statistics = useMemo(() => {
@@ -167,6 +182,11 @@ export const useParkingsScreen = ({ initialFilter = 'all' }: UseParkingsScreenPr
     loading,
     error,
     statistics,
+    
+    // Estados de ubicación
+    userLocation,
+    hasLocationPermission: hasPermission,
+    requestLocationPermission: requestPermission,
     
     // Funciones
     handleFavoritePress,

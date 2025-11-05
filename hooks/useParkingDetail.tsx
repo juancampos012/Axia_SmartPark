@@ -3,6 +3,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { fetchParkingById } from '../libs/parking';
 import { Parking } from '../interfaces/parking';
+import { useUserLocation } from './useUserLocation';
 
 interface UseParkingDetailProps {
   parkingId?: string;
@@ -11,6 +12,9 @@ interface UseParkingDetailProps {
 
 export const useParkingDetail = ({ parkingId, parkingData }: UseParkingDetailProps) => {
   const router = useRouter();
+  
+  // Hook de ubicación del usuario
+  const { calculateDistance, hasPermission, requestPermission } = useUserLocation();
   
   // Estados
   const [isFavorite, setIsFavorite] = useState(false);
@@ -28,7 +32,14 @@ export const useParkingDetail = ({ parkingId, parkingData }: UseParkingDetailPro
         // Primero intentar con datos de parámetros
         if (parkingData) {
           const parkingFromParams = JSON.parse(parkingData);
-          setParking(parkingFromParams);
+          
+          // Calcular distancia si tenemos ubicación del usuario
+          const distance = calculateDistance(parkingFromParams.latitude, parkingFromParams.longitude);
+          
+          setParking({
+            ...parkingFromParams,
+            distance: distance || parkingFromParams.distance || 0,
+          });
           setLoading(false);
           return;
         }
@@ -36,7 +47,14 @@ export const useParkingDetail = ({ parkingId, parkingData }: UseParkingDetailPro
         // Si no hay datos en parámetros, cargar del backend
         if (parkingId) {
           const parkingFromBackend = await fetchParkingById(parkingId);
-          setParking(parkingFromBackend);
+          
+          // Calcular distancia si tenemos ubicación del usuario
+          const distance = calculateDistance(parkingFromBackend.latitude, parkingFromBackend.longitude);
+          
+          setParking({
+            ...parkingFromBackend,
+            distance: distance || parkingFromBackend.distance || 0,
+          });
         } else {
           throw new Error('No parking ID provided');
         }
@@ -49,7 +67,7 @@ export const useParkingDetail = ({ parkingId, parkingData }: UseParkingDetailPro
     };
 
     loadParkingData();
-  }, [parkingId, parkingData]);
+  }, [parkingId, parkingData, calculateDistance]);
 
   // Generar características basadas en datos reales
   const features = useMemo(() => {
@@ -127,6 +145,10 @@ export const useParkingDetail = ({ parkingId, parkingData }: UseParkingDetailPro
     loading,
     error,
     isFavorite,
+    
+    // Estados de ubicación
+    hasLocationPermission: hasPermission,
+    requestLocationPermission: requestPermission,
     
     // Datos calculados
     features,

@@ -1,8 +1,10 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import SpotNavigatorModal from '../../../../components/molecules/parking/SpotNavigatorModal';
+import ParkingMapModal from '../../../../components/molecules/parking/ParkingMapModal';
 
 interface Reservation {
   id: string;
@@ -12,11 +14,17 @@ interface Reservation {
   date: string;
   status: 'active' | 'completed' | 'cancelled';
   spot?: string;
+  floorNumber?: number;
+  spotType?: 'STANDARD' | 'ELECTRIC' | 'HANDICAPPED';
+  parkingLat?: number;
+  parkingLng?: number;
 }
 
 const ReservationDetail = () => {
   const router = useRouter();
   const { data } = useLocalSearchParams<{ data: string }>();
+  const [showNavigator, setShowNavigator] = useState(false);
+  const [showMap, setShowMap] = useState(false);
 
   const reservation: Reservation = data ? JSON.parse(data) : {
     id: '',
@@ -137,12 +145,43 @@ const ReservationDetail = () => {
             </View>
           </View>
 
+          {/* Botones de Navegación - Solo si está confirmada/activa */}
+          {reservation.status === 'active' && reservation.spot && (
+            <View className="space-y-3 mb-4">
+              <Pressable
+                onPress={() => setShowNavigator(true)}
+                className="bg-axia-green py-4 rounded-xl items-center shadow-lg shadow-axia-green/25 active:scale-95"
+              >
+                <View className="flex-row items-center justify-center">
+                  <Ionicons name="navigate" size={20} color="#000000" />
+                  <Text className="text-axia-black font-primaryBold text-lg ml-2">
+                    Navegar a mi puesto
+                  </Text>
+                </View>
+              </Pressable>
+
+              {reservation.parkingLat && reservation.parkingLng && (
+                <Pressable
+                  onPress={() => setShowMap(true)}
+                  className="bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 border border-axia-green/30"
+                >
+                  <View className="flex-row items-center justify-center">
+                    <Ionicons name="map-outline" size={20} color="#10B981" />
+                    <Text className="text-axia-green font-primaryBold text-lg ml-2">
+                      Ver en mapa
+                    </Text>
+                  </View>
+                </Pressable>
+              )}
+            </View>
+          )}
+
           {/* Back Button */}
           <Pressable
-            className="bg-axia-green py-4 rounded-xl items-center shadow-lg shadow-axia-green/25 active:scale-95 transition-all"
+            className="bg-axia-gray/20 py-4 rounded-xl items-center active:scale-95"
             onPress={() => router.back()}
           >
-            <Text className="text-axia-black text-lg font-primaryBold">Volver</Text>
+            <Text className="text-white text-lg font-primaryBold">Volver</Text>
           </Pressable>
         </View>
 
@@ -157,6 +196,29 @@ const ReservationDetail = () => {
           </Text>
         </View>
       </ScrollView>
+
+      {/* Modales de Navegación */}
+      {reservation.spot && (
+        <SpotNavigatorModal
+          visible={showNavigator}
+          onClose={() => setShowNavigator(false)}
+          floorNumber={reservation.floorNumber || 1}
+          spotNumber={reservation.spot}
+          spotType={reservation.spotType || 'STANDARD'}
+          parkingName={reservation.parkingName}
+        />
+      )}
+
+      {reservation.parkingLat && reservation.parkingLng && (
+        <ParkingMapModal
+          visible={showMap}
+          onClose={() => setShowMap(false)}
+          latitude={reservation.parkingLat}
+          longitude={reservation.parkingLng}
+          parkingName={reservation.parkingName}
+          address={reservation.address}
+        />
+      )}
     </SafeAreaView>
   );
 };
