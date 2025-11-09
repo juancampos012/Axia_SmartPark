@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import React from 'react';
 import {
   ReservationWithRelations,
   ReservationSearchResult,
@@ -194,6 +196,17 @@ export const useReservationsHistory = ({
     loadReservations(1);
     loadStats();
   }, [filters]); // Se recarga cuando cambian los filtros
+
+  /**
+   * Recargar cuando la pantalla obtiene foco
+   */
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Reservations screen focused - reloading data');
+      loadReservations(currentPage, true);
+      loadStats();
+    }, [loadReservations, loadStats, currentPage])
+  );
 
   return {
     // Datos
