@@ -1,10 +1,12 @@
-import React, { useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { View, Text, Pressable, ScrollView, Alert, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import SpotNavigatorModal from '../../../../components/molecules/parking/SpotNavigatorModal';
 import ParkingMapModal from '../../../../components/molecules/parking/ParkingMapModal';
+import { useReservationPolling } from '../../../../hooks/useReservationPolling';
+import { ReservationStatus } from '../../../../interfaces/reservation';
 
 interface Reservation {
   id: string;
@@ -22,31 +24,136 @@ interface Reservation {
 
 const ReservationDetail = () => {
   const router = useRouter();
-  const { data } = useLocalSearchParams<{ data: string }>();
+  const params = useLocalSearchParams<{ data?: string; id?: string }>();
   const [showNavigator, setShowNavigator] = useState(false);
   const [showMap, setShowMap] = useState(false);
 
-  const reservation: Reservation = data ? JSON.parse(data) : {
-    id: '',
+  // Obtener el ID de la reservación
+  const reservationId = params.id || (params.data ? JSON.parse(params.data).id : '');
+
+  // Usar el hook de polling para obtener datos en tiempo real
+  const { 
+    reservation: liveReservation, 
+    loading, 
+    isPolling,
+    refresh 
+  } = useReservationPolling({
+    reservationId,
+    enabled: !!reservationId,
+    interval: 15000, // 15 segundos
+    onStatusChange: (newStatus, oldStatus) => {
+      // Notificar al usuario cuando cambie el estado
+      if (oldStatus === ReservationStatus.PENDING && newStatus === ReservationStatus.CONFIRMED) {
+        Alert.alert(
+          '✅ Reserva Confirmada',
+          'Tu reserva ha sido confirmada por el operador. Ya puedes dirigirte al estacionamiento.',
+          [{ text: 'Entendido', style: 'default' }]
+        );
+      } else if (oldStatus === ReservationStatus.PENDING && newStatus === ReservationStatus.CANCELED) {
+        Alert.alert(
+          '❌ Reserva Cancelada',
+          'Tu reserva ha sido cancelada. Por favor, contacta a soporte si necesitas más información.',
+          [{ text: 'Entendido', style: 'default' }]
+        );
+      }
+    }
+  });
+
+  // Datos de reservación de fallback (de los params)
+  const fallbackReservation: Reservation = params.data ? JSON.parse(params.data) : {
+    id: reservationId,
     parkingName: '',
     address: '',
     time: '',
     date: '',
-    status: '',
+    status: 'active',
   };
+
+  // Transformar datos de la API al formato local
+  const formatTime = (date: Date): string => {
+    const hours = date.getHours();
+    const minutes = date.getMinutes();
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    const displayHours = hours % 12 || 12;
+    const displayMinutes = minutes.toString().padStart(2, '0');
+    return `${displayHours}:${displayMinutes} ${ampm}`;
+  };
+
+  const transformReservation = (): Reservation => {
+    if (!liveReservation) return fallbackReservation;
+
+    const startTime = new Date(liveReservation.startTime);
+    const endTime = new Date(liveReservation.endTime);
+    
+    const timeStr = `${formatTime(startTime)} - ${formatTime(endTime)}`;
+    const dateStr = `${(startTime.getMonth() + 1).toString().padStart(2, '0')}/${startTime.getDate().toString().padStart(2, '0')}/${startTime.getFullYear()}`;
+    
+    let status: 'active' | 'completed' | 'cancelled' = 'active';
+    if (liveReservation.status === ReservationStatus.COMPLETED) status = 'completed';
+    else if (liveReservation.status === ReservationStatus.CANCELED) status = 'cancelled';
+    else if (liveReservation.status === ReservationStatus.CONFIRMED || liveReservation.status === ReservationStatus.PENDING) status = 'active';
+    
+    return {
+      id: liveReservation.id,
+      parkingName: liveReservation.parkingSpot?.parking?.name || fallbackReservation.parkingName,
+      address: liveReservation.parkingSpot?.parking?.address || fallbackReservation.address,
+      time: timeStr,
+      date: dateStr,
+      status,
+      spot: liveReservation.parkingSpot?.spotNumber ? `Puesto ${liveReservation.parkingSpot.spotNumber}` : fallbackReservation.spot,
+      floorNumber: liveReservation.parkingSpot?.floor?.floorNumber || fallbackReservation.floorNumber,
+      spotType: (liveReservation.parkingSpot?.type as any) || fallbackReservation.spotType,
+      parkingLat: liveReservation.parkingSpot?.parking?.latitude || fallbackReservation.parkingLat,
+      parkingLng: liveReservation.parkingSpot?.parking?.longitude || fallbackReservation.parkingLng,
+    };
+  };
+
+  const reservation = transformReservation();
 
   const displayAddress = reservation.address || 'Dirección no disponible';
   const displayTime = reservation.time || 'Hora no especificada';
   const displayDate = reservation.date || 'Fecha no especificada';
   const displayParkingName = reservation.parkingName || 'Estacionamiento no disponible';
 
-  const getStatusText = (status: string) =>
-    status === 'active' ? 'Activa' : status === 'completed' ? 'Finalizada' : 'Cancelada';
+  // Determinar si la reserva está pendiente de confirmación
+  const isPending = liveReservation?.status === ReservationStatus.PENDING;
+  const isConfirmed = liveReservation?.status === ReservationStatus.CONFIRMED;
 
-  const getStatusColor = (status: string) =>
-    status === 'active' ? '#10B981' : status === 'completed' ? '#6B7280' : '#EF4444';
+  const getStatusText = (status: string) => {
+    // Si tenemos datos en vivo, usar el estado real
+    if (liveReservation) {
+      if (liveReservation.status === ReservationStatus.PENDING) return 'Pendiente de confirmación';
+      if (liveReservation.status === ReservationStatus.CONFIRMED) return 'Confirmada';
+      if (liveReservation.status === ReservationStatus.CANCELED) return 'Cancelada';
+      if (liveReservation.status === ReservationStatus.COMPLETED) return 'Finalizada';
+      if (liveReservation.status === ReservationStatus.EXPIRED) return 'Expirada';
+    }
+    
+    // Fallback al estado local
+    return status === 'active' ? 'Activa' : status === 'completed' ? 'Finalizada' : 'Cancelada';
+  };
+
+  const getStatusColor = (status: string) => {
+    if (liveReservation) {
+      if (liveReservation.status === ReservationStatus.PENDING) return '#F59E0B'; // Amarillo/naranja
+      if (liveReservation.status === ReservationStatus.CONFIRMED) return '#10B981'; // Verde
+      if (liveReservation.status === ReservationStatus.CANCELED) return '#EF4444'; // Rojo
+      if (liveReservation.status === ReservationStatus.COMPLETED) return '#6B7280'; // Gris
+      if (liveReservation.status === ReservationStatus.EXPIRED) return '#8B5CF6'; // Púrpura
+    }
+    
+    return status === 'active' ? '#10B981' : status === 'completed' ? '#6B7280' : '#EF4444';
+  };
 
   const getStatusIcon = (status: string) => {
+    if (liveReservation) {
+      if (liveReservation.status === ReservationStatus.PENDING) return 'hourglass-outline';
+      if (liveReservation.status === ReservationStatus.CONFIRMED) return 'checkmark-circle';
+      if (liveReservation.status === ReservationStatus.CANCELED) return 'close-circle';
+      if (liveReservation.status === ReservationStatus.COMPLETED) return 'checkmark-done-circle';
+      if (liveReservation.status === ReservationStatus.EXPIRED) return 'time-outline';
+    }
+    
     switch (status) {
       case 'active': return 'time';
       case 'completed': return 'checkmark-circle';
@@ -55,11 +162,65 @@ const ReservationDetail = () => {
     }
   };
 
+  const getStatusMessage = () => {
+    if (liveReservation) {
+      if (liveReservation.status === ReservationStatus.PENDING) {
+        return 'Tu reserva está pendiente de confirmación por el operador. Te notificaremos cuando sea confirmada.';
+      }
+      if (liveReservation.status === ReservationStatus.CONFIRMED) {
+        return 'Tu reserva ha sido confirmada. Puedes dirigirte al estacionamiento.';
+      }
+      if (liveReservation.status === ReservationStatus.CANCELED) {
+        return 'Esta reserva ha sido cancelada.';
+      }
+      if (liveReservation.status === ReservationStatus.COMPLETED) {
+        return 'Esta reserva ha sido completada exitosamente.';
+      }
+      if (liveReservation.status === ReservationStatus.EXPIRED) {
+        return 'Esta reserva ha expirado.';
+      }
+    }
+    
+    if (reservation.status === 'active') {
+      return 'Tu reserva está activa. Puedes dirigirte al estacionamiento.';
+    } else if (reservation.status === 'completed') {
+      return 'Esta reserva ha sido completada.';
+    } else {
+      return 'Esta reserva ha sido cancelada.';
+    }
+  };
+
+  // Mostrar loading inicial
+  if (loading && !liveReservation) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+        <View className="flex-1 items-center justify-center">
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text className="text-white font-primary mt-4">Cargando detalles...</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <ScrollView className="flex-1 px-6 pt-8" showsVerticalScrollIndicator={false}>
+        {/* Header con indicador de polling */}
         <View className="mb-8">
-          <Text className="text-white text-3xl font-primaryBold mb-2">Detalle de la Reserva</Text>
+          <View className="flex-row items-center justify-between">
+            <Text className="text-white text-3xl font-primaryBold mb-2">Detalle de la Reserva</Text>
+            {isPolling && (
+              <View className="flex-row items-center bg-axia-green/20 px-3 py-1 rounded-full">
+                <View className="w-2 h-2 rounded-full bg-axia-green mr-2 animate-pulse" />
+                <Text className="text-axia-green text-xs font-primaryBold">Actualizando</Text>
+              </View>
+            )}
+          </View>
+          {isPending && (
+            <Text className="text-amber-500 text-sm font-primary mt-2">
+              ⏳ Esperando confirmación del operador
+            </Text>
+          )}
         </View>
 
         <View className="bg-axia-darkGray rounded-2xl p-6 mb-8 shadow-lg shadow-black/50">
@@ -134,19 +295,19 @@ const ReservationDetail = () => {
           <View className="bg-axia-black/50 rounded-lg p-4 mb-6 border-l-4" 
                 style={{ borderLeftColor: getStatusColor(reservation.status) }}>
             <View className="flex-row items-center">
-              <Ionicons name="information-circle-outline" size={20} color={getStatusColor(reservation.status)} />
+              <Ionicons 
+                name="information-circle-outline" 
+                size={20} 
+                color={getStatusColor(reservation.status)} 
+              />
               <Text className="text-white font-primary ml-2 flex-1">
-                {reservation.status === 'active' 
-                  ? 'Tu reserva está activa. Puedes dirigirte al estacionamiento.'
-                  : reservation.status === 'completed'
-                  ? 'Esta reserva ha sido completada.'
-                  : 'Esta reserva ha sido cancelada.'}
+                {getStatusMessage()}
               </Text>
             </View>
           </View>
 
-          {/* Botones de Navegación - Solo si está confirmada/activa */}
-          {reservation.status === 'active' && reservation.spot && (
+          {/* Botones de Navegación - Solo si está confirmada */}
+          {isConfirmed && reservation.spot && (
             <View className="space-y-3 mb-4">
               <Pressable
                 onPress={() => setShowNavigator(true)}
@@ -176,6 +337,21 @@ const ReservationDetail = () => {
             </View>
           )}
 
+          {/* Botón de refrescar manual si está pendiente */}
+          {isPending && (
+            <Pressable
+              onPress={refresh}
+              className="bg-amber-500/20 py-4 rounded-xl items-center active:scale-95 mb-4 border border-amber-500/30"
+            >
+              <View className="flex-row items-center justify-center">
+                <Ionicons name="refresh" size={20} color="#F59E0B" />
+                <Text className="text-amber-500 font-primaryBold text-lg ml-2">
+                  Verificar estado ahora
+                </Text>
+              </View>
+            </Pressable>
+          )}
+
           {/* Back Button */}
           <Pressable
             className="bg-axia-gray/20 py-4 rounded-xl items-center active:scale-95"
@@ -197,8 +373,8 @@ const ReservationDetail = () => {
         </View>
       </ScrollView>
 
-      {/* Modales de Navegación */}
-      {reservation.spot && (
+      {/* Modales de Navegación - Solo si está confirmada */}
+      {isConfirmed && reservation.spot && (
         <SpotNavigatorModal
           visible={showNavigator}
           onClose={() => setShowNavigator(false)}
@@ -209,7 +385,7 @@ const ReservationDetail = () => {
         />
       )}
 
-      {reservation.parkingLat && reservation.parkingLng && (
+      {isConfirmed && reservation.parkingLat && reservation.parkingLng && (
         <ParkingMapModal
           visible={showMap}
           onClose={() => setShowMap(false)}

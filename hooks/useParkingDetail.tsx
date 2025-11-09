@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { Alert } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { fetchParkingById } from '../libs/parking';
 import { Parking } from '../interfaces/parking';
 import { useUserLocation } from './useUserLocation';
+import React from 'react';
 
 interface UseParkingDetailProps {
   parkingId?: string;
@@ -23,51 +24,61 @@ export const useParkingDetail = ({ parkingId, parkingData }: UseParkingDetailPro
   const [error, setError] = useState<string | null>(null);
 
   // Cargar datos del estacionamiento
-  useEffect(() => {
-    const loadParkingData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
+  const loadParkingData = useCallback(async () => {
+    try {
+      setLoading(true);
+      setError(null);
 
-        // Primero intentar con datos de parámetros
-        if (parkingData) {
-          const parkingFromParams = JSON.parse(parkingData);
-          
-          // Calcular distancia si tenemos ubicación del usuario
-          const distance = calculateDistance(parkingFromParams.latitude, parkingFromParams.longitude);
-          
-          setParking({
-            ...parkingFromParams,
-            distance: distance || parkingFromParams.distance || 0,
-          });
-          setLoading(false);
-          return;
-        }
-
-        // Si no hay datos en parámetros, cargar del backend
-        if (parkingId) {
-          const parkingFromBackend = await fetchParkingById(parkingId);
-          
-          // Calcular distancia si tenemos ubicación del usuario
-          const distance = calculateDistance(parkingFromBackend.latitude, parkingFromBackend.longitude);
-          
-          setParking({
-            ...parkingFromBackend,
-            distance: distance || parkingFromBackend.distance || 0,
-          });
-        } else {
-          throw new Error('No parking ID provided');
-        }
-      } catch (err) {
-        console.error('Error loading parking:', err);
-        setError(err instanceof Error ? err.message : 'Error loading parking');
-      } finally {
+      // Primero intentar con datos de parámetros
+      if (parkingData) {
+        const parkingFromParams = JSON.parse(parkingData);
+        
+        // Calcular distancia si tenemos ubicación del usuario
+        const distance = calculateDistance(parkingFromParams.latitude, parkingFromParams.longitude);
+        
+        setParking({
+          ...parkingFromParams,
+          distance: distance || parkingFromParams.distance || 0,
+        });
         setLoading(false);
+        return;
       }
-    };
 
-    loadParkingData();
+      // Si no hay datos en parámetros, cargar del backend
+      if (parkingId) {
+        const parkingFromBackend = await fetchParkingById(parkingId);
+        
+        // Calcular distancia si tenemos ubicación del usuario
+        const distance = calculateDistance(parkingFromBackend.latitude, parkingFromBackend.longitude);
+        
+        setParking({
+          ...parkingFromBackend,
+          distance: distance || parkingFromBackend.distance || 0,
+        });
+      } else {
+        throw new Error('No parking ID provided');
+      }
+    } catch (err) {
+      console.error('Error loading parking:', err);
+      setError(err instanceof Error ? err.message : 'Error loading parking');
+    } finally {
+      setLoading(false);
+    }
   }, [parkingId, parkingData, calculateDistance]);
+
+  useEffect(() => {
+    loadParkingData();
+  }, [loadParkingData]);
+
+  // Recargar cuando la pantalla obtiene foco (después de hacer una reserva)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Parking detail focused - reloading data');
+      if (parkingId) {
+        loadParkingData();
+      }
+    }, [parkingId, loadParkingData])
+  );
 
   // Generar características basadas en datos reales
   const features = useMemo(() => {

@@ -1,8 +1,9 @@
 import { useState, useMemo, useEffect, useCallback } from 'react';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { fetchAllParkings } from '../libs/parking';
 import { Parking } from '../interfaces/parking';
 import { useUserLocation } from './useUserLocation';
+import React from 'react';
 
 export type FilterType = 'all' | 'nearby' | 'price' | 'rating' | 'available';
 
@@ -56,6 +57,16 @@ export const useParkingsScreen = ({ initialFilter = 'all' }: UseParkingsScreenPr
   useEffect(() => {
     loadParkings();
   }, [loadParkings]);
+
+  // Recargar cuando la pantalla obtiene foco (después de volver de otra pantalla)
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Parkings screen focused - reloading data');
+      loadParkings();
+      // Reset filter to 'all' when returning
+      setSelectedFilter('all');
+    }, [loadParkings])
+  );
 
   // Manejar favoritos
   const handleFavoritePress = useCallback((parkingId: string) => {
