@@ -3,7 +3,7 @@ import AsyncStorage from "@react-native-async-storage/async-storage";
 // import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
 
 // const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
+const API_BASE_URL = "https://api.axiasmartpark.lat/api"; 
 
 // Función auxiliar para guardar datos del usuario
 const saveUserData = async (user: any) => {
@@ -82,14 +82,17 @@ export const fetchUserProfile = async (): Promise<any> => {
         const responseData = await handleResponse(response);
         
         // Mapear assignedParkingId del backend a parkingId del frontend
+        // Y profilePicture a avatar
         if (responseData.success && responseData.data) {
             const userData = responseData.data as any;
             const mappedUserData = {
                 ...userData,
-                parkingId: userData.assignedParkingId || userData.parkingId || null
+                parkingId: userData.assignedParkingId || userData.parkingId || null,
+                avatar: userData.profilePicture || userData.avatar || null
             };
-            // Eliminar el campo assignedParkingId si existe
+            // Eliminar campos del backend que no usa el frontend
             delete mappedUserData.assignedParkingId;
+            delete mappedUserData.profilePicture;
             
             // Guardar los datos del usuario actualizados
             await saveUserData(mappedUserData);
@@ -122,14 +125,17 @@ export const updateUserProfile = async (data: UserUpdateDTO): Promise<any> => {
         const responseData = await handleResponse(response);
         
         // Mapear assignedParkingId del backend a parkingId del frontend
+        // Y profilePicture a avatar
         if (responseData.success && responseData.data) {
             const userData = responseData.data as any;
             const mappedUserData = {
                 ...userData,
-                parkingId: userData.assignedParkingId || userData.parkingId || null
+                parkingId: userData.assignedParkingId || userData.parkingId || null,
+                avatar: userData.profilePicture || userData.avatar || null
             };
-            // Eliminar el campo assignedParkingId si existe
+            // Eliminar campos del backend que no usa el frontend
             delete mappedUserData.assignedParkingId;
+            delete mappedUserData.profilePicture;
             
             // Guardar los datos actualizados del usuario
             await saveUserData(mappedUserData);

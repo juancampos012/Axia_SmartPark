@@ -10,6 +10,7 @@ export { usePaymentMethod } from './usePaymentMethod';
 export { usePaymentHistory } from './usePaymentHistory';
 export { useReservationsScreen } from './useReservationsScreen';
 export { useReservationsHistory } from './useReservationsHistory';
+export { useReservationPolling } from './useReservationPolling';
 export { useReserveScreen } from './useReserveScreen';
 export { useProfileScreen } from './useProfileScreen';
 export { useCarsScreen } from './useCarsScreen';
@@ -19,6 +20,7 @@ export { useAddCarForm } from './useAddCarForm';
 export { useEditCarForm } from './useEditCarForm';
 export { useMyReviews } from './useMyReviews';
 export { useUserLocation } from './useUserLocation';
+export { useHomeDashboard } from './useHomeDashboard';
 
 // Export admin hooks
 export { useUsersManagement } from './useUsersManagement';

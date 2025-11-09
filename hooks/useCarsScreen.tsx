@@ -12,6 +12,7 @@ interface Vehicle {
   color?: string;
   engineType?: 'GASOLINE' | 'ELECTRIC' | 'HYBRID';
   year?: number;
+  image?: string; // URL de la imagen del vehículo
   createdAt?: string;
   updatedAt?: string;
 }
