@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useProfileScreen } from '../../../../hooks/useProfileScreen';
 
 const PersonalProfile = () => {
@@ -15,7 +16,13 @@ const PersonalProfile = () => {
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
+    handleLogout,
   } = useProfileScreen();
+
+  const handleLogoutPress = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    handleLogout();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
@@ -30,7 +37,7 @@ const PersonalProfile = () => {
                 </View>
               </View>
             </View>
-            
+
             <View className="items-center">
               <Text className="text-white text-3xl font-primaryBold mb-2">
                 {displayName}
@@ -47,7 +54,6 @@ const PersonalProfile = () => {
           {/* Menú */}
           <View className="mb-8">
             <Text className="text-white text-xl font-primaryBold mb-4">Configuración</Text>
-            
             <View className="bg-axia-darkGray rounded-2xl overflow-hidden shadow-lg shadow-black/30">
               {menuItems.map((item, index) => (
                 <Pressable
@@ -71,7 +77,7 @@ const PersonalProfile = () => {
             </View>
           </View>
 
-          {/* Sección Mis Vehículos */}
+          {/* Mis Vehículos */}
           <View className="mb-8">
             <View className="flex-row justify-between items-center mb-6">
               <View>
@@ -104,7 +110,7 @@ const PersonalProfile = () => {
                       <View className="w-16 h-16 rounded-xl bg-axia-green/20 items-center justify-center mr-4">
                         <Ionicons name="car-sport" size={28} color="#10B981" />
                       </View>
-                      
+
                       <View className="flex-1">
                         <Text className="text-white text-lg font-primaryBold mb-1">
                           {car.carBrand} {car.model}
@@ -154,6 +160,19 @@ const PersonalProfile = () => {
                 </Pressable>
               </View>
             )}
+          </View>
+
+          {/* 🔚 Botón Cerrar sesión */}
+          <View className="mb-12">
+            <Pressable
+              onPress={handleLogoutPress}
+              className="bg-red-600/90 flex-row items-center justify-center py-4 rounded-xl shadow-lg active:scale-95"
+            >
+              <Ionicons name="log-out-outline" size={22} color="#fff" />
+              <Text className="text-white font-primaryBold text-lg ml-2">
+                Cerrar sesión
+              </Text>
+            </Pressable>
           </View>
         </View>
       </ScrollView>

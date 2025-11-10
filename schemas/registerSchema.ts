@@ -34,27 +34,32 @@ export const RegisterSchema = z
       .string()
       .min(7, "La contraseña debe tener al menos 7 caracteres")
       .refine((val) => /[A-Z]/.test(val), {
-        message: "La contraseña debe contener al menos una letra mayúscula (A-Z)"
+        message: "Debe tener al menos una letra mayúscula (A-Z)",
       })
       .refine((val) => /[a-z]/.test(val), {
-        message: "La contraseña debe contener al menos una letra minúscula (a-z)"
+        message: "Debe tener al menos una letra minúscula (a-z)",
       })
       .refine((val) => /\d/.test(val), {
-        message: "La contraseña debe contener al menos un número (0-9)"
+        message: "Debe tener al menos un número (0-9)",
       })
       .refine((val) => /[@$!%*?&]/.test(val), {
-        message: "La contraseña debe contener al menos un carácter especial (@$!%*?&)"
+        message: "Debe tener al menos un carácter especial (@$!%*?&)",
       }),
 
-    confirmPassword: z.string(),
+    confirmPassword: z.string().min(1, "Confirma tu contraseña"),
 
     acceptTerms: z
       .boolean()
       .refine((val) => val === true, "Debes aceptar los términos"),
   })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "Las contraseñas no coinciden",
-    path: ["confirmPassword"],
+  .superRefine(({ password, confirmPassword }, ctx) => {
+    if (confirmPassword && password && password !== confirmPassword) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        message: "Las contraseñas no coinciden",
+        path: ["confirmPassword"],
+      });
+    }
   });
 
 export type RegisterFormData = z.infer<typeof RegisterSchema>;

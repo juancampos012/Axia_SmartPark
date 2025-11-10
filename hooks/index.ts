@@ -13,7 +13,6 @@ export { useReservationsHistory } from './useReservationsHistory';
 export { useReserveScreen } from './useReserveScreen';
 export { useProfileScreen } from './useProfileScreen';
 export { useCarsScreen } from './useCarsScreen';
-export { useSettingsScreen } from './useSettingsScreen';
 export { useCarDetailScreen } from './useCarDetailScreen';
 export { useAddCarForm } from './useAddCarForm';
 export { useEditCarForm } from './useEditCarForm';

@@ -1,7 +1,6 @@
 import React from 'react';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { KeyboardAvoidingView, Platform, ScrollView, View, Text, Pressable } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { KeyboardAvoidingView, Platform, ScrollView, View, Text } from 'react-native';
 import EditCarForm from '../../../../../components/organisms/forms/EditCarForm';
 import { useLocalSearchParams } from 'expo-router';
 

@@ -21,7 +21,7 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) => {
-  const { control, errors, isSubmitting, passwordValue, handleSubmit } = useRegisterForm({
+  const { control, errors, isSubmitting, handleSubmit } = useRegisterForm({
     onSuccess: onSubmit,
     onLoginPress
   });
@@ -29,12 +29,7 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
   const handleOpenTerms = () => {
     Linking.openURL('https://tu-sitio.com/terminos');
   };
-
-  // Extrae errores individuales de la contraseña si existen
-  const passwordErrors = errors.password?.message
-    ? (Array.isArray(errors.password.message) ? errors.password.message : [errors.password.message])
-    : [];
-
+console.log("Errors:", errors);
   return (
     <View className="w-full">
       <View className="space-y-4 mb-6">
@@ -118,14 +113,9 @@ const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) =
                 onChangeText={onChange}
                 secureTextEntry
                 autoCapitalize="none"
-                error={undefined} // mostramos errores separados debajo
+                error={errors.password?.message} 
                 leftIcon={<Ionicons name="lock-closed-outline" size={20} color="#6B7280" />}
               />
-              {passwordErrors.map((msg, idx) => (
-                <Text key={idx} className="text-red-400 text-xs mt-1 ml-1">
-                  {msg}
-                </Text>
-              ))}
             </>
           )}
         />

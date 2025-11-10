@@ -33,7 +33,7 @@ export const useRegisterForm = ({ onSuccess, onLoginPress }: UseRegisterFormProp
       confirmPassword: '',
       phone: '',
       acceptTerms: false
-    }
+    }, mode: 'all'
   });
 
   const passwordValue = watch('password');
@@ -44,8 +44,6 @@ export const useRegisterForm = ({ onSuccess, onLoginPress }: UseRegisterFormProp
     email: data.email.trim().toLowerCase(),
     password: data.password,
     phoneNumber: data.phone.trim(),
-    confirmPassword: data.confirmPassword,
-    acceptTerms: data.acceptTerms
   } as any);
 
   const handleVerificationRequired = (result: any) => {

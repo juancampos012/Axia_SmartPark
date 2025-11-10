@@ -3,24 +3,16 @@ import { View, Text, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useEffect } from 'react';
+import * as Haptics from 'expo-haptics'; 
 
 export default function TabsLayout() {
   const { user, loading, isConnected, isAdminOrOperator, isAdmin, isOperator } = useAuth();
 
-  // Debug: Log para verificar el estado de autenticación
   useEffect(() => {
-    if (user) {
-      console.log('TabsLayout - User Info:', {
-        id: user.id,
-        email: user.email,
-        role: user.role,
-        parkingId: user.parkingId,
-        isAdmin,
-        isOperator,
-        isAdminOrOperator
-      });
+    if (!isConnected) {
+      Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
     }
-  }, [user, isAdmin, isOperator, isAdminOrOperator]);
+  }, [isConnected]);
 
   // Mostrar loading mientras se verifica la autenticación
   if (loading) {
@@ -75,9 +67,12 @@ export default function TabsLayout() {
                 <Ionicons name="home-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
               ),
             }}
+            listeners={{
+              tabPress: async () => await Haptics.selectionAsync(), 
+            }}
           />
           
-          {/* Mi Parqueo (reemplaza la tab de Parkings para admins) */}
+          {/* Mi Parqueo */}
           <Tabs.Screen
             name="parkings"
             options={{
@@ -85,6 +80,9 @@ export default function TabsLayout() {
               tabBarIcon: ({ color }) => (
                 <Ionicons name="business-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
               ),
+            }}
+            listeners={{
+              tabPress: async () => await Haptics.selectionAsync(),
             }}
           />
           
@@ -97,9 +95,12 @@ export default function TabsLayout() {
                 <Ionicons name="calendar-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
               ),
             }}
+            listeners={{
+              tabPress: async () => await Haptics.selectionAsync(),
+            }}
           />
 
-          {/* Usuarios (reemplaza la tab de Profile para admins) */}
+          {/* Usuarios */}
           <Tabs.Screen
             name="profile"
             options={{
@@ -107,6 +108,9 @@ export default function TabsLayout() {
               tabBarIcon: ({ color }) => (
                 <Ionicons name="people-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
               ),
+            }}
+            listeners={{
+              tabPress: async () => await Haptics.selectionAsync(),
             }}
           />
           
@@ -119,19 +123,13 @@ export default function TabsLayout() {
                 <Ionicons name="settings-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
               ),
             }}
+            listeners={{
+              tabPress: async () => await Haptics.selectionAsync(),
+            }}
           />
 
-          {/* Ocultar ruta de edición de parkings (solo accesible desde el botón editar) */}
-          <Tabs.Screen
-            name="parkings/edit"
-            options={{ href: null }}
-          />
-
-          {/* Ocultar payments si existe */}
-          <Tabs.Screen
-            name="payments"
-            options={{ href: null }}
-          />
+          <Tabs.Screen name="parkings/edit" options={{ href: null }} />
+          <Tabs.Screen name="payments" options={{ href: null }} />
         </Tabs>
       </View>
     );
@@ -151,9 +149,12 @@ export default function TabsLayout() {
               <Ionicons name="home-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
             ),
           }}
+          listeners={{
+            tabPress: async () => await Haptics.selectionAsync(),
+          }}
         />
         
-        {/* Parqueos (buscar y reservar) */}
+        {/* Parqueos */}
         <Tabs.Screen
           name="parkings"
           options={{
@@ -161,6 +162,9 @@ export default function TabsLayout() {
             tabBarIcon: ({ color }) => (
               <Ionicons name="car-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
             ),
+          }}
+          listeners={{
+            tabPress: async () => await Haptics.selectionAsync(),
           }}
         />
         
@@ -173,6 +177,9 @@ export default function TabsLayout() {
               <Ionicons name="calendar-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
             ),
           }}
+          listeners={{
+            tabPress: async () => await Haptics.selectionAsync(),
+          }}
         />
         
         {/* Perfil */}
@@ -184,34 +191,14 @@ export default function TabsLayout() {
               <Ionicons name="person-circle-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
             ),
           }}
-        />
-        
-        {/* Ajustes */}
-        <Tabs.Screen
-          name="settings/index"
-          options={{
-            title: 'Ajustes',
-            tabBarIcon: ({ color }) => (
-              <Ionicons name="settings-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
-            ),
+          listeners={{
+            tabPress: async () => await Haptics.selectionAsync(),
           }}
         />
 
-        {/* Ocultar todas las sub-rutas de settings para usuarios normales */}
-        <Tabs.Screen
-          name="settings/parking-info/index"
-          options={{ href: null }}
-        />
-        <Tabs.Screen
-          name="settings/parking-info/edit"
-          options={{ href: null }}
-        />
-
-        {/* Ocultar payments si existe */}
-        <Tabs.Screen
-          name="payments"
-          options={{ href: null }}
-        />
+        <Tabs.Screen name="settings/parking-info/index" options={{ href: null }} />
+        <Tabs.Screen name="settings/parking-info/edit" options={{ href: null }} />
+        <Tabs.Screen name="payments" options={{ href: null }} />
       </Tabs>
     </View>
   );

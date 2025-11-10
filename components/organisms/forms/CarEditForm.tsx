@@ -3,7 +3,7 @@ import React from "react";
 import { View, Text, Pressable, ScrollView } from "react-native";
 import { Controller } from "react-hook-form";
 import Input from "../../atoms/Input";
-import { useCarEditForm } from "../../../hooks";
+import { useCarEditForm } from "../../../hooks/useCarEditForm";
 import { CarFormData } from "../../../schemas/carEditSchema";
 
 interface CarEditFormProps {

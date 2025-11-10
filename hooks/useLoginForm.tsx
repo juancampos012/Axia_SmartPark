@@ -2,6 +2,7 @@ import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Alert } from 'react-native';
 import { router } from 'expo-router';
+import * as Haptics from 'expo-haptics';
 import { useAuth } from '../context/AuthContext';
 import { loginAuth } from '../libs/auth';
 import { LoginSchema, LoginFormData } from '../schemas/loginSchema';
@@ -38,19 +39,27 @@ export const useLoginForm = ({ onSuccess }: UseLoginFormProps = {}) => {
         hasTokens: !!response.data.tokens
       });
       
-      // Guardar en el AuthContext
       await signIn(
         response.data.user,
         response.data.tokens.accessToken,
         response.data.tokens.refreshToken
       );
       
-      router.dismissAll();
-      router.replace('/(tabs)/home');
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       
+      try {
+        router.dismissAll();
+      } catch (e) {
+        console.log('No modals to dismiss');
+      }
+      router.replace('/(tabs)/home');
+   
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error('Login error:', error);
+      
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      
       Alert.alert(
         "Error de inicio de sesión", 
         error.message || "Correo o contraseña incorrectos"

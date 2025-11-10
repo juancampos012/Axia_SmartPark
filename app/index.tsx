@@ -1,10 +1,9 @@
 import React, { useEffect, useRef } from 'react';
-import { View, Text, Animated, Easing, Alert } from 'react-native';
+import { View, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Svg, Path } from 'react-native-svg';
-import { requestNotificationPermissions, testNotification } from '../libs/reservation-notifications';
 
 export default function SplashScreen() {
   const router = useRouter();

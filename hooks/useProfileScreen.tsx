@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { Alert } from 'react-native';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserProfile } from '../libs/user';
 import { fetchMyVehicles } from '../libs/vehicles';
@@ -22,51 +24,23 @@ interface MenuItem {
 
 export const useProfileScreen = () => {
   const router = useRouter();
-  const { isAdminOrOperator } = useAuth();
+  const { isAdminOrOperator, signOut } = useAuth();
 
-  // Estados
   const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
   const [userCars, setUserCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  // Menú items - dinámico según el rol
   const menuItems: MenuItem[] = useMemo(() => {
     const baseItems = [
-      {
-        id: '1',
-        icon: 'person-outline',
-        title: 'Información personal',
-        route: '/profile/personal-info',
-      },
-      {
-        id: '2',
-        icon: 'star-outline',
-        title: 'Mis Reseñas',
-        route: '/profile/reviews',
-      },
-      {
-        id: '3',
-        icon: 'lock-closed-outline',
-        title: 'Seguridad',
-        route: '/profile/security',
-      },
-      {
-        id: '4',
-        icon: 'card-outline',
-        title: 'Tarjeta de débito',
-        route: '/profile/payment-methods',
-      },
-      {
-        id: '5',
-        icon: 'receipt-outline',
-        title: 'Historial de Pagos',
-        route: '/profile/payments-history',
-      },
+      { id: '1', icon: 'person-outline', title: 'Información personal', route: '/profile/personal-info' },
+      { id: '2', icon: 'star-outline', title: 'Mis Reseñas', route: '/profile/reviews' },
+      { id: '3', icon: 'lock-closed-outline', title: 'Seguridad', route: '/profile/security' },
+      { id: '4', icon: 'card-outline', title: 'Tarjeta de débito', route: '/profile/payment-methods' },
+      { id: '5', icon: 'receipt-outline', title: 'Historial de Pagos', route: '/profile/payments-history' },
     ];
 
-    // Agregar opción de gestión de usuarios para Admin/Operator
     if (isAdminOrOperator) {
       baseItems.splice(2, 0, {
         id: 'admin-users',
@@ -79,7 +53,7 @@ export const useProfileScreen = () => {
     return baseItems;
   }, [isAdminOrOperator]);
 
-  // Cargar perfil y vehículos
+  // 📦 Cargar datos del perfil y vehículos
   const loadData = useCallback(async () => {
     try {
       setLoading(true);
@@ -102,7 +76,6 @@ export const useProfileScreen = () => {
     loadData();
   }, [loadData]);
 
-  // Refrescar datos cada vez que la pantalla gana foco (por ejemplo, al volver desde detalle/eliminar)
   useFocusEffect(
     useCallback(() => {
       setLoading(true);
@@ -110,22 +83,17 @@ export const useProfileScreen = () => {
     }, [loadData])
   );
 
-  // Función para refrescar el perfil manualmente (pull-to-refresh)
   const handleRefreshProfile = useCallback(async () => {
     setRefreshing(true);
     try {
-      // Llamamos directamente a loadData para refrescar información.
-      // Antes se intentaba llamar a `refreshProfileData` (no definida en este scope),
-      // lo cual provocaba un ReferenceError.
       await loadData();
     } catch (error) {
-      console.error("Error al refrescar el perfil:", error);
+      console.error('Error al refrescar el perfil:', error);
     } finally {
       setRefreshing(false);
     }
   }, [loadData]);
 
-  // Handlers de navegación
   const handleMenuItemPress = useCallback((route: string) => {
     router.push(route as any);
   }, [router]);
@@ -142,30 +110,51 @@ export const useProfileScreen = () => {
     router.push('/(tabs)/profile/cars/add');
   }, [router]);
 
-  // Valores derivados
+  const handleLogout = useCallback(async () => {
+    try {
+      Alert.alert(
+        'Cerrar sesión',
+        '¿Estás seguro de que deseas salir?',
+        [
+          { text: 'Cancelar', style: 'cancel' },
+          {
+            text: 'Cerrar sesión',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+                await signOut();
+                router.replace('/(auth)/login');
+              } catch (err) {
+                console.error('Error al cerrar sesión:', err);
+                Alert.alert('Error', 'No se pudo cerrar sesión.');
+              }
+            },
+          },
+        ]
+      );
+    } catch (error) {
+      console.error('Error al ejecutar logout:', error);
+    }
+  }, [router, signOut]);
+
   const hasVehicles = userCars.length > 0;
   const displayName = userProfile?.name || 'Usuario';
 
   return {
-    // Estados
     userProfile,
     userCars,
     loading,
     refreshing,
     error,
     menuItems,
-
-    // Valores derivados
     hasVehicles,
     displayName,
-
-    // Handlers
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
-
-    // Nueva función para refrescar datos
     refreshProfileData: handleRefreshProfile,
+    handleLogout, 
   };
 };
