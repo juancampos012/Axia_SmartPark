@@ -1,6 +1,4 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { refreshToken } from './auth';
-// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+import { http } from './http-client';
 import {
   AdminUsersResponse,
   AdminUserResponse,
@@ -11,94 +9,6 @@ import {
   AdminParkingInfo,
   UpdateParkingDTO,
 } from "../interfaces/Admin";
-
-// const API_BASE_URL = ENV_API_BASE_URL || 'http://localhost:3001/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
-
-// Wrapper para requests autenticados
-async function authenticatedRequest(endpoint: string, options: RequestInit = {}) {
-  let accessToken = await AsyncStorage.getItem('accessToken');
-  const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-  
-  if (!accessToken || !storedRefreshToken) {
-    throw new Error('No authentication tokens found');
-  }
-
-  const makeRequest = async (token: string) => {
-    // Do not log token contents for security; log its length for debugging
-    try {
-      console.log(`authenticatedRequest - making request to ${endpoint} with accessToken length: ${token?.length || 0}`);
-    } catch {}
-
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
-
-    return response;
-  };
-
-  // Primer intento
-  let response = await makeRequest(accessToken);
-
-  // Si token expiró, hacer refresh
-  if (response.status === 401) {
-    console.warn(`authenticatedRequest - received 401 for ${endpoint}`);
-    try {
-      // Log existence/length of stored refresh token before attempting refresh
-      const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-      console.log(`authenticatedRequest - stored refreshToken length: ${storedRefreshToken ? storedRefreshToken.length : 0}`);
-
-      console.log('Token expired, refreshing...');
-      const newTokens = await refreshToken();
-      accessToken = newTokens.accessToken;
-      
-      // Reintentar con nuevo token
-      response = await makeRequest(accessToken);
-      console.log(`authenticatedRequest - retry after refresh status: ${response.status}`);
-    } catch (refreshError) {
-      console.error('Error refreshing token:', refreshError);
-      await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
-      throw new Error('Session expired. Please login again.');
-    }
-  }
-
-  if (!response.ok) {
-    // Try to parse body for better error messages and log it for debugging
-    let errorText = '';
-    try {
-      errorText = await response.text();
-    } catch (e) {
-      console.error('authenticatedRequest - error reading response text', e);
-    }
-
-    let errorMessage = `Error ${response.status}`;
-    try {
-      const errorJson = errorText ? JSON.parse(errorText) : null;
-      console.log('authenticatedRequest - response error body:', errorJson ?? errorText);
-      errorMessage = (errorJson && (errorJson.message || errorJson.error)) || errorMessage;
-    } catch (parseErr) {
-      console.log('authenticatedRequest - non-json error body:', errorText);
-      errorMessage = errorText || errorMessage;
-    }
-
-    // Proporcionar mensajes más claros para errores comunes
-    if (response.status === 403) {
-      errorMessage = 'No tienes permisos para realizar esta acción. Necesitas rol de ADMIN.';
-    } else if (response.status === 401) {
-      errorMessage = 'Tu sesión ha expirado. Por favor, inicia sesión nuevamente.';
-    }
-
-    console.error(`authenticatedRequest - throwing error for ${endpoint}:`, errorMessage);
-    throw new Error(errorMessage);
-  }
-
-  return response.json();
-}
 
 /**
  * USER MANAGEMENT FUNCTIONS
@@ -116,12 +26,12 @@ export async function fetchUsers(
       url += `&search=${encodeURIComponent(search)}`;
     }
 
-    console.log('fetch users')
-    const response = await authenticatedRequest(url);
-    console.log(response)
+    console.log('fetch users');
+    const response = await http.get(url);
+    console.log(response);
 
     // Normalize backend response: some endpoints return data.users, others data.items
-    const usersArray: any[] = response?.data?.users ?? response?.data?.items ?? [];
+    const usersArray: any[] = response.data?.users ?? response.data?.items ?? [];
 
     console.log("Users fetched:", { page, limit, search, usersCount: Array.isArray(usersArray) ? usersArray.length : 0 });
 
@@ -167,7 +77,7 @@ export async function fetchUsers(
 // Fetch user by ID
 export async function fetchUserById(userId: string): Promise<AdminUserDetail> {
   try {
-    const response: AdminUserResponse = await authenticatedRequest(`/users/${userId}`);
+    const response = await http.get(`/users/${userId}`);
     console.log("User fetched:", response.data);
     return response.data;
   } catch (error: any) {
@@ -179,11 +89,8 @@ export async function fetchUserById(userId: string): Promise<AdminUserDetail> {
 // Create new user
 export async function createUser(userData: CreateUserDTO): Promise<AdminUserDetail> {
   try {
-    console.log('create user')
-    const response: AdminUserResponse = await authenticatedRequest("/users/register", {
-      method: "POST",
-      body: JSON.stringify(userData),
-    });
+    console.log('create user');
+    const response = await http.post("/users/register", userData);
     console.log("User created:", response.data);
     return response.data;
   } catch (error: any) {
@@ -198,10 +105,7 @@ export async function updateUser(
   userData: UpdateUserDTO
 ): Promise<AdminUserDetail> {
   try {
-    const response: AdminUserResponse = await authenticatedRequest(`/users/${userId}`, {
-      method: "PUT",
-      body: JSON.stringify(userData),
-    });
+    const response = await http.put(`/users/${userId}`, userData);
     console.log("User updated:", response.data);
     return response.data;
   } catch (error: any) {
@@ -213,9 +117,7 @@ export async function updateUser(
 // Delete user
 export async function deleteUser(userId: string): Promise<void> {
   try {
-    await authenticatedRequest(`/users/${userId}`, {
-      method: "DELETE",
-    });
+    await http.delete(`/users/${userId}`);
     console.log(`User ${userId} deleted`);
   } catch (error: any) {
     console.error(`Error deleting user ${userId}:`, error);
@@ -230,7 +132,7 @@ export async function deleteUser(userId: string): Promise<void> {
 // Fetch admin's parking
 export async function fetchMyParking(): Promise<AdminParkingInfo> {
   try {
-    const response: AdminParkingResponse = await authenticatedRequest("/parking/user/my-parkings");
+    const response = await http.get("/parking/user/my-parkings");
     
     // La respuesta puede ser un array, tomamos el primero
     const parkings = Array.isArray(response.data) ? response.data : [response.data];
@@ -249,7 +151,7 @@ export async function fetchMyParking(): Promise<AdminParkingInfo> {
 // Fetch parking by ID
 export async function fetchParkingByIdAdmin(parkingId: string): Promise<AdminParkingInfo> {
   try {
-    const response: AdminParkingResponse = await authenticatedRequest(`/parking/${parkingId}`);
+    const response = await http.get(`/parking/${parkingId}`);
     return response.data;
   } catch (error: any) {
     console.error(`Error fetching parking ${parkingId}:`, error);
@@ -263,10 +165,7 @@ export async function updateParking(
   parkingData: UpdateParkingDTO
 ): Promise<AdminParkingInfo> {
   try {
-    const response: AdminParkingResponse = await authenticatedRequest(`/parking/${parkingId}`, {
-      method: "PUT",
-      body: JSON.stringify(parkingData),
-    });
+    const response = await http.put(`/parking/${parkingId}`, parkingData);
     console.log("Parking updated:", response.data);
     return response.data;
   } catch (error: any) {
@@ -286,13 +185,7 @@ export async function updateParkingRates(
   }
 ): Promise<AdminParkingInfo> {
   try {
-    const response: AdminParkingResponse = await authenticatedRequest(
-      `/parking/${parkingId}/rates`,
-      {
-        method: "PUT",
-        body: JSON.stringify(rates),
-      }
-    );
+    const response = await http.put(`/parking/${parkingId}/rates`, rates);
     console.log("Parking rates updated:", response.data);
     return response.data;
   } catch (error: any) {
@@ -307,13 +200,7 @@ export async function changeParkingStatus(
   status: 'OPEN' | 'CLOSED' | 'FULL' | 'MAINTENANCE'
 ): Promise<AdminParkingInfo> {
   try {
-    const response: AdminParkingResponse = await authenticatedRequest(
-      `/parking/${parkingId}/status`,
-      {
-        method: "PATCH",
-        body: JSON.stringify({ status }),
-      }
-    );
+    const response = await http.patch(`/parking/${parkingId}/status`, { status });
     console.log("Parking status changed:", response.data);
     return response.data;
   } catch (error: any) {

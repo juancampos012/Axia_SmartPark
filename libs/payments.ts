@@ -1,18 +1,14 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
-import { 
+import { http } from './http-client';
+import {
   PaymentResponse,
   PaymentWithRelations,
-  CreatePaymentDTO, 
-  UpdatePaymentDTO, 
+  CreatePaymentDTO,
+  UpdatePaymentDTO,
   PaymentSearchFilters,
   PaymentSearchResult,
   UserPaymentStats
 } from '../interfaces/payment';
 import { ApiResponse } from '../interfaces/ApiTypes';
-
-// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 /**
  * Interfaz para crear reservación con pago en una transacción
@@ -25,7 +21,7 @@ export interface CreateReservationWithPaymentDTO {
   guestContact?: string;
   startTime: string; // ISO string
   endTime: string; // ISO string
-  
+
   // Datos de pago
   amount: number;
   paymentMethod: 'CREDIT_CARD' | 'DEBIT_CARD' | 'CASH';
@@ -69,30 +65,6 @@ export interface ReservationWithPaymentResponse {
 }
 
 /**
- * Helper para obtener el token de autenticación
- */
-const getAuthToken = async (): Promise<string> => {
-  const token = await AsyncStorage.getItem('accessToken');
-  if (!token) {
-    throw new Error('No hay sesión activa. Por favor inicia sesión.');
-  }
-  return token;
-};
-
-/**
- * Helper para manejar errores de la API
- */
-const handleApiError = (error: any): never => {
-  if (error.response?.data?.message) {
-    throw new Error(error.response.data.message);
-  }
-  if (error.message) {
-    throw new Error(error.message);
-  }
-  throw new Error('Error al comunicarse con el servidor');
-};
-
-/**
  * Crea una reservación y su pago en una sola transacción
  * Este es el método RECOMENDADO para procesar reservas con pago
  * POST /api/payments/reserve-and-pay
@@ -101,31 +73,16 @@ export const createReservationWithPayment = async (
   data: CreateReservationWithPaymentDTO
 ): Promise<ReservationWithPaymentResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/reserve-and-pay`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error al crear la reservación con pago');
-    }
+    const result = await http.post('/payments/reserve-and-pay', data);
 
     if (!result.success || !result.data) {
-      throw new Error(result.message || 'Respuesta inválida del servidor');
+      throw new Error(result.message || 'Error al crear la reservación con pago');
     }
 
     return result.data;
   } catch (error: any) {
     console.error('Error en createReservationWithPayment:', error);
-    throw new Error(error.message || 'Error al crear la reservación con pago');
+    throw error;
   }
 };
 
@@ -138,31 +95,16 @@ export const processPaymentSuccess = async (
   transactionId?: string
 ): Promise<PaymentResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}/success`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ transactionId })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error al procesar el pago exitoso');
-    }
+    const result = await http.post(`/payments/${paymentId}/success`, { transactionId });
 
     if (!result.success || !result.data) {
-      throw new Error(result.message || 'Respuesta inválida del servidor');
+      throw new Error(result.message || 'Error al procesar el pago exitoso');
     }
 
     return result.data;
   } catch (error: any) {
     console.error('Error en processPaymentSuccess:', error);
-    throw new Error(error.message || 'Error al procesar el pago exitoso');
+    throw error;
   }
 };
 
@@ -176,31 +118,16 @@ export const processPaymentFailure = async (
   transactionId?: string
 ): Promise<PaymentResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/${paymentId}/failure`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify({ failureReason, transactionId })
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error al procesar el fallo del pago');
-    }
+    const result = await http.post(`/payments/${paymentId}/failure`, { failureReason, transactionId });
 
     if (!result.success || !result.data) {
-      throw new Error(result.message || 'Respuesta inválida del servidor');
+      throw new Error(result.message || 'Error al procesar el fallo del pago');
     }
 
     return result.data;
   } catch (error: any) {
     console.error('Error en processPaymentFailure:', error);
-    throw new Error(error.message || 'Error al procesar el fallo del pago');
+    throw error;
   }
 };
 
@@ -211,30 +138,16 @@ export const processPaymentFailure = async (
  */
 export const createPayment = async (data: CreatePaymentDTO): Promise<PaymentResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
+    const result: ApiResponse<PaymentResponse> = await http.post('/payments', data);
 
-    const result: ApiResponse<PaymentResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al crear el pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del pago');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error creating payment:', error);
+    throw error;
   }
 };
 
@@ -248,8 +161,6 @@ export const fetchMyPayments = async (
   filters?: PaymentSearchFilters
 ): Promise<PaymentSearchResult> => {
   try {
-    const token = await getAuthToken();
-    
     // Construir query params
     const params = new URLSearchParams({
       page: page.toString(),
@@ -265,30 +176,17 @@ export const fetchMyPayments = async (
       if (filters.dateFrom) params.append('dateFrom', filters.dateFrom);
       if (filters.dateTo) params.append('dateTo', filters.dateTo);
     }
-    
-    const response = await fetch(
-      `${API_BASE_URL}/payments/my?${params.toString()}`,
-      {
-        method: 'GET',
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      }
-    );
 
-    const result: ApiResponse<PaymentSearchResult> = await response.json();
+    const result: ApiResponse<PaymentSearchResult> = await http.get(`/payments/my?${params.toString()}`);
 
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener los pagos');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información de los pagos');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching my payments:', error);
+    throw error;
   }
 };
 
@@ -301,28 +199,16 @@ export const getMyPayments = fetchMyPayments;
  */
 export const fetchPaymentById = async (id: string): Promise<PaymentWithRelations> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/${id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentWithRelations> = await http.get(`/payments/${id}`);
 
-    const result: ApiResponse<PaymentWithRelations> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener el pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del pago');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching payment by ID:', error);
+    throw error;
   }
 };
 
@@ -335,28 +221,16 @@ export const getPaymentById = fetchPaymentById;
  */
 export const getPaymentByReservationId = async (reservationId: string): Promise<PaymentResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/reservation/${reservationId}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentResponse> = await http.get(`/payments/reservation/${reservationId}`);
 
-    const result: ApiResponse<PaymentResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener el pago de la reservación');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del pago de la reservación');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching payment by reservation ID:', error);
+    throw error;
   }
 };
 
@@ -366,30 +240,16 @@ export const getPaymentByReservationId = async (reservationId: string): Promise<
  */
 export const updatePayment = async (id: string, data: UpdatePaymentDTO): Promise<PaymentResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
+    const result: ApiResponse<PaymentResponse> = await http.put(`/payments/${id}`, data);
 
-    const result: ApiResponse<PaymentResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al actualizar el pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del pago actualizado');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error updating payment:', error);
+    throw error;
   }
 };
 
@@ -399,28 +259,16 @@ export const updatePayment = async (id: string, data: UpdatePaymentDTO): Promise
  */
 export const fetchMyPaymentStats = async (): Promise<UserPaymentStats> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/stats/my`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<UserPaymentStats> = await http.get('/payments/stats/my');
 
-    const result: ApiResponse<UserPaymentStats> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener las estadísticas');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información de estadísticas');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching payment stats:', error);
+    throw error;
   }
 };
 
@@ -433,21 +281,13 @@ export const getMyPaymentStats = fetchMyPaymentStats;
  */
 export const deletePayment = async (id: string): Promise<void> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payments/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<void> = await http.delete(`/payments/${id}`);
 
-    const result: ApiResponse<void> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success) {
       throw new Error(result.message || 'Error al eliminar el pago');
     }
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error deleting payment:', error);
+    throw error;
   }
 };

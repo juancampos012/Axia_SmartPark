@@ -4,13 +4,9 @@
  * Funciones helper para subir imágenes al servidor
  */
 
-import AsyncStorage from '@react-native-async-storage/async-storage';
+import { http } from './http-client';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
-
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
-// const API_BASE_URL = ENV_API_BASE_URL || "https://api.axiasmartpark.lat/api";
 
 /**
  * Interface para avatar de usuario
@@ -144,29 +140,9 @@ const createFormData = (imageUri: string, fieldName: string = 'image'): FormData
  */
 export const uploadUserAvatar = async (imageUri: string): Promise<UploadResult> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-
-    if (!accessToken) {
-      throw new Error('No authentication token found');
-    }
-
     const formData = createFormData(imageUri, 'avatar');
-
-    const response = await fetch(`${API_BASE_URL}/users/avatar`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error uploading avatar');
-    }
-
-    return result;
+    const result = await http.postFormData('/users/avatar', formData);
+    return result.data;
   } catch (error) {
     console.error('Error uploading user avatar:', error);
     throw error;
@@ -178,29 +154,9 @@ export const uploadUserAvatar = async (imageUri: string): Promise<UploadResult> 
  */
 export const uploadVehicleImage = async (vehicleId: string, imageUri: string): Promise<UploadResult> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-
-    if (!accessToken) {
-      throw new Error('No authentication token found');
-    }
-
     const formData = createFormData(imageUri, 'image');
-
-    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/image`, {
-      method: 'PUT',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: formData,
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error uploading vehicle image');
-    }
-
-    return result;
+    const result = await http.postFormData(`/vehicles/${vehicleId}/image`, formData);
+    return result.data;
   } catch (error) {
     console.error('Error uploading vehicle image:', error);
     throw error;
@@ -212,25 +168,7 @@ export const uploadVehicleImage = async (vehicleId: string, imageUri: string): P
  */
 export const removeUserAvatar = async (): Promise<boolean> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-
-    if (!accessToken) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/users/me/avatar`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error removing avatar');
-    }
-
+    await http.delete('/users/me/avatar');
     return true;
   } catch (error) {
     console.error('Error removing user avatar:', error);
@@ -243,25 +181,7 @@ export const removeUserAvatar = async (): Promise<boolean> => {
  */
 export const removeVehicleImage = async (vehicleId: string): Promise<boolean> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-
-    if (!accessToken) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}/image`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${accessToken}`,
-      },
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error removing vehicle image');
-    }
-
+    await http.delete(`/vehicles/${vehicleId}/image`);
     return true;
   } catch (error) {
     console.error('Error removing vehicle image:', error);
@@ -274,13 +194,7 @@ export const removeVehicleImage = async (vehicleId: string): Promise<boolean> =>
  */
 export const fetchVehicleAvatars = async (): Promise<VehicleAvatar[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/vehicles/avatars/list`);
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Error fetching avatars');
-    }
-
+    const result = await http.get('/vehicles/avatars/list');
     return result.data?.avatars || [];
   } catch (error) {
     console.error('Error fetching vehicle avatars:', error);
@@ -293,13 +207,7 @@ export const fetchVehicleAvatars = async (): Promise<VehicleAvatar[]> => {
  */
 export const fetchUserAvatars = async (): Promise<UserAvatar[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/users/avatars/list`);
-    const result = await response.json();
-
-    if (!response.ok || !result.success) {
-      throw new Error(result.message || 'Error fetching user avatars');
-    }
-
+    const result = await http.get('/users/avatars/list');
     return result.data?.avatars || [];
   } catch (error) {
     console.error('Error fetching user avatars:', error);
@@ -316,30 +224,8 @@ export const selectPresetVehicleAvatar = async (
   avatarUrl: string
 ): Promise<any> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-
-    if (!accessToken) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/vehicles/${vehicleId}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        image: avatarUrl,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error updating vehicle');
-    }
-
-    return result;
+    const result = await http.put(`/vehicles/${vehicleId}`, { image: avatarUrl });
+    return result.data;
   } catch (error) {
     console.error('Error selecting preset avatar:', error);
     throw error;
@@ -354,33 +240,10 @@ export const selectPresetUserAvatar = async (
   avatarUrl: string
 ): Promise<any> => {
   try {
-    const accessToken = await AsyncStorage.getItem('accessToken');
-
-    if (!accessToken) {
-      throw new Error('No authentication token found');
-    }
-
-    const response = await fetch(`${API_BASE_URL}/users/profile`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${accessToken}`,
-      },
-      body: JSON.stringify({
-        avatar: avatarUrl,
-      }),
-    });
-
-    const result = await response.json();
-
-    if (!response.ok) {
-      throw new Error(result.message || 'Error updating user avatar');
-    }
-
-    return result;
+    const result = await http.put('/users/profile', { avatar: avatarUrl });
+    return result.data;
   } catch (error) {
     console.error('Error selecting preset user avatar:', error);
     throw error;
   }
 };
-

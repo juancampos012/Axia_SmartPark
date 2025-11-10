@@ -1,9 +1,10 @@
 import { UserUpdateDTO } from "../interfaces/User";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-// import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
+import { http, HttpError } from "./http-client";
 
-// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api"; 
+/**
+ * Funciones auxiliares para manejo de datos de usuario en AsyncStorage
+ */
 
 // Función auxiliar para guardar datos del usuario
 const saveUserData = async (user: any) => {
@@ -36,199 +37,118 @@ const removeUserData = async () => {
     }
 };
 
-// Manejo de respuestas del backend
-const handleResponse = async (response: Response) => {
-    const contentType = response.headers.get("content-type");
-    let responseData;
-
-    if (contentType && contentType.includes("application/json")) {
-        responseData = await response.json();
-    } else {
-        responseData = { 
-            success: false, 
-            message: "Respuesta no válida del servidor",
-            timestamp: new Date().toISOString()
-        };
-    }
-
-    // El backend siempre devuelve { success, message, data?, error?, timestamp }
-    if (!response.ok) {
-        const errorMessage = responseData.message || responseData.error || "Error en la solicitud";
-        throw new Error(errorMessage);
-    }
-
-    // Si la respuesta es exitosa pero success es false
-    if (!responseData.success) {
-        const errorMessage = responseData.message || responseData.error || "Operación no exitosa";
-        throw new Error(errorMessage);
-    }
-
-    return responseData;
+/**
+ * Mapear campos del backend al formato del frontend
+ */
+const mapUserData = (userData: any) => {
+    return {
+        ...userData,
+        parkingId: userData.assignedParkingId || userData.parkingId || null,
+        avatar: userData.profilePicture || userData.avatar || null
+    };
 };
-// Obtener perfil del usuario
+
+/**
+ * Obtener perfil del usuario
+ */
 export const fetchUserProfile = async (): Promise<any> => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) throw new Error("No autenticado");
-
-        const response = await fetch(`${API_BASE_URL}/users/profile`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
-
-        const responseData = await handleResponse(response);
+        const response = await http.get('/users/profile');
         
         // Mapear assignedParkingId del backend a parkingId del frontend
-        // Y profilePicture a avatar
-        if (responseData.success && responseData.data) {
-            const userData = responseData.data as any;
-            const mappedUserData = {
-                ...userData,
-                parkingId: userData.assignedParkingId || userData.parkingId || null,
-                avatar: userData.profilePicture || userData.avatar || null
-            };
-            // Eliminar campos del backend que no usa el frontend
-            delete mappedUserData.assignedParkingId;
-            delete mappedUserData.profilePicture;
+        if (response.success && response.data) {
+            const mappedUserData = mapUserData(response.data);
             
             // Guardar los datos del usuario actualizados
             await saveUserData(mappedUserData);
             return mappedUserData;
         }
 
-        return responseData.data; // Retornar solo los datos del usuario
+        return response.data;
     } catch (error) {
         console.error("Error en fetchUserProfile:", error);
         throw error;
     }
 };
 
-
-// Actualizar perfil del usuario
+/**
+ * Actualizar perfil del usuario
+ */
 export const updateUserProfile = async (data: UserUpdateDTO): Promise<any> => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) throw new Error("No autenticado");
-
-        const response = await fetch(`${API_BASE_URL}/users/profile`, {
-            method: "PUT",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify(data)
-        });
-
-        const responseData = await handleResponse(response);
+        const response = await http.put('/users/profile', data);
         
-        // Mapear assignedParkingId del backend a parkingId del frontend
-        // Y profilePicture a avatar
-        if (responseData.success && responseData.data) {
-            const userData = responseData.data as any;
-            const mappedUserData = {
-                ...userData,
-                parkingId: userData.assignedParkingId || userData.parkingId || null,
-                avatar: userData.profilePicture || userData.avatar || null
-            };
-            // Eliminar campos del backend que no usa el frontend
-            delete mappedUserData.assignedParkingId;
-            delete mappedUserData.profilePicture;
+        // Mapear campos del backend al frontend
+        if (response.success && response.data) {
+            const mappedUserData = mapUserData(response.data);
             
             // Guardar los datos actualizados del usuario
             await saveUserData(mappedUserData);
             return mappedUserData;
         }
 
-        return responseData.data; // Retornar solo los datos actualizados
+        return response.data;
     } catch (error) {
         console.error("Error en updateUserProfile:", error);
         throw error;
     }
 };
 
-// Eliminar usuario
+/**
+ * Eliminar cuenta de usuario
+ */
 export const deleteUserAccount = async (): Promise<any> => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) throw new Error("No autenticado");
-
-        const response = await fetch(`${API_BASE_URL}/users/profile`, {
-            method: "DELETE",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
-
-        const responseData = await handleResponse(response);
+        const response = await http.delete('/users/profile');
         
         // Limpiar todos los datos locales después de eliminar la cuenta
-        if (responseData.success) {
+        if (response.success) {
             await removeUserData();
         }
 
-        return responseData.message || "Cuenta eliminada exitosamente";
+        return response.message || "Cuenta eliminada exitosamente";
     } catch (error) {
         console.error("Error en deleteUserAccount:", error);
         throw error;
     }
 };
 
-// Cambiar contraseña
+/**
+ * Cambiar contraseña
+ */
 export const changePassword = async (currentPassword: string, newPassword: string): Promise<any> => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) throw new Error("No autenticado");
-
-        const response = await fetch(`${API_BASE_URL}/users/change-password`, {
-            method: "PATCH",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({
-                currentPassword,
-                newPassword
-            })
+        const response = await http.patch('/users/change-password', {
+            currentPassword,
+            newPassword
         });
-
-        const responseData = await handleResponse(response);
-        return responseData.message || "Contraseña cambiada exitosamente";
+        
+        return response.message || "Contraseña cambiada exitosamente";
     } catch (error) {
         console.error("Error en changePassword:", error);
         throw error;
     }
 };
 
-// Obtener estadísticas del usuario (si está disponible)
+/**
+ * Obtener estadísticas del usuario
+ */
 export const getUserStats = async (): Promise<any> => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
-        if (!token) throw new Error("No autenticado");
-        
         const userData = await getUserData();
         if (!userData?.id) throw new Error("ID de usuario no disponible");
 
-        const response = await fetch(`${API_BASE_URL}/users/${userData.id}/stats`, {
-            method: "GET",
-            headers: {
-                "Authorization": `Bearer ${token}`,
-                "Content-Type": "application/json"
-            }
-        });
-
-        const responseData = await handleResponse(response);
-        return responseData.data;
+        const response = await http.get(`/users/${userData.id}/stats`);
+        return response.data;
     } catch (error) {
         console.error("Error en getUserStats:", error);
         throw error;
     }
 };
 
-// Refrescar los datos del perfil del usuario
+/**
+ * Refrescar los datos del perfil del usuario
+ */
 export const refreshProfileData = async (): Promise<any> => {
     try {
         const updatedProfile = await fetchUserProfile();
@@ -242,7 +162,5 @@ export const refreshProfileData = async (): Promise<any> => {
     }
 };
 
-
 // Funciones auxiliares exportadas
 export { getUserData, saveUserData, removeUserData };
-
