@@ -1,8 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useProfileScreen } from '../../../../hooks/useProfileScreen';
+import UserAvatarSelectorSimplified from '../../../../components/organisms/UserAvatarSelectorSimplified';
 
 const PersonalProfile = () => {
   const {
@@ -11,38 +12,62 @@ const PersonalProfile = () => {
     loading,
     menuItems,
     displayName,
+    userAvatar,
+    showAvatarSelector,
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
+    handleOpenAvatarSelector,
+    handleCloseAvatarSelector,
+    handleAvatarSelect,
   } = useProfileScreen();
 
   return (
-    <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="flex-1 px-6 pt-8">
-          {/* Header */}
-          <View className="items-center mb-12">
-            <View className="relative mb-6">
-              <View className="w-32 h-32 rounded-full border-4 border-axia-green/30 items-center justify-center shadow-2xl ">
-                <View className="w-28 h-28 rounded-full items-center justify-center">
-                  <Ionicons name="person" size={50} color="#10B981" />
+    <>
+      <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          <View className="flex-1 px-6 pt-8">
+            {/* Header */}
+            <View className="items-center mb-12">
+              <View className="relative mb-6">
+                <Pressable
+                  onPress={handleOpenAvatarSelector}
+                  className="w-32 h-32 rounded-full border-4 border-axia-green/30 items-center justify-center shadow-2xl active:scale-95"
+                >
+                  {userAvatar ? (
+                    <Image
+                      source={{ uri: userAvatar }}
+                      className="w-28 h-28 rounded-full"
+                      resizeMode="cover"
+                    />
+                  ) : (
+                    <View className="w-28 h-28 rounded-full items-center justify-center bg-axia-darkGray">
+                      <Ionicons name="person" size={50} color="#10B981" />
+                    </View>
+                  )}
+                </Pressable>
+                {/* Botón de cámara para editar */}
+                <Pressable
+                  onPress={handleOpenAvatarSelector}
+                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-axia-green items-center justify-center border-4 border-axia-black active:scale-95"
+                >
+                  <Ionicons name="camera" size={18} color="#000" />
+                </Pressable>
+              </View>
+
+              <View className="items-center">
+                <Text className="text-white text-3xl font-primaryBold mb-2">
+                  {displayName}
+                </Text>
+                <View className="flex-row items-center bg-axia-green/10 px-4 py-2 rounded-full">
+                  <Ionicons name="shield-checkmark" size={16} color="#006B54" />
+                  <Text className="text-axia-green text-sm font-primaryBold ml-2">
+                    Cuenta verificada
+                  </Text>
                 </View>
               </View>
             </View>
-            
-            <View className="items-center">
-              <Text className="text-white text-3xl font-primaryBold mb-2">
-                {displayName}
-              </Text>
-              <View className="flex-row items-center bg-axia-green/10 px-4 py-2 rounded-full">
-                <Ionicons name="shield-checkmark" size={16} color="#006B54" />
-                <Text className="text-axia-green text-sm font-primaryBold ml-2">
-                  Cuenta verificada
-                </Text>
-              </View>
-            </View>
-          </View>
 
           {/* Menú */}
           <View className="mb-8">
@@ -158,6 +183,15 @@ const PersonalProfile = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
+
+    {/* User Avatar Selector Modal */}
+    <UserAvatarSelectorSimplified
+      visible={showAvatarSelector}
+      currentImageUrl={userAvatar}
+      onClose={handleCloseAvatarSelector}
+      onSelect={handleAvatarSelect}
+    />
+    </>
   );
 };
 

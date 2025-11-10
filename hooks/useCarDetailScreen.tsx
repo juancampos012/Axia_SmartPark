@@ -10,6 +10,7 @@ interface Car {
   color?: string;
   year?: number;
   engineType?: string;
+  image?: string;
 }
 
 export const useCarDetailScreen = () => {

@@ -25,11 +25,12 @@ export const useProfileScreen = () => {
   const { isAdminOrOperator } = useAuth();
 
   // Estados
-  const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ name: string; avatar?: string } | null>(null);
   const [userCars, setUserCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
   // Menú items - dinámico según el rol
   const menuItems: MenuItem[] = useMemo(() => {
@@ -142,9 +143,29 @@ export const useProfileScreen = () => {
     router.push('/(tabs)/profile/cars/add');
   }, [router]);
 
+  const handleOpenAvatarSelector = useCallback(() => {
+    setShowAvatarSelector(true);
+  }, []);
+
+  const handleCloseAvatarSelector = useCallback(() => {
+    setShowAvatarSelector(false);
+  }, []);
+
+  const handleAvatarSelect = useCallback((newImageUrl: string) => {
+    // Actualizar el avatar en el estado local INMEDIATAMENTE
+    setUserProfile(prev => prev ? { ...prev, avatar: newImageUrl } : { name: 'Usuario', avatar: newImageUrl });
+    setShowAvatarSelector(false);
+    
+    // Recargar el perfil después de un pequeño delay para confirmar desde el servidor
+    setTimeout(() => {
+      loadData();
+    }, 500);
+  }, [loadData]);
+
   // Valores derivados
   const hasVehicles = userCars.length > 0;
   const displayName = userProfile?.name || 'Usuario';
+  const userAvatar = userProfile?.avatar;
 
   return {
     // Estados
@@ -154,16 +175,21 @@ export const useProfileScreen = () => {
     refreshing,
     error,
     menuItems,
+    showAvatarSelector,
 
     // Valores derivados
     hasVehicles,
     displayName,
+    userAvatar,
 
     // Handlers
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
+    handleOpenAvatarSelector,
+    handleCloseAvatarSelector,
+    handleAvatarSelect,
 
     // Nueva función para refrescar datos
     refreshProfileData: handleRefreshProfile,

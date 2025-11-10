@@ -4,7 +4,7 @@ import { Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { updateVehicle, VehicleTypeUpper, EngineType, fetchMyVehicles } from '../libs/vehicles';
 import { CarSchema, CarFormData } from '../schemas/carSchema';
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 
 interface UseEditCarFormProps {
   carId: string;
@@ -13,6 +13,8 @@ interface UseEditCarFormProps {
 
 export const useEditCarForm = ({ carId, onSuccess }: UseEditCarFormProps) => {
   const router = useRouter();
+  const [vehicleImage, setVehicleImage] = useState<string>('');
+  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
 
   const {
     control,
@@ -46,6 +48,7 @@ export const useEditCarForm = ({ carId, onSuccess }: UseEditCarFormProps) => {
           setValue('plate', found.licensePlate || '');
           setValue('type', found.type || 'CAR');
           setValue('engineType', found.engineType || 'GASOLINE');
+          setVehicleImage(found.image || '');
         }
       } catch (err) {
         console.error('Error loading vehicle for edit:', err);
@@ -106,6 +109,11 @@ export const useEditCarForm = ({ carId, onSuccess }: UseEditCarFormProps) => {
     return 'Placa';
   };
 
+  const handleAvatarSelect = (newImageUrl: string) => {
+    setVehicleImage(newImageUrl);
+    setShowAvatarSelector(false);
+  };
+
   return {
     control,
     errors,
@@ -117,6 +125,10 @@ export const useEditCarForm = ({ carId, onSuccess }: UseEditCarFormProps) => {
     setEngineType,
     handleCancel,
     getPlatePlaceholder,
+    vehicleImage,
+    showAvatarSelector,
+    setShowAvatarSelector,
+    handleAvatarSelect,
   };
 };
 

@@ -1,11 +1,12 @@
 import React from "react";
-import { View, Text, Pressable, ScrollView } from "react-native";
+import { View, Text, Pressable, ScrollView, Image } from "react-native";
 import { Controller } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
 import FontAwesome5 from '@expo/vector-icons/FontAwesome5';
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import Input from '../../atoms/Input';
 import useEditCarForm from '../../../hooks/useEditCarForm';
+import VehicleAvatarSelectorSimplified from '../VehicleAvatarSelectorSimplified';
 
 interface EditCarFormProps {
   carId: string;
@@ -24,16 +25,50 @@ export default function EditCarForm({ carId, onSuccess }: EditCarFormProps) {
     handleCancel,
     setType,
     setEngineType,
+    vehicleImage,
+    showAvatarSelector,
+    setShowAvatarSelector,
+    handleAvatarSelect,
   } = useEditCarForm({ carId, onSuccess });
 
   return (
-    <ScrollView
-      contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
-      keyboardShouldPersistTaps="handled"
-      showsVerticalScrollIndicator={false}
-    >
-      <View className="w-full">
-        {/* Marca */}
+    <>
+      <ScrollView
+        contentContainerStyle={{ flexGrow: 1, paddingBottom: 100 }}
+        keyboardShouldPersistTaps="handled"
+        showsVerticalScrollIndicator={false}
+      >
+        <View className="w-full">
+          {/* Imagen del vehículo */}
+          <View className="mb-6">
+            <Text className="text-white/80 text-sm font-primary mb-3 ml-1">Imagen del vehículo</Text>
+            <Pressable
+              onPress={() => setShowAvatarSelector(true)}
+              className="w-full bg-axia-darkGray rounded-2xl p-6 items-center active:scale-98"
+            >
+              {vehicleImage ? (
+                <View className="items-center">
+                  <Image
+                    source={{ uri: vehicleImage }}
+                    className="w-32 h-32 rounded-xl mb-3"
+                    resizeMode="contain"
+                  />
+                  <Text className="text-axia-green text-sm font-primary">
+                    Toca para cambiar
+                  </Text>
+                </View>
+              ) : (
+                <View className="items-center">
+                  <Ionicons name="image-outline" size={48} color="#6B7280" />
+                  <Text className="text-white/60 text-sm font-primary mt-2">
+                    Seleccionar imagen
+                  </Text>
+                </View>
+              )}
+            </Pressable>
+          </View>
+
+          {/* Marca */}
         <Controller
           control={control}
           name="brand"
@@ -169,5 +204,15 @@ export default function EditCarForm({ carId, onSuccess }: EditCarFormProps) {
         </Pressable>
       </View>
     </ScrollView>
+
+    {/* Vehicle Avatar Selector Modal */}
+    <VehicleAvatarSelectorSimplified
+      visible={showAvatarSelector}
+      vehicleId={carId}
+      currentImageUrl={vehicleImage}
+      onClose={() => setShowAvatarSelector(false)}
+      onSelect={handleAvatarSelect}
+    />
+    </>
   );
 }
