@@ -26,6 +26,7 @@ import {
   selectPresetVehicleAvatar,
   VehicleAvatar,
 } from '../../libs/upload';
+import { smartCacheBusting } from '../../utils/imageUtils';
 
 interface VehicleAvatarSelectorProps {
   visible: boolean;
@@ -243,7 +244,7 @@ export const VehicleAvatarSelector: React.FC<VehicleAvatarSelectorProps> = ({
                 >
                   <View className="w-full h-full p-4">
                     <Image
-                      source={{ uri: avatar.url }}
+                      source={{ uri: smartCacheBusting(avatar.url) }}
                       className="w-full h-full"
                       resizeMode="contain"
                     />

@@ -8,7 +8,7 @@ export interface Vehicle {
   color?: string;
   engineType?: "GASOLINE" | "ELECTRIC" | "HYBRID";
   year?: number;
-  image?: string; // URL de la imagen del vehículo
+  image?: string;
   createdAt?: string;
   updatedAt?: string;
 }

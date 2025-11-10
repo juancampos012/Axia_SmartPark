@@ -69,7 +69,7 @@ export const useReservationPolling = ({
       
       // Detectar cambio de estado
       if (lastStatusRef.current && lastStatusRef.current !== data.status) {
-        console.log(`🔄 Estado cambió de ${lastStatusRef.current} a ${data.status}`);
+        console.log(`Estado cambió de ${lastStatusRef.current} a ${data.status}`);
         onStatusChange?.(data.status, lastStatusRef.current);
       }
 
@@ -79,7 +79,7 @@ export const useReservationPolling = ({
 
       return data;
     } catch (err: any) {
-      console.error('❌ Error loading reservation:', err);
+      console.error('Error loading reservation:', err);
       setError(err.message || 'Error al cargar la reservación');
       return null;
     } finally {
@@ -100,14 +100,13 @@ export const useReservationPolling = ({
       clearInterval(pollingIntervalRef.current);
     }
 
-    console.log('🔄 Iniciando polling para reservación:', reservationId);
     setIsPolling(true);
 
     // Función de polling
     const poll = async () => {
       // Solo hacer polling si la app está activa
       if (appState.current !== 'active') {
-        console.log('⏸️ App en background, pausando polling');
+        console.log('⏸App en background, pausando polling');
         return;
       }
 
@@ -115,7 +114,7 @@ export const useReservationPolling = ({
 
       // Detener polling si la reserva ya no está PENDING
       if (data && data.status !== ReservationStatus.PENDING) {
-        console.log('✅ Reserva confirmada/cancelada, deteniendo polling');
+        console.log('Reserva confirmada/cancelada, deteniendo polling');
         stopPolling();
         return;
       }
@@ -126,7 +125,7 @@ export const useReservationPolling = ({
       }
 
       const nextInterval = getDynamicInterval();
-      console.log(`⏱️ Siguiente polling en ${nextInterval / 1000}s (poll #${pollCountRef.current})`);
+      console.log(`Siguiente polling en ${nextInterval / 1000}s (poll #${pollCountRef.current})`);
       
       pollingIntervalRef.current = setInterval(poll, nextInterval);
     };
@@ -144,7 +143,7 @@ export const useReservationPolling = ({
       pollingIntervalRef.current = null;
     }
     setIsPolling(false);
-    console.log('⏹️ Polling detenido');
+    console.log('⏹Polling detenido');
   }, []);
 
   /**
@@ -168,12 +167,12 @@ export const useReservationPolling = ({
       const prevState = appState.current;
       appState.current = nextAppState;
 
-      console.log(`📱 App state: ${prevState} → ${nextAppState}`);
+      console.log(`App state: ${prevState} → ${nextAppState}`);
 
       // Si volvemos al foreground y debería estar haciendo polling
       if (prevState !== 'active' && nextAppState === 'active') {
         if (enabled && reservation?.status === ReservationStatus.PENDING) {
-          console.log('📱 App en foreground, reanudando polling');
+          console.log('App en foreground, reanudando polling');
           refresh(); // Refrescar inmediatamente al volver
         }
       }

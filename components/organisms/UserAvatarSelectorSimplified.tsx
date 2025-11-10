@@ -48,6 +48,7 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
   const [loading, setLoading] = useState(true);
   const [selectedAvatar, setSelectedAvatar] = useState<UserAvatar | null>(null);
   const [uploadingCustom, setUploadingCustom] = useState(false);
+  const [selectedStyle, setSelectedStyle] = useState<UserAvatar['style'] | 'all'>('all');
 
   /**
    * Cargar avatares disponibles desde el backend
@@ -71,6 +72,13 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
       setLoading(false);
     }
   };
+
+  /**
+   * Filtrar avatares por estilo
+   */
+  const filteredAvatars = selectedStyle === 'all'
+    ? avatars
+    : avatars.filter(avatar => avatar.style === selectedStyle);
 
   /**
    * Manejar selección de avatar prediseñado
@@ -235,9 +243,70 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
           {/* Sección de avatares prediseñados */}
           {avatars.length > 0 && (
             <>
-              <Text className="text-white text-lg font-primaryBold mb-4">
-                O elige un avatar prediseñado
-              </Text>
+              {/* Filtro por estilo */}
+              <View className="mb-4">
+                <Text className="text-white text-lg font-primaryBold mb-3">
+                  O elige un avatar prediseñado
+                </Text>
+                <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+                  <Pressable
+                    onPress={() => setSelectedStyle('all')}
+                    className={`px-4 py-2 rounded-full mr-2 ${
+                      selectedStyle === 'all' ? 'bg-axia-green' : 'bg-axia-darkGray'
+                    }`}
+                  >
+                    <Text
+                      className={`font-primary ${
+                        selectedStyle === 'all' ? 'text-axia-black' : 'text-white'
+                      }`}
+                    >
+                      Todos
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setSelectedStyle('male')}
+                    className={`px-4 py-2 rounded-full mr-2 ${
+                      selectedStyle === 'male' ? 'bg-axia-green' : 'bg-axia-darkGray'
+                    }`}
+                  >
+                    <Text
+                      className={`font-primary ${
+                        selectedStyle === 'male' ? 'text-axia-black' : 'text-white'
+                      }`}
+                    >
+                      Masculino
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setSelectedStyle('female')}
+                    className={`px-4 py-2 rounded-full mr-2 ${
+                      selectedStyle === 'female' ? 'bg-axia-green' : 'bg-axia-darkGray'
+                    }`}
+                  >
+                    <Text
+                      className={`font-primary ${
+                        selectedStyle === 'female' ? 'text-axia-black' : 'text-white'
+                      }`}
+                    >
+                      Femenino
+                    </Text>
+                  </Pressable>
+                  <Pressable
+                    onPress={() => setSelectedStyle('neutral')}
+                    className={`px-4 py-2 rounded-full ${
+                      selectedStyle === 'neutral' ? 'bg-axia-green' : 'bg-axia-darkGray'
+                    }`}
+                  >
+                    <Text
+                      className={`font-primary ${
+                        selectedStyle === 'neutral' ? 'text-axia-black' : 'text-white'
+                      }`}
+                    >
+                      Neutral
+                    </Text>
+                  </Pressable>
+                </ScrollView>
+              </View>
 
               {/* Grid de avatares */}
               {loading ? (
@@ -249,7 +318,7 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
                 </View>
               ) : (
                 <View className="flex-row flex-wrap justify-between">
-                  {avatars.map((avatar) => (
+                  {filteredAvatars.map((avatar) => (
                     <Pressable
                       key={avatar.id}
                       onPress={() => handlePresetSelect(avatar)}
