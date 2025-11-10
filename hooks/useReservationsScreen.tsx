@@ -9,8 +9,9 @@ interface Reservation {
   address: string;
   time: string;
   date: string;
-  status: 'active' | 'completed' | 'cancelled';
+  status: 'active' | 'completed' | 'cancelled' | 'pending';
   spot?: string;
+  realStatus?: ReservationStatus; // Estado real del backend
 }
 
 // Helper para formatear hora
@@ -31,10 +32,17 @@ const transformReservation = (res: ReservationWithRelations): Reservation => {
   const timeStr = `${formatTime(startTime)} - ${formatTime(endTime)}`;
   const dateStr = `${(startTime.getMonth() + 1).toString().padStart(2, '0')}/${startTime.getDate().toString().padStart(2, '0')}/${startTime.getFullYear()}`;
   
-  let status: 'active' | 'completed' | 'cancelled' = 'active';
-  if (res.status === ReservationStatus.COMPLETED) status = 'completed';
-  else if (res.status === ReservationStatus.CANCELED) status = 'cancelled';
-  else if (res.status === ReservationStatus.CONFIRMED || res.status === ReservationStatus.PENDING) status = 'active';
+  // Mapear el estado real del backend
+  let status: 'active' | 'completed' | 'cancelled' | 'pending' = 'active';
+  if (res.status === ReservationStatus.PENDING) {
+    status = 'pending'; // Mostrar como pendiente
+  } else if (res.status === ReservationStatus.CONFIRMED) {
+    status = 'active'; // Confirmada = activa
+  } else if (res.status === ReservationStatus.COMPLETED) {
+    status = 'completed';
+  } else if (res.status === ReservationStatus.CANCELED) {
+    status = 'cancelled';
+  }
   
   return {
     id: res.id,
@@ -43,6 +51,7 @@ const transformReservation = (res: ReservationWithRelations): Reservation => {
     time: timeStr,
     date: dateStr,
     status,
+    realStatus: res.status, // Guardar el estado real del backend
     spot: res.parkingSpot?.spotNumber ? `Puesto ${res.parkingSpot.spotNumber}` : undefined
   };
 };
@@ -65,18 +74,15 @@ export const useReservationsScreen = () => {
 
   // Transformar y separar reservaciones cuando cambien
   useEffect(() => {
-    console.log('🔄 useReservationsScreen - reservations changed:', reservations?.length);
     
     // Verificar que reservations esté definido y sea un array
     if (reservations && Array.isArray(reservations) && reservations.length > 0) {
-      console.log('✅ Procesando reservaciones:', reservations.length);
       
       // Encontrar la última reservación pendiente/confirmada (más reciente)
       const activeRes = reservations
         .filter(r => r.status === ReservationStatus.PENDING || r.status === ReservationStatus.CONFIRMED)
         .sort((a, b) => new Date(b.startTime).getTime() - new Date(a.startTime).getTime())[0];
       
-      console.log('🎯 Reservación activa encontrada:', activeRes?.id);
       setCurrentReservation(activeRes ? transformReservation(activeRes) : null);
       
       // Historial: TODAS las reservas (sin importar el estado)
@@ -90,10 +96,8 @@ export const useReservationsScreen = () => {
           return dateB.getTime() - dateA.getTime();
         });
       
-      console.log('📋 Total en historial:', historyRes.length);
       setReservationHistory(historyRes);
     } else {
-      console.log('⚠️ No hay reservaciones o array vacío');
       setCurrentReservation(null);
       setReservationHistory([]);
     }
@@ -102,8 +106,10 @@ export const useReservationsScreen = () => {
   // Funciones helper para obtener información del estado
   const getStatusText = useCallback((status: string) => {
     switch (status) {
+      case 'pending':
+        return 'Pendiente de confirmación';
       case 'active':
-        return 'Activa';
+        return 'Confirmada';
       case 'completed':
         return 'Finalizada';
       case 'cancelled':
@@ -115,12 +121,14 @@ export const useReservationsScreen = () => {
 
   const getStatusColor = useCallback((status: string) => {
     switch (status) {
+      case 'pending':
+        return '#F59E0B'; // Amarillo/Naranja
       case 'active':
-        return '#10B981';
+        return '#10B981'; // Verde
       case 'completed':
-        return '#6B7280';
+        return '#6B7280'; // Gris
       case 'cancelled':
-        return '#EF4444';
+        return '#EF4444'; // Rojo
       default:
         return '#6B7280';
     }
@@ -128,10 +136,12 @@ export const useReservationsScreen = () => {
 
   const getStatusIcon = useCallback((status: string) => {
     switch (status) {
+      case 'pending':
+        return 'hourglass-outline';
       case 'active':
-        return 'flash';
-      case 'completed':
         return 'checkmark-circle';
+      case 'completed':
+        return 'checkmark-done-circle';
       case 'cancelled':
         return 'close-circle';
       default:
