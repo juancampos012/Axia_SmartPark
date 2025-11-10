@@ -11,7 +11,7 @@ import Input from '../../../../components/atoms/Input';
 import Button from '../../../../components/atoms/Button';
 import Checkbox from '../../../../components/atoms/Checkbox';
 import { createPaymentMethod } from '../../../../libs/paymentMethods';
-import { SavedPaymentMethod, detectCardBrand } from '../../../../interfaces/paymentMethod';
+import { SavedPaymentMethod } from '../../../../interfaces/paymentMethod';
 
 // Esquema de validación con Zod
 const cardSchema = z.object({

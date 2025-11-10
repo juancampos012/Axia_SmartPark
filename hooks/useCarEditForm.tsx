@@ -1,5 +1,5 @@
 // hooks/useCarForm.ts
-import { useForm, Control, FieldErrors } from "react-hook-form";
+import { useForm, FieldErrors } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Alert } from "react-native";
 import { CarEditSchema, CarFormData } from "../schemas/carEditSchema";

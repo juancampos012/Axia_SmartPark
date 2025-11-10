@@ -3,6 +3,7 @@ import { View, Text, ScrollView, Pressable, Image, ActivityIndicator } from 'rea
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useParkingDetail } from '../../../../hooks/useParkingDetail';
 import { ParkingReviewsSection } from '../../../../components/molecules/ParkingReviewsSection';
 import ParkingMapModal from '../../../../components/molecules/parking/ParkingMapModal';
@@ -30,6 +31,33 @@ const ParkingDetail = () => {
     parkingData: params.parkingData
   });
 
+  const onGoBack = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    handleGoBack();
+  };
+
+  const onFavoritePress = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    handleFavoritePress();
+  };
+
+  const onReservePress = async () => {
+    if (!isAvailable) {
+      await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+      return;
+    }
+    await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    handleReservePress();
+  };
+
+  const onViewOnMap = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    handleViewOnMap();
+  };
+
+  const onShare = async () => {
+    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+    handleShare();
   const handleMapPress = () => {
     setShowMapModal(true);
   };
@@ -55,7 +83,7 @@ const ParkingDetail = () => {
             {error || 'No se pudo cargar la información del estacionamiento'}
           </Text>
           <Pressable
-            onPress={handleGoBack}
+            onPress={onGoBack}
             className="bg-axia-green px-6 py-3 rounded-xl mt-6"
           >
             <Text className="text-axia-black font-primaryBold">Volver</Text>
@@ -69,27 +97,17 @@ const ParkingDetail = () => {
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         
-        {/* Imagen del estacionamiento */}
+        {/* Imagen */}
         <View className="relative">
-          <Image
-            source={{ uri: parking.image }}
-            className="w-full h-64"
-            resizeMode="cover"
-          />
+          <Image source={{ uri: parking.image }} className="w-full h-64" resizeMode="cover" />
           
-          {/* Overlay con botones */}
+          {/* Overlay */}
           <View className="absolute top-0 left-0 right-0 p-6 flex-row justify-between">
-            <Pressable 
-              onPress={handleGoBack}
-              className="w-10 h-10 rounded-full bg-black/50 items-center justify-center active:scale-95"
-            >
+            <Pressable onPress={onGoBack} className="w-10 h-10 rounded-full bg-black/50 items-center justify-center active:scale-95">
               <Ionicons name="chevron-back" size={24} color="#FFFFFF" />
             </Pressable>
             
-            <Pressable 
-              onPress={handleFavoritePress}
-              className="w-10 h-10 rounded-full bg-black/50 items-center justify-center active:scale-95"
-            >
+            <Pressable onPress={onFavoritePress} className="w-10 h-10 rounded-full bg-black/50 items-center justify-center active:scale-95">
               <Ionicons 
                 name={isFavorite ? "heart" : "heart-outline"} 
                 size={24} 
@@ -98,7 +116,7 @@ const ParkingDetail = () => {
             </Pressable>
           </View>
 
-          {/* Badge de estado */}
+          {/* Estado */}
           <View className="absolute bottom-4 right-4">
             <View className={`px-3 py-1 rounded-full ${
               parking.status === 'OPEN' ? 'bg-axia-green/20' : 
@@ -115,8 +133,8 @@ const ParkingDetail = () => {
           </View>
         </View>
 
+        {/* Info */}
         <View className="flex-1 px-6 py-6">
-          
           {/* Información principal */}
           <View className="mb-6">
             <Text className="text-white text-3xl font-primaryBold mb-2">
@@ -299,34 +317,28 @@ const ParkingDetail = () => {
             </Text>
           </View>
 
-          {/* Reviews Section */}
-          <ParkingReviewsSection
-            parkingId={parking.id}
-            parkingName={parking.name}
-          />
+          {/* Reviews */}
+          <ParkingReviewsSection parkingId={parking.id} parkingName={parking.name} />
 
-          {/* Botones de acción */}
-          <View className="space-y-4 pb-8">
+          {/* Botones */}
+          <View className="space-y-4 pb-8 mt-6">
             <Pressable
-              onPress={handleReservePress}
+              onPress={onReservePress}
               disabled={!isAvailable}
               className={`py-4 rounded-xl items-center shadow-lg active:scale-95 ${
                 !isAvailable ? 'bg-axia-gray/50' : 'bg-axia-green shadow-axia-green/25'
-              }`} 
+              }`}
             >
               <View className="flex-row items-center justify-center">
-                <Ionicons 
-                  name="calendar" 
-                  size={20} 
-                  color={!isAvailable ? "#6B7280" : "#000000"} 
-                />
+                <Ionicons name="calendar" size={20} color={!isAvailable ? "#6B7280" : "#000"} />
                 <Text className={`font-primaryBold text-lg ml-2 ${
                   !isAvailable ? 'text-axia-gray' : 'text-axia-black'
                 }`}>
-                  {!isAvailable ? 
-                    (parking.availableSpots === 0 ? 'Sin espacios disponibles' : 'Estacionamiento cerrado') 
-                    : 'Reservar ahora'
-                  }
+                  {!isAvailable
+                    ? (parking.availableSpots === 0
+                      ? 'Sin espacios disponibles'
+                      : 'Estacionamiento cerrado')
+                    : 'Reservar ahora'}
                 </Text>
               </View>
             </Pressable>
@@ -345,12 +357,12 @@ const ParkingDetail = () => {
               </Pressable>
               
               <Pressable
-                onPress={handleShare}
+                onPress={onShare}
                 className="flex-1 bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 mt-4 ml-4"
               >
                 <View className="flex-row items-center justify-center">
                   <Ionicons name="share-social-outline" size={20} color="#10B981" />
-                  <Text className="text-axia-green font-primaryBold text-lg ml-">
+                  <Text className="text-axia-green font-primaryBold text-lg ml-2">
                     Compartir
                   </Text>
                 </View>

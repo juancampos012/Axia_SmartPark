@@ -59,13 +59,13 @@ const LoginForm: React.FC<LoginFormProps> = ({
         />
       </View>
 
-      {/* Botón de login */}
       <Button
         title="Iniciar sesión"
         onPress={handleSubmit}
         loading={isSubmitting}
         className="w-full mb-8 shadow-lg shadow-axia-green/25"
         size="large"
+        hapticFeedback="light" 
       />
 
       {/* Separador */}

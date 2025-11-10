@@ -1,11 +1,10 @@
 import React from 'react';
-import { View, Text, ScrollView, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList } from 'react-native';
+import { View, Text, TouchableOpacity, RefreshControl, ActivityIndicator, FlatList } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { usePaymentHistory } from '../../../../hooks';
 import { PaymentWithRelations, PaymentStatus } from '../../../../interfaces/payment';
-import CreditCard from '../../../../components/atoms/CreditCard';
 
 const PaymentsHistory = () => {
   const router = useRouter();

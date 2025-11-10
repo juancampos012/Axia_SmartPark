@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import * as Haptics from 'expo-haptics';
 import { useReservationsScreen } from '../../../hooks/useReservationsScreen';
 
 const Reservations = () => {
@@ -16,6 +17,12 @@ const Reservations = () => {
     handleReservationPress,
     handleNewReservation,
   } = useReservationsScreen();
+
+  // Funciones con Haptics
+  const handlePressWithHaptics = (callback: () => void) => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+    callback();
+  };
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
@@ -57,7 +64,7 @@ const Reservations = () => {
 
             {currentReservation ? (
               <Pressable
-                onPress={() => handleReservationPress(currentReservation)}
+                onPress={() => handlePressWithHaptics(() => handleReservationPress(currentReservation))}
                 className="bg-axia-darkGray rounded-2xl p-6 shadow-lg shadow-black/50 active:scale-95 transition-all"
               >
                 {/* Header con icono */}
@@ -162,7 +169,7 @@ const Reservations = () => {
                   Encuentra y reserva tu próximo estacionamiento
                 </Text>
                 <Pressable
-                  onPress={handleNewReservation}
+                  onPress={() => handlePressWithHaptics(handleNewReservation)}
                   className="bg-axia-green px-8 py-4 rounded-xl flex-row items-center shadow-lg shadow-axia-green/25 active:scale-95"
                 >
                   <Ionicons name="add" size={20} color="#000000" />
@@ -188,11 +195,10 @@ const Reservations = () => {
             {reservationHistory.map((reservation, index) => (
               <Pressable
                 key={reservation.id}
-                onPress={() => handleReservationPress(reservation)}
+                onPress={() => handlePressWithHaptics(() => handleReservationPress(reservation))}
                 className="bg-axia-darkGray rounded-2xl p-5 mb-3 shadow-lg shadow-black/30 active:scale-95 transition-all"
               >
                 <View className="flex-row items-start">
-                  {/* Icono del estado */}
                   <View 
                     className="w-10 h-10 rounded-xl items-center justify-center mr-4"
                     style={{ backgroundColor: getStatusColor(reservation.status) + '20' }}
@@ -204,7 +210,6 @@ const Reservations = () => {
                     />
                   </View>
 
-                  {/* Información principal */}
                   <View className="flex-1">
                     <View className="flex-row justify-between items-start mb-2">
                       <Text className="text-white text-lg font-primaryBold flex-1 mr-2">
@@ -244,7 +249,6 @@ const Reservations = () => {
                   </View>
                 </View>
 
-                {/* Línea divisoria sutil */}
                 {index < reservationHistory.length - 1 && (
                   <View className="border-b border-axia-border/20 mt-3" />
                 )}
@@ -263,7 +267,10 @@ const Reservations = () => {
             <Text className="text-axia-gray text-sm font-primary leading-5 mb-4">
               Si tienes problemas con tus reservas, nuestro equipo de soporte está disponible 24/7.
             </Text>
-            <Pressable className="flex-row items-center">
+            <Pressable 
+              className="flex-row items-center"
+              onPress={() => handlePressWithHaptics(() => console.log('Ir a soporte'))}
+            >
               <Text className="text-axia-green text-sm font-primaryBold mr-2">
                 Contactar soporte
               </Text>

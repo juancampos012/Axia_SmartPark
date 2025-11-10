@@ -1,5 +1,6 @@
 import React from 'react';
-import { ActivityIndicator, Text, View, Pressable } from 'react-native';
+import { ActivityIndicator, Text, Pressable } from 'react-native';
+import * as Haptics from 'expo-haptics';
 
 interface ButtonProps {
   title: string | React.ReactNode;
@@ -9,6 +10,7 @@ interface ButtonProps {
   disabled?: boolean;
   loading?: boolean;
   className?: string;
+  hapticFeedback?: boolean | 'light' | 'medium' | 'heavy' | 'success' | 'warning' | 'error';
 }
 
 const Button: React.FC<ButtonProps> = ({
@@ -18,7 +20,8 @@ const Button: React.FC<ButtonProps> = ({
   size = 'medium',
   disabled = false,
   loading = false,
-  className = ''
+  className = '',
+  hapticFeedback = 'light' // Por defecto feedback ligero
 }) => {
   const getSizeStyles = () => {
     switch (size) {
@@ -57,6 +60,48 @@ const Button: React.FC<ButtonProps> = ({
     }
   };
 
+  const triggerHaptic = async (type: string | boolean) => {
+    try {
+      if (type === false) return; // Si está deshabilitado
+      
+      switch (type) {
+        case 'light':
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          break;
+        case 'medium':
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          break;
+        case 'heavy':
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+          break;
+        case 'success':
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+          break;
+        case 'warning':
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Warning);
+          break;
+        case 'error':
+          await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+          break;
+        default:
+          await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+      }
+    } catch (error) {
+      console.log('Haptics no disponibles:', error);
+    }
+  };
+
+  const handlePress = async () => {
+    // Trigger haptic feedback antes de ejecutar la acción
+    if (!disabled && !loading) {
+      await triggerHaptic(hapticFeedback);
+    }
+    
+    if (!disabled && !loading) {
+      onPress();
+    }
+  };
+
   const renderContent = () => {
     if (loading) {
       return (
@@ -82,7 +127,7 @@ const Button: React.FC<ButtonProps> = ({
 
   return (
     <Pressable
-      onPress={onPress}
+      onPress={handlePress}
       disabled={isDisabled}
       className={`
         w-full rounded-xl items-center justify-center 
