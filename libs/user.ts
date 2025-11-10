@@ -1,8 +1,9 @@
 import { UserUpdateDTO } from "../interfaces/User";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
+// import { API_BASE_URL as ENV_API_BASE_URL } from "@env";
 
-const API_BASE_URL = ENV_API_BASE_URL || 'http://172.20.10.4:3001/api';
+// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 
 // Función auxiliar para guardar datos del usuario
 const saveUserData = async (user: any) => {
@@ -80,9 +81,19 @@ export const fetchUserProfile = async (): Promise<any> => {
 
         const responseData = await handleResponse(response);
         
-        // Guardar los datos del usuario actualizados
+        // Mapear assignedParkingId del backend a parkingId del frontend
         if (responseData.success && responseData.data) {
-            await saveUserData(responseData.data);
+            const userData = responseData.data as any;
+            const mappedUserData = {
+                ...userData,
+                parkingId: userData.assignedParkingId || userData.parkingId || null
+            };
+            // Eliminar el campo assignedParkingId si existe
+            delete mappedUserData.assignedParkingId;
+            
+            // Guardar los datos del usuario actualizados
+            await saveUserData(mappedUserData);
+            return mappedUserData;
         }
 
         return responseData.data; // Retornar solo los datos del usuario
@@ -110,9 +121,19 @@ export const updateUserProfile = async (data: UserUpdateDTO): Promise<any> => {
 
         const responseData = await handleResponse(response);
         
-        // Guardar los datos actualizados del usuario
+        // Mapear assignedParkingId del backend a parkingId del frontend
         if (responseData.success && responseData.data) {
-            await saveUserData(responseData.data);
+            const userData = responseData.data as any;
+            const mappedUserData = {
+                ...userData,
+                parkingId: userData.assignedParkingId || userData.parkingId || null
+            };
+            // Eliminar el campo assignedParkingId si existe
+            delete mappedUserData.assignedParkingId;
+            
+            // Guardar los datos actualizados del usuario
+            await saveUserData(mappedUserData);
+            return mappedUserData;
         }
 
         return responseData.data; // Retornar solo los datos actualizados
@@ -200,6 +221,21 @@ export const getUserStats = async (): Promise<any> => {
         throw error;
     }
 };
+
+// Refrescar los datos del perfil del usuario
+export const refreshProfileData = async (): Promise<any> => {
+    try {
+        const updatedProfile = await fetchUserProfile();
+        if (updatedProfile) {
+            await saveUserData(updatedProfile);
+        }
+        return updatedProfile;
+    } catch (error) {
+        console.error("Error al refrescar los datos del perfil:", error);
+        throw error;
+    }
+};
+
 
 // Funciones auxiliares exportadas
 export { getUserData, saveUserData, removeUserData };

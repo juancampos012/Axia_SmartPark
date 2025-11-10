@@ -1,31 +1,41 @@
 import React from 'react';
-import { View, Text, Alert, Pressable } from 'react-native';
-import { router } from 'expo-router';
-import { logout } from '../../../libs/auth';
+import { View, Text, ScrollView, Image } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import SettingsSection from '../../../components/organisms/settings/SettingsSection';
+import { useSettingsScreen } from '../../../hooks/useSettingsScreen';
 
 const Settings = () => {
-  const handleLogout = async () => {
-    try {
-      await logout();
-      router.replace('/');
-    } catch (error: any) {
-      Alert.alert("Error", error.message || "Ocurrió un error al cerrar sesión");
-    }
-  };
+  const {
+    displayName,
+    displayEmail,
+    accountItems,
+    applicationItems,
+  } = useSettingsScreen();
 
   return (
-    <View className="flex-1 items-center justify-center bg-axia-black">
-      <Text className="text-2xl font-secondary text-axia-green">Ajustes</Text>
+    <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        {/* Header with User Profile */}
+        <View className="px-4 py-6 items-center">
+          <Image
+            source={require('../../../assets/icon.png')}
+            className="w-24 h-24 rounded-full mb-4"
+          />
+          <Text className="text-white text-xl font-semibold font-secondary">
+            {displayName}
+          </Text>
+          <Text className="text-axia-gray text-sm font-primary mt-1">
+            {displayEmail}
+          </Text>
+        </View>
 
-      <Pressable
-        onPress={handleLogout}
-        className="bg-red-600 px-6 py-3 rounded-lg"
-      >
-        <Text className="text-white text-lg font-semibold text-center">
-          Cerrar sesión
-        </Text>
-      </Pressable>
-    </View>
+        {/* Settings Sections */}
+        <View className="px-4 pb-8">
+          <SettingsSection title="Cuenta" items={accountItems} />
+          <SettingsSection title="Aplicación" items={applicationItems} />
+        </View>
+      </ScrollView>
+    </SafeAreaView>
   );
 };
 

@@ -4,7 +4,7 @@
     "slug": "AxiaSmartPark",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/icon.png",
+  "icon": "./assets/Axia_icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
     "scheme": "AxiaSmartPark",
@@ -14,16 +14,25 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
+      "icon": "./assets/Axia_icon.png",
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.AxiaSmartPark"
+      "bundleIdentifier": "com.anonymous.AxiaSmartPark",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte los parqueaderos más cercanos y calcular distancias precisas.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Axia SmartPark necesita acceso a tu ubicación para mostrarte parqueaderos cercanos."
+      }
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/adaptive-icon.png",
-        "backgroundColor": "#ffffff"
+        "foregroundImage": "./assets/Axia_icon.png",
+        "backgroundColor": "#10B981"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.AxiaSmartPark"
+      "package": "com.anonymous.AxiaSmartPark",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -31,7 +40,22 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
-    ]
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permite a $(PRODUCT_NAME) acceder a tu ubicación para mostrarte parqueaderos cercanos.",
+          "locationWhenInUsePermission": "Permite a $(PRODUCT_NAME) acceder a tu ubicación mientras usas la app.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
+    ],
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "9361cb13-b2e6-42c9-b3b9-f47f392079bf"
+      }
+    }
   }
 }

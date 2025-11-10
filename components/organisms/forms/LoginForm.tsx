@@ -1,12 +1,11 @@
 import React from 'react';
-import { View, Text, Pressable, Alert } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useForm, Controller } from 'react-hook-form';
+import { Controller } from 'react-hook-form';
+import { router } from 'expo-router';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
-import { LoginDTO } from '../../../interfaces/Auth';
-import { loginAuth } from '../../../libs/auth';
-import { router } from 'expo-router';
+import { useLoginForm } from '../../../hooks/useLoginForm';
 
 interface LoginFormProps {
   onSuccess?: () => void;
@@ -21,24 +20,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
   onGooglePress,
   onFacebookPress
 }) => {
-  const { control, handleSubmit, formState: { errors, isSubmitting } } = useForm<LoginDTO>({
-    defaultValues: {
-      email: '',
-      password: ''
-    }
-  });
-
-  const submitForm = async (data: LoginDTO) => {
-    try {
-      await loginAuth(data);
-      router.dismissAll();
-      router.replace('/(tabs)/home');
-      if (onSuccess) onSuccess();
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert("Error de inicio de sesión", error.message || "Correo o contraseña incorrectos");
-    }
-  };
+  const { control, errors, isSubmitting, handleSubmit } = useLoginForm({ onSuccess });
 
   return (
     <View className="w-full">
@@ -47,13 +29,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Controller
           control={control}
           name="email"
-          rules={{
-            required: 'El email es obligatorio',
-            pattern: {
-              value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
-              message: 'Email inválido'
-            }
-          }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Correo electrónico"
@@ -70,7 +45,6 @@ const LoginForm: React.FC<LoginFormProps> = ({
         <Controller
           control={control}
           name="password"
-          rules={{ required: 'La contraseña es obligatoria' }}
           render={({ field: { onChange, value } }) => (
             <Input
               placeholder="Contraseña"
@@ -88,7 +62,7 @@ const LoginForm: React.FC<LoginFormProps> = ({
       {/* Botón de login */}
       <Button
         title="Iniciar sesión"
-        onPress={handleSubmit(submitForm)}
+        onPress={handleSubmit}
         loading={isSubmitting}
         className="w-full mb-8 shadow-lg shadow-axia-green/25"
         size="large"

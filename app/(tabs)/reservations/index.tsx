@@ -1,104 +1,21 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, Pressable, ScrollView } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-interface Reservation {
-  id: string;
-  parkingName: string;
-  address: string;
-  time: string;
-  date: string;
-  status: 'active' | 'completed' | 'cancelled';
-  spot?: string;
-}
+import { useReservationsScreen } from '../../../hooks/useReservationsScreen';
 
 const Reservations = () => {
-  const router = useRouter();
-
-  const [currentReservation, setCurrentReservation] = useState<Reservation | null>({
-    id: '1',
-    parkingName: 'Parqueadero central',
-    address: 'Cra 23 #54-72',
-    time: '3:00 PM - 5:00 PM',
-    date: '08/17/2025',
-    status: 'active',
-    spot: 'Puesto 23'
-  });
-
-  const [reservationHistory, setReservationHistory] = useState<Reservation[]>([
-    {
-      id: '2',
-      parkingName: 'Estacionamiento La Seriedad',
-      address: 'Av. Principal #123',
-      time: '10:00 AM - 12:00 PM',
-      date: '01/09/2025',
-      status: 'completed'
-    },
-    {
-      id: '3',
-      parkingName: 'Rio Parking',
-      address: 'Calle del Río #45-67',
-      time: '2:00 PM - 4:00 PM',
-      date: '01/09/2025',
-      status: 'cancelled'
-    },
-    {
-      id: '4',
-      parkingName: 'Star Parking',
-      address: 'Diagonal 89 #34-21',
-      time: '9:00 AM - 11:00 AM',
-      date: '01/09/2025',
-      status: 'completed'
-    }
-  ]);
-
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'Activa';
-      case 'completed':
-        return 'Finalizada';
-      case 'cancelled':
-        return 'Cancelada';
-      default:
-        return status;
-    }
-  };
-
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'active':
-        return '#10B981';
-      case 'completed':
-        return '#6B7280';
-      case 'cancelled':
-        return '#EF4444';
-      default:
-        return '#6B7280';
-    }
-  };
-
-  const getStatusIcon = (status: string) => {
-    switch (status) {
-      case 'active':
-        return 'flash';
-      case 'completed':
-        return 'checkmark-circle';
-      case 'cancelled':
-        return 'close-circle';
-      default:
-        return 'help-circle';
-    }
-  };
-
-  const handleReservationPress = (reservation: Reservation) => {
-    router.push({
-      pathname: `/reservations/${reservation.id}`,
-      params: { data: JSON.stringify(reservation) },
-    });
-  };
+  const {
+    currentReservation,
+    reservationHistory,
+    hasActiveReservation,
+    totalHistoryCount,
+    getStatusText,
+    getStatusColor,
+    getStatusIcon,
+    handleReservationPress,
+    handleNewReservation,
+  } = useReservationsScreen();
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
@@ -118,12 +35,24 @@ const Reservations = () => {
               <Text className="text-white text-xl font-primaryBold">
                 Reserva Actual
               </Text>
-              <View className="flex-row items-center bg-axia-green/20 px-3 py-1 rounded-full">
-                <Ionicons name="flash" size={14} color="#10B981" />
-                <Text className="text-axia-green text-sm font-primaryBold ml-1">
-                  En curso
-                </Text>
-              </View>
+              {currentReservation && (
+                <View 
+                  className="flex-row items-center px-3 py-1 rounded-full"
+                  style={{ backgroundColor: getStatusColor(currentReservation.status) + '20' }}
+                >
+                  <Ionicons 
+                    name={getStatusIcon(currentReservation.status)} 
+                    size={14} 
+                    color={getStatusColor(currentReservation.status)} 
+                  />
+                  <Text 
+                    className="text-sm font-primaryBold ml-1"
+                    style={{ color: getStatusColor(currentReservation.status) }}
+                  >
+                    {currentReservation.status === 'pending' ? 'Pendiente' : 'En curso'}
+                  </Text>
+                </View>
+              )}
             </View>
 
             {currentReservation ? (
@@ -133,8 +62,15 @@ const Reservations = () => {
               >
                 {/* Header con icono */}
                 <View className="flex-row items-start mb-4">
-                  <View className="bg-axia-green/20 w-12 h-12 rounded-xl items-center justify-center mr-4">
-                    <Ionicons name="car-sport" size={24} color="#10B981" />
+                  <View 
+                    className="w-12 h-12 rounded-xl items-center justify-center mr-4"
+                    style={{ backgroundColor: getStatusColor(currentReservation.status) + '20' }}
+                  >
+                    <Ionicons 
+                      name="car-sport" 
+                      size={24} 
+                      color={getStatusColor(currentReservation.status)} 
+                    />
                   </View>
                   <View className="flex-1">
                     <Text className="text-white text-xl font-primaryBold mb-1">
@@ -145,6 +81,18 @@ const Reservations = () => {
                     </Text>
                   </View>
                 </View>
+
+                {/* Mensaje de pendiente si aplica */}
+                {currentReservation.status === 'pending' && (
+                  <View className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4">
+                    <View className="flex-row items-center">
+                      <Ionicons name="hourglass-outline" size={16} color="#F59E0B" />
+                      <Text className="text-amber-500 text-sm font-primary ml-2 flex-1">
+                        Esperando confirmación del operador
+                      </Text>
+                    </View>
+                  </View>
+                )}
 
                 {/* Información de tiempo */}
                 <View className="flex-row items-center mb-4">
@@ -172,12 +120,22 @@ const Reservations = () => {
                   
                   <View className="flex-row justify-between items-center">
                     <View className="flex-row items-center">
-                      <Ionicons name="stats-chart" size={16} color="#10B981" />
+                      <Ionicons 
+                        name={getStatusIcon(currentReservation.status)} 
+                        size={16} 
+                        color={getStatusColor(currentReservation.status)} 
+                      />
                       <Text className="text-white font-primary ml-2">Estado</Text>
                     </View>
                     <View className="flex-row items-center">
-                      <View className="w-2 h-2 rounded-full bg-axia-green mr-2" />
-                      <Text className="text-axia-green font-primary">
+                      <View 
+                        className="w-2 h-2 rounded-full mr-2"
+                        style={{ backgroundColor: getStatusColor(currentReservation.status) }}
+                      />
+                      <Text 
+                        className="font-primary"
+                        style={{ color: getStatusColor(currentReservation.status) }}
+                      >
                         {getStatusText(currentReservation.status)}
                       </Text>
                     </View>
@@ -204,7 +162,7 @@ const Reservations = () => {
                   Encuentra y reserva tu próximo estacionamiento
                 </Text>
                 <Pressable
-                  onPress={() => router.push('/(parking)')}
+                  onPress={handleNewReservation}
                   className="bg-axia-green px-8 py-4 rounded-xl flex-row items-center shadow-lg shadow-axia-green/25 active:scale-95"
                 >
                   <Ionicons name="add" size={20} color="#000000" />
@@ -223,7 +181,7 @@ const Reservations = () => {
                 Historial de Reservas
               </Text>
               <Text className="text-axia-gray text-sm font-primary">
-                {reservationHistory.length} reservas
+                {totalHistoryCount} reservas
               </Text>
             </View>
 

@@ -1,9 +1,10 @@
 import React, { useEffect, useRef } from 'react';
-import { Text, View, StatusBar, Animated, Easing, Image } from 'react-native';
+import { Text, View, StatusBar, Animated, Easing, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import Button from '../../components/atoms/Button';
 import { Ionicons } from '@expo/vector-icons';
+import { requestNotificationPermissions } from '../../libs/reservation-notifications';
 
 export default function WelcomeScreen() {
   const router = useRouter();
@@ -14,6 +15,19 @@ export default function WelcomeScreen() {
 
   const handleLoginPress = () => router.push('/(auth)/login');
   const handleRegisterPress = () => router.push('/(auth)/register');
+
+  useEffect(() => {
+    const initNotifications = async () => {
+      const status = await requestNotificationPermissions();
+      if (status !== 'granted') {
+        Alert.alert('Permisos denegados', 'No se podrán recibir notificaciones');
+      } else {
+        console.log('✅ Permisos concedidos');
+      }
+    };
+
+    initNotifications();
+  }, []);
 
   useEffect(() => {
     Animated.parallel([

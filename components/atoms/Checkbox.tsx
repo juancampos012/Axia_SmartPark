@@ -1,6 +1,6 @@
-// components/atoms/Checkbox.tsx
 import React, { useEffect, useState } from "react";
-import { TouchableOpacity, Text, View } from "react-native";
+import { Pressable, View, Text } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
 export interface CheckboxProps {
   value?: boolean;
@@ -9,8 +9,6 @@ export interface CheckboxProps {
   label?: string;
   size?: "sm" | "md" | "lg";
   color?: "green" | "purple" | "blue";
-  boxStyle?: string;
-  labelStyle?: string;
   disabled?: boolean;
   error?: string;
   pressLabel?: boolean;
@@ -23,8 +21,6 @@ const Checkbox: React.FC<CheckboxProps> = ({
   label,
   size = "md",
   color = "green",
-  boxStyle = "",
-  labelStyle = "",
   disabled = false,
   error,
   pressLabel = true,
@@ -45,86 +41,84 @@ const Checkbox: React.FC<CheckboxProps> = ({
     onValueChange?.(next);
   };
 
-  // Size mappings
+  // Size classes para el checkbox
   const sizeClasses = {
-    sm: "w-4 h-4 rounded",
-    md: "w-5 h-5 rounded-md",
-    lg: "w-6 h-6 rounded-md"
+    sm: "w-4 h-4",
+    md: "w-5 h-5",
+    lg: "w-6 h-6"
   };
 
+  // Tamaños de icono
   const iconSizes = {
-    sm: "w-3 h-3",
-    md: "w-4 h-4", 
-    lg: "w-5 h-5"
+    sm: 12,
+    md: 16,
+    lg: 20
   };
 
-  // Color mappings for Axia palette
+  // Color classes para Axia palette
   const colorClasses = {
     green: {
-      checked: "border-axia-green bg-axia-green",
-      unchecked: "border-axia-gray hover:border-axia-darkGray",
+      checked: "bg-axia-green border-axia-green",
+      unchecked: "border-white/40",
     },
     purple: {
-      checked: "border-axia-purple bg-axia-purple", 
-      unchecked: "border-axia-gray hover:border-axia-darkGray",
+      checked: "bg-axia-purple border-axia-purple", 
+      unchecked: "border-white/40",
     },
     blue: {
-      checked: "border-axia-blue bg-axia-blue",
-      unchecked: "border-axia-gray hover:border-axia-darkGray",
+      checked: "bg-axia-blue border-axia-blue",
+      unchecked: "border-white/40",
     }
   };
 
-  const checkboxClasses = `
-    flex items-center justify-center
-    border-2 transition-all duration-200
-    ${disabled ? "opacity-50" : ""}
-    ${checked ? colorClasses[color].checked : colorClasses[color].unchecked}
-    ${sizeClasses[size]}
-    ${boxStyle}
-  `;
-
-  const labelClasses = `
-    text-sm
-    ${disabled ? "text-axia-gray" : "text-axia-black"}
-    ${labelStyle}
-  `;
-
   return (
-    <View className="flex flex-col">
-      <View className="flex flex-row items-center">
-        {/* Checkbox Button */}
-        <TouchableOpacity
+    <View>
+      <View className="flex-row items-center">
+        {/* Checkbox Box */}
+        <Pressable
           onPress={toggle}
           disabled={disabled}
-          className={checkboxClasses}
+          className={`
+            ${sizeClasses[size]}
+            rounded
+            border-2
+            items-center
+            justify-center
+            ${disabled ? "opacity-50" : ""}
+            ${checked ? colorClasses[color].checked : colorClasses[color].unchecked}
+          `}
           accessibilityRole="checkbox"
           accessibilityState={{ checked }}
           accessibilityLabel={label || "Checkbox"}
         >
           {checked && (
-            <View className={`${iconSizes[size]} flex items-center justify-center`}>
-              <Text className="text-axia-white font-bold">✓</Text>
-            </View>
+            <Ionicons 
+              name="checkmark" 
+              size={iconSizes[size]} 
+              color="#FFFFFF" 
+            />
           )}
-        </TouchableOpacity>
+        </Pressable>
 
         {/* Label */}
         {label && (
-          <TouchableOpacity
-            onPress={pressLabel ? toggle : undefined}
-            disabled={!pressLabel || disabled}
-            className={`ml-3 ${!pressLabel || disabled ? "opacity-50" : ""}`}
-          >
-            <Text className={labelClasses}>
+          pressLabel && !disabled ? (
+            <Pressable onPress={toggle} className="ml-3 flex-1">
+              <Text className={`text-sm ${disabled ? "text-axia-gray" : "text-white"}`}>
+                {label}
+              </Text>
+            </Pressable>
+          ) : (
+            <Text className={`text-sm ml-3 flex-1 ${disabled ? "text-axia-gray" : "text-white"}`}>
               {label}
             </Text>
-          </TouchableOpacity>
+          )
         )}
       </View>
 
       {/* Error Message */}
       {error && (
-        <Text className="text-axia-error text-xs mt-1 ml-1">
+        <Text className="text-red-500 text-xs mt-1 ml-1">
           {error}
         </Text>
       )}

@@ -1,52 +1,70 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import React, { useState } from 'react';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Modal, Alert } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
-
-const fetchCarById = async (id: string) => {
-  return {
-    id,
-    brand: 'Toyota',
-    model: 'Swift',
-    year: 2022,
-    plate: 'ABC 123',
-    color: 'Rojo',
-    mileage: 15000,
-  };
-};
-
-interface Car {
-  id: string;
-  brand: string;
-  model: string;
-  year: number;
-  plate: string;
-  color?: string;
-  mileage?: number;
-}
+import MaterialCommunityIcons from '@expo/vector-icons/MaterialCommunityIcons';
+import { useCarDetailScreen } from '../../../../../hooks';
+import { useDeleteVehicle } from '../../../../../hooks/udeDeleteCar';
 
 export default function CarDetails() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ carId: string }>();
-  const [car, setCar] = useState<Car | null>(null);
+  const {
+    car,
+    loading,
+    handleGoBack,
+    handleBackToVehicles,
+  } = useCarDetailScreen();
 
-  useEffect(() => {
-    const loadCar = async () => {
-      if (params.carId) {
-        const data = await fetchCarById(params.carId);
-        setCar(data);
-      }
-    };
-    loadCar();
-  }, [params.carId]);
+  const { isDeleting, confirmDelete } = useDeleteVehicle({
+    onSuccess: handleBackToVehicles,
+  });
+
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isEditing, setIsEditing] = useState(false); // ← Estado de edición agregado
+
+  const handleDeletePress = () => {
+    if (!car) return;
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = () => {
+    if (!car) return;
+    setShowDeleteModal(false);
+    confirmDelete(car as any);
+  };
+
+  const handleEdit = () => {
+    setIsEditing(!isEditing); // ← Toggle del modo edición
+  };
+
+  if (loading) {
+    return (
+      <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
+        <View className="items-center">
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text className="text-white text-lg font-primary mt-4">
+            Cargando información del vehículo...
+          </Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
 
   if (!car) {
     return (
       <SafeAreaView className="flex-1 bg-axia-black items-center justify-center">
         <View className="items-center">
           <Ionicons name="car-sport" size={48} color="#6B7280" />
-          <Text className="text-white text-lg font-primary mt-4">Cargando información del vehículo...</Text>
+          <Text className="text-white text-lg font-primary mt-4 text-center">
+            No se encontró información del vehículo
+          </Text>
+          <Pressable 
+            onPress={handleGoBack}
+            className="bg-axia-green px-6 py-3 rounded-xl mt-6"
+          >
+            <Text className="text-axia-black font-primaryBold">Volver</Text>
+          </Pressable>
         </View>
       </SafeAreaView>
     );
@@ -60,13 +78,55 @@ export default function CarDetails() {
           {/* Header */}
           <View className="flex-row items-center mb-8">
             <Pressable 
-              onPress={() => router.back()}
+              onPress={handleGoBack}
               className="w-10 h-10 rounded-full bg-axia-darkGray items-center justify-center mr-4 active:scale-95"
             >
               <Ionicons name="chevron-back" size={20} color="#FFFFFF" />
             </Pressable>
-            <Text className="text-white text-2xl font-primaryBold">Detalle del Vehículo</Text>
+            
+            <Text className="text-white text-2xl font-primaryBold flex-1">
+              {isEditing ? 'Editar Vehículo' : 'Detalle del Vehículo'} {/* ← Título dinámico */}
+            </Text>
+            
+            {/* Botón de editar/cancelar */}
+            <Pressable 
+              onPress={handleEdit}
+              disabled={isDeleting}
+              className={`w-10 h-10 rounded-full items-center justify-center mr-2 active:scale-95 disabled:opacity-50 ${
+                isEditing ? 'bg-red-500/20 border border-red-500/30' : 'bg-axia-green/20 border border-axia-green/30'
+              }`}
+            >
+              <Ionicons 
+                name={isEditing ? "close" : "create-outline"} 
+                size={16} 
+                color={isEditing ? "#EF4444" : "#10B981"} 
+              />
+            </Pressable>
+            
+            {/* Botón de eliminar (deshabilitado en modo edición) */}
+            <Pressable 
+              onPress={handleDeletePress}
+              disabled={isDeleting || isEditing}
+              className="w-10 h-10 rounded-full bg-red-500/10 border border-red-500/30 items-center justify-center active:scale-95 disabled:opacity-50"
+            >
+              <Ionicons name="trash-outline" size={16} color="#EF4444" />
+            </Pressable>
           </View>
+
+          {/* Banner de modo edición (solo cuando está editando) */}
+          {isEditing && (
+            <View className="bg-axia-green/10 rounded-2xl p-4 mb-6 border border-axia-green/20">
+              <View className="flex-row items-center">
+                <Ionicons name="pencil" size={20} color="#10B981" />
+                <Text className="text-axia-green font-primaryBold ml-2">
+                  Modo edición activado
+                </Text>
+              </View>
+              <Text className="text-axia-gray text-sm font-primary mt-1">
+                Puedes modificar la información de tu vehículo
+              </Text>
+            </View>
+          )}
 
           {/* Icono del vehículo */}
           <View className="items-center mb-8">
@@ -78,10 +138,10 @@ export default function CarDetails() {
           {/* Información principal */}
           <View className="bg-axia-darkGray rounded-2xl p-6 mb-6">
             <Text className="text-white text-2xl font-primaryBold mb-2 text-center">
-              {car.brand} {car.model}
+              {car.carBrand} {car.model}
             </Text>
             <Text className="text-axia-gray text-base font-primary text-center mb-6">
-              {car.year} • {car.color}
+              {car.color}
             </Text>
 
             {/* Detalles en grid */}
@@ -91,15 +151,15 @@ export default function CarDetails() {
                   <Ionicons name="pricetag-outline" size={20} color="#6B7280" />
                   <Text className="text-axia-gray font-primary ml-3">Placa</Text>
                 </View>
-                <Text className="text-white font-primaryBold">{car.plate}</Text>
+                <Text className="text-white font-primaryBold">{car.licensePlate}</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-3 border-b border-axia-gray/20">
                 <View className="flex-row items-center">
-                  <Ionicons name="calendar-outline" size={20} color="#6B7280" />
-                  <Text className="text-axia-gray font-primary ml-3">Año</Text>
+                  <MaterialCommunityIcons name="engine-outline" size={24} color="#6B7280" />
+                  <Text className="text-axia-gray font-primary ml-3">Tipo de motor</Text>
                 </View>
-                <Text className="text-white font-primaryBold">{car.year}</Text>
+                <Text className="text-white font-primaryBold">{car.engineType}</Text>
               </View>
 
               <View className="flex-row justify-between items-center py-3 border-b border-axia-gray/20">
@@ -107,51 +167,85 @@ export default function CarDetails() {
                   <Ionicons name="color-palette-outline" size={20} color="#6B7280" />
                   <Text className="text-axia-gray font-primary ml-3">Color</Text>
                 </View>
-                <Text className="text-white font-primaryBold">{car.color}</Text>
+                <Text className="text-white font-primaryBold">{car.color || 'No especificado'}</Text>
               </View>
-
-              {car.mileage !== undefined && (
-                <View className="flex-row justify-between items-center py-3">
-                  <View className="flex-row items-center">
-                    <Ionicons name="speedometer-outline" size={20} color="#6B7280" />
-                    <Text className="text-axia-gray font-primary ml-3">Kilometraje</Text>
-                  </View>
-                  <Text className="text-white font-primaryBold">{car.mileage.toLocaleString()} km</Text>
-                </View>
-              )}
             </View>
           </View>
 
           {/* Acciones */}
           <View className="space-y-4">
             <Pressable 
-              onPress={() => router.back()} 
-              className="bg-axia-green py-4 rounded-xl items-center mb-6 active:scale-95"
+              onPress={handleBackToVehicles}
+              disabled={isDeleting || isEditing} 
+              className="bg-axia-green py-4 rounded-xl items-center mb-6 active:scale-95 disabled:opacity-50"
             >
-              <Text className="text-axia-black font-primaryBold text-lg">Volver a Mis Vehículos</Text>
+              <Text className="text-axia-black font-primaryBold text-lg">
+                {isDeleting ? 'Eliminando...' : 'Volver a Mis Vehículos'}
+              </Text>
             </Pressable>
             
             <Pressable 
-              onPress={() => console.log('Editar vehículo')}
-              className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95"
+              onPress={handleEdit}
+              disabled={isDeleting}
+              className="bg-axia-darkGray py-4 rounded-xl items-center border border-axia-gray/30 active:scale-95 disabled:opacity-50"
             >
-              <Text className="text-white font-primaryBold text-lg">Editar Información</Text>
+              <Text className="text-white font-primaryBold text-lg">
+                {isEditing ? 'Cancelar Edición' : 'Editar Información'} {/* ← Texto dinámico */}
+              </Text>
             </Pressable>
           </View>
 
-          {/* Información adicional */}
-          <View className="mt-8 p-4 bg-axia-darkGray/50 rounded-xl">
-            <View className="flex-row items-center mb-2">
-              <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
-              <Text className="text-axia-gray font-primaryBold ml-2">Información del vehículo</Text>
+          {/* Información adicional (oculta en modo edición) */}
+          {!isEditing && (
+            <View className="mt-8 p-4 bg-axia-darkGray/50 rounded-xl">
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="information-circle-outline" size={20} color="#6B7280" />
+                <Text className="text-axia-gray font-primaryBold ml-2">Información del vehículo</Text>
+              </View>
+              <Text className="text-axia-gray text-sm font-primary">
+                Este vehículo está registrado en tu cuenta y disponible para realizar reservas en cualquier parqueadero.
+              </Text>
             </View>
-            <Text className="text-axia-gray text-sm font-primary">
-              Este vehículo está registrado en tu cuenta y disponible para realizar reservas en cualquier parqueadero.
-            </Text>
-          </View>
+          )}
 
         </View>
       </ScrollView>
+
+      {/* Modal de confirmación */}
+      <Modal visible={showDeleteModal} transparent animationType="fade">
+        <View className="flex-1 bg-black/50 justify-center items-center px-6">
+          <View className="bg-axia-darkGray rounded-2xl p-6 w-full max-w-sm border border-red-500/20">
+            <View className="items-center mb-6">
+              <View className="w-16 h-16 rounded-full bg-red-500/10 border border-red-500/20 items-center justify-center mb-4">
+                <Ionicons name="trash-outline" size={28} color="#EF4444" />
+              </View>
+              <Text className="text-white text-xl font-primaryBold text-center mb-2">
+                Eliminar Vehículo
+              </Text>
+              <Text className="text-axia-gray text-center text-sm">
+                ¿Estás seguro de eliminar tu {car.carBrand} {car.model} ({car.licensePlate})?
+              </Text>
+            </View>
+            
+            <View className="flex-row space-x-3">
+              <Pressable 
+                onPress={() => setShowDeleteModal(false)}
+                className="flex-1 bg-axia-gray/30 py-3 rounded-xl active:opacity-70"
+              >
+                <Text className="text-white font-primaryBold text-center">Cancelar</Text>
+              </Pressable>
+              <Pressable 
+                onPress={handleConfirmDelete}
+                className="flex-1 bg-red-500 py-3 rounded-xl active:opacity-70"
+              >
+                <Text className="text-white font-primaryBold text-center">
+                  {isDeleting ? 'Eliminando...' : 'Eliminar'}
+                </Text>
+              </Pressable>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
