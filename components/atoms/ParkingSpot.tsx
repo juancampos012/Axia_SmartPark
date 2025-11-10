@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, Pressable, Text } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Ionicons, FontAwesome5 } from '@expo/vector-icons';
 
 interface ParkingSpot {
   id: string;
@@ -51,7 +51,7 @@ const ParkingSpot: React.FC<Props> = ({
     switch (spot.type) {
       case 'car': return 'car-sport';
       case 'motorcycle': return 'bicycle';
-      case 'disabled': return 'wheelchair';
+      case 'disabled': return null; // FontAwesome será usado
       default: return 'car-sport';
     }
   };
@@ -70,11 +70,19 @@ const ParkingSpot: React.FC<Props> = ({
           : 'border-axia-gray/30'
       } ${isAvailable ? 'active:scale-95' : 'opacity-60'}`}
     >
-      <Ionicons
-        name={getTypeIcon() as any}
-        size={iconSizeMap[size]}
-        color={isSelected ? '#10B981' : isAvailable ? getStatusColor() : '#6B7280'}
-      />
+      {spot.type === 'disabled' ? (
+        <FontAwesome5 
+          name="wheelchair" 
+          size={iconSizeMap[size]} 
+          color={isSelected ? '#10B981' : isAvailable ? getStatusColor() : '#6B7280'}
+        />
+      ) : (
+        <Ionicons
+          name={getTypeIcon() as any}
+          size={iconSizeMap[size]}
+          color={isSelected ? '#10B981' : isAvailable ? getStatusColor() : '#6B7280'}
+        />
+      )}
       <Text className={`text-xs font-primaryBold mt-1 ${
         isSelected ? 'text-axia-green' : 
         isAvailable ? 'text-white' : 'text-axia-gray'

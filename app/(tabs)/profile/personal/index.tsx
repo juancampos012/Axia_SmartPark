@@ -36,7 +36,7 @@ const PersonalProfile = () => {
                 {displayName}
               </Text>
               <View className="flex-row items-center bg-axia-green/10 px-4 py-2 rounded-full">
-                <Ionicons name="shield-checkmark" size={16} color="#10B981" />
+                <Ionicons name="shield-checkmark" size={16} color="#006B54" />
                 <Text className="text-axia-green text-sm font-primaryBold ml-2">
                   Cuenta verificada
                 </Text>
@@ -59,7 +59,7 @@ const PersonalProfile = () => {
                 >
                   <View className="flex-row items-center flex-1">
                     <View className="w-10 h-10 bg-axia-green/20 rounded-xl items-center justify-center mr-4">
-                      <Ionicons name={item.icon as any} size={20} color="#10B981" />
+                      <Ionicons name={item.icon as any} size={20} color="#006B54" />
                     </View>
                     <Text className="text-white text-lg font-primary flex-1">
                       {item.title}
@@ -91,7 +91,7 @@ const PersonalProfile = () => {
             </View>
 
             {loading ? (
-              <ActivityIndicator size="large" color="#10B981" />
+              <ActivityIndicator size="large" color="#006B54" />
             ) : userCars.length > 0 ? (
               <View className="space-y-4">
                 {userCars.map((car) => (
@@ -102,7 +102,7 @@ const PersonalProfile = () => {
                   >
                     <View className="flex-row items-center">
                       <View className="w-16 h-16 rounded-xl bg-axia-green/20 items-center justify-center mr-4">
-                        <Ionicons name="car-sport" size={28} color="#10B981" />
+                        <Ionicons name="car-sport" size={28} color="#006B54" />
                       </View>
                       
                       <View className="flex-1">
@@ -135,7 +135,7 @@ const PersonalProfile = () => {
             ) : (
               <View className="bg-axia-darkGray rounded-2xl p-8 items-center">
                 <View className="w-20 h-20 bg-axia-green/10 rounded-full items-center justify-center mb-4">
-                  <Ionicons name="car-outline" size={32} color="#10B981" />
+                  <Ionicons name="car-outline" size={32} color="#006B54" />
                 </View>
                 <Text className="text-white text-lg font-primaryBold text-center mb-2">
                   Aún no tienes vehículos

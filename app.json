@@ -16,7 +16,11 @@
     "ios": {
       "icon": "./assets/Axia_icon.png",
       "supportsTablet": true,
-      "bundleIdentifier": "com.anonymous.AxiaSmartPark"
+      "bundleIdentifier": "com.anonymous.AxiaSmartPark",
+      "infoPlist": {
+        "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte los parqueaderos más cercanos y calcular distancias precisas.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Axia SmartPark necesita acceso a tu ubicación para mostrarte parqueaderos cercanos."
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -24,7 +28,11 @@
         "backgroundColor": "#10B981"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.AxiaSmartPark"
+      "package": "com.anonymous.AxiaSmartPark",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -32,7 +40,16 @@
     },
     "plugins": [
       "expo-router",
-      "expo-font"
+      "expo-font",
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Permite a $(PRODUCT_NAME) acceder a tu ubicación para mostrarte parqueaderos cercanos.",
+          "locationWhenInUsePermission": "Permite a $(PRODUCT_NAME) acceder a tu ubicación mientras usas la app.",
+          "isAndroidBackgroundLocationEnabled": false,
+          "isAndroidForegroundServiceEnabled": false
+        }
+      ]
     ],
     "extra": {
       "router": {},

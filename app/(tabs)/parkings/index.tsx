@@ -9,7 +9,6 @@ import { useParkingsScreen } from '../../../hooks/useParkingsScreen';
 import MapSection from '../../../components/molecules/parking/MapSection';
 import ParkingsFilterSection from '../../../components/organisms/parking/ParkingsFilterSection';
 import ParkingsList from '../../../components/organisms/parking/ParkingsList';
-import { useParkingsScreen } from '../../../hooks/useParkingsScreen';
 
 const statusConfig = {
   OPEN: { label: 'Abierto', color: 'bg-green-500', icon: 'checkmark-circle' },
@@ -37,6 +36,8 @@ export default function ParkingsRoute() {
     loading: userLoading,
     error,
     statistics,
+    hasLocationPermission,
+    requestLocationPermission,
     handleFavoritePress,
     handleParkingPress,
     handleFilterSelect,
@@ -97,6 +98,32 @@ export default function ParkingsRoute() {
                 <Text className="text-axia-gray text-sm font-primary">{statistics.totalParkings} parqueaderos disponibles en tu zona</Text>
               </View>
             </View>
+
+            {/* Banner de permiso de ubicación */}
+            {!hasLocationPermission && (
+              <View className="px-6 mb-6">
+                <Pressable 
+                  onPress={requestLocationPermission}
+                  className="bg-axia-green/20 border-2 border-axia-green rounded-2xl p-4 active:scale-98"
+                >
+                  <View className="flex-row items-center">
+                    <View className="bg-axia-green rounded-full p-3 mr-4">
+                      <Ionicons name="location" size={24} color="#000000" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white font-primaryBold text-base mb-1">
+                        Activa tu ubicación
+                      </Text>
+                      <Text className="text-axia-gray font-primary text-sm">
+                        Te mostraremos los parqueaderos más cercanos y calcularemos distancias precisas
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#10B981" />
+                  </View>
+                </Pressable>
+              </View>
+            )}
+
             <View className="px-6 mb-6">
               <View className="flex-row justify-between bg-axia-darkGray rounded-2xl p-4 shadow-lg shadow-black/50">
                 <View className="items-center flex-1">
@@ -134,7 +161,18 @@ export default function ParkingsRoute() {
                   </View>
                 </View>
               </View>
-              <MapSection parkingCount={parkingData.length} className="mx-4" />
+              <MapSection 
+                parkingCount={parkingData.length} 
+                parkings={parkingData.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  latitude: p.latitude,
+                  longitude: p.longitude,
+                  availableSpots: p.availableSpots,
+                }))}
+                onParkingPress={handleParkingPress}
+                className="mx-4" 
+              />
             </View>
             <View className="mb-6">
               <View className="px-6 mb-5">
@@ -144,14 +182,12 @@ export default function ParkingsRoute() {
             </View>
             <View className="mb-8">
               <View className="px-6 mb-4">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-white text-xl font-primaryBold">Parqueaderos Disponibles</Text>
-                  <View className="flex-row items-center">
-                    <View className="w-2 h-2 bg-axia-green rounded-full mr-2" />
-                    <Text className="text-axia-gray font-primary text-sm">{getOrderText()}</Text>
-                  </View>
+                <Text className="text-white text-xl font-primaryBold mb-3">Parqueaderos Disponibles</Text>
+                <View className="flex-row items-center">
+                  <View className="w-2 h-2 bg-axia-green rounded-full mr-2" />
+                  <Text className="text-axia-gray font-primary text-xs">{getOrderText()}</Text>
                 </View>
-                <Text className="text-axia-gray text-sm font-primary">{parkingData.length} parqueaderos encontrados</Text>
+                <Text className="text-axia-gray text-sm font-primary mt-1">{parkingData.length} parqueaderos encontrados</Text>
               </View>
               <ParkingsList parkings={parkingData} onParkingPress={handleParkingPress} onFavoritePress={handleFavoritePress} />
             </View>
@@ -208,7 +244,7 @@ export default function ParkingsRoute() {
   const currentStatus = statusConfig[parking.status];
   const occupancy = ((parking.totalCapacity - parking.actualCapacity) / parking.totalCapacity) * 100;
 
-  return (
+    return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView 
         className="flex-1" 
@@ -236,7 +272,7 @@ export default function ParkingsRoute() {
           </View>
 
           {/* Ocupación */}
-          <View className="bg-axia-darkGray rounded-xl p-4 mb-4">
+          <View className="bg-axia-darkGray rounded-xl p-4 mb-4 mx-6">
             <View className="flex-row justify-between mb-2">
               <Text className="text-white font-primaryBold">Ocupación</Text>
               <Text className="text-axia-green font-primaryBold">
@@ -255,7 +291,7 @@ export default function ParkingsRoute() {
           </View>
 
           {/* Información */}
-          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4">
+          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4 mx-6">
             <Text className="text-white text-lg font-primaryBold mb-4">
               Información General
             </Text>
@@ -269,7 +305,7 @@ export default function ParkingsRoute() {
           </View>
 
           {/* Tarifas */}
-          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4">
+          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4 mx-6">
             <Text className="text-white text-lg font-primaryBold mb-4">
               Tarifas
             </Text>
@@ -302,7 +338,7 @@ export default function ParkingsRoute() {
           </View>
 
           {/* Cambio rápido de estado */}
-          <View className="bg-axia-darkGray rounded-2xl p-4">
+          <View className="bg-axia-darkGray rounded-2xl p-4 mx-6 mb-6">
             <Text className="text-white text-lg font-primaryBold mb-4">
               Cambio Rápido de Estado
             </Text>
@@ -334,11 +370,13 @@ export default function ParkingsRoute() {
               ))}
             </View>
           </View>
-        </View>
-      </ScrollView>
+
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
+
 
 const InfoRow = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
   <View className="flex-row items-start">
