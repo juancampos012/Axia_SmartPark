@@ -1,90 +1,6 @@
 import { LoginDTO, RegisterDTO, ForgotPasswordDTO, ResetPasswordDTO, LoginResponse } from "../interfaces/Auth";
 import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
-
-// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
-
-// Función auxiliar para manejar respuestas
-const handleResponse = async (response: Response) => {
-    let data;
-    
-    try {
-        const responseText = await response.text();
-        
-        // Intentar parsear como JSON
-        data = responseText ? JSON.parse(responseText) : {};
-    } catch (parseError) {
-        throw new Error(`Error del servidor: respuesta inválida (${response.status})`);
-    }
-    
-    if (!response.ok) {
-        // Handle specific HTTP status codes
-        let errorMessage = data.message || 'Error en la solicitud';
-        let errorDetails = data;
-        
-        switch (response.status) {
-            case 400:
-                errorMessage = data.message || 'Datos de entrada inválidos';
-                break;
-            case 401:
-                // Para errores de autenticación, preservar información adicional como loginAttempts
-                errorMessage = data.message || 'Credenciales incorrectas';
-                if (data.loginAttempts !== undefined) {
-                    errorDetails.loginAttempts = data.loginAttempts;
-                }
-                if (data.maxAttempts !== undefined) {
-                    errorDetails.maxAttempts = data.maxAttempts;
-                }
-                if (data.lockTime !== undefined) {
-                    errorDetails.lockTime = data.lockTime;
-                }
-                if (data.remainingAttempts !== undefined) {
-                    errorDetails.remainingAttempts = data.remainingAttempts;
-                }
-                break;
-            case 409:
-                // Conflict - usually means duplicate email or phone
-                if (data.message?.toLowerCase().includes('email')) {
-                    errorMessage = 'Este email ya está registrado';
-                } else if (data.message?.toLowerCase().includes('phone')) {
-                    errorMessage = 'Este teléfono ya está registrado';
-                } else {
-                    errorMessage = data.message || 'Los datos ya existen en el sistema';
-                }
-                break;
-            case 422:
-                // Validation error
-                if (data.errors && Array.isArray(data.errors)) {
-                    errorMessage = data.errors.join(', ');
-                } else {
-                    errorMessage = data.message || 'Error de validación';
-                }
-                break;
-            case 429:
-                errorMessage = data.message || 'Demasiados intentos. Intenta de nuevo más tarde';
-                if (data.retryAfter) {
-                    errorDetails.retryAfter = data.retryAfter;
-                }
-                break;
-            case 500:
-                errorMessage = 'Error interno del servidor. Intenta de nuevo más tarde';
-                break;
-            default:
-                errorMessage = data.message || `Error: ${response.status}`;
-        }
-        
-        const error = new Error(errorMessage);
-        // Adjuntar información adicional al error
-        (error as any).details = errorDetails;
-        (error as any).status = response.status;
-        (error as any).rawData = data;
-        throw error;
-    }
-    
-    return data;
-};
+import { http, HttpError } from './http-client';
 
 // Función auxiliar para guardar tokens
 const saveTokens = async (tokens: { accessToken: string; refreshToken: string }) => {
@@ -108,15 +24,7 @@ const saveUserData = async (user: any) => {
 // Login
 export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
   try {
-    const response = await fetch(`${API_BASE_URL}/auth/login`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(body),
-    });
-
-    const dataResponse = await handleResponse(response);
+    const dataResponse = await http.post('/auth/login', body, { requiresAuth: false });
 
     if (!dataResponse.data?.tokens?.accessToken || !dataResponse.data?.user) {
       throw new Error("Respuesta inválida del servidor (faltan datos de autenticación)");
@@ -134,13 +42,14 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
     }
 
     return dataResponse;
-  } catch (error: any) {    
+  } catch (error: any) {
     // Si hay información adicional sobre intentos de login, incluirla en el error
-    if (error.details?.loginAttempts !== undefined) {
-      console.log(`Intentos de login: ${error.details.loginAttempts}/${error.details.maxAttempts || 'N/A'}`);
-      error.message += ` (Intento ${error.details.loginAttempts}${error.details.maxAttempts ? `/${error.details.maxAttempts}` : ''})`;
+    if (error instanceof HttpError && error.data?.loginAttempts !== undefined) {
+      const details = error.data;
+      console.log(`Intentos de login: ${details.loginAttempts}/${details.maxAttempts || 'N/A'}`);
+      error.message += ` (Intento ${details.loginAttempts}${details.maxAttempts ? `/${details.maxAttempts}` : ''})`;
     }
-    
+
     throw error;
   }
 };
@@ -149,21 +58,13 @@ export const loginAuth = async (body: LoginDTO): Promise<LoginResponse> => {
 // Register
 export const registerAuth = async (body: RegisterDTO): Promise<{ user: any; verificationRequired?: boolean; message: string }> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/register`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-        
-        const result = await handleResponse(response);
-        
+        const result = await http.post('/auth/register', body, { requiresAuth: false });
+
         // El backend devuelve: { success, message, data: { user, verificationRequired } }
         // Para registro, normalmente no se devuelven tokens inmediatamente si requiere verificación
         const userData = result.data?.user || result.user;
         const verificationRequired = result.data?.verificationRequired;
-        
+
         // Solo guardar tokens si están presentes (login automático después del registro)
         if (result.data?.accessToken && result.data?.refreshToken) {
             await saveTokens({
@@ -175,7 +76,7 @@ export const registerAuth = async (body: RegisterDTO): Promise<{ user: any; veri
             // Guardar solo los datos del usuario sin tokens
             await saveUserData(userData);
         }
-        
+
         return {
             user: userData,
             verificationRequired,
@@ -190,15 +91,7 @@ export const registerAuth = async (body: RegisterDTO): Promise<{ user: any; veri
 // Forgot Password
 export const forgotPassword = async (body: ForgotPasswordDTO): Promise<{ message: string }> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/forgot-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-        
-        const data = await handleResponse(response);
+        const data = await http.post('/auth/forgot-password', body, { requiresAuth: false });
         return data;
     } catch (error) {
         console.error('Error en forgot password:', error);
@@ -209,15 +102,7 @@ export const forgotPassword = async (body: ForgotPasswordDTO): Promise<{ message
 // Reset Password
 export const resetPassword = async (body: ResetPasswordDTO): Promise<{ message: string }> => {
     try {
-        const response = await fetch(`${API_BASE_URL}/auth/reset-password`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(body)
-        });
-        
-        const data = await handleResponse(response);
+        const data = await http.post('/auth/reset-password', body, { requiresAuth: false });
         return data;
     } catch (error) {
         console.error('Error en reset password:', error);
@@ -228,23 +113,17 @@ export const resetPassword = async (body: ResetPasswordDTO): Promise<{ message: 
 // Logout
 export const logout = async (): Promise<void> => {
     try {
-        const token = await AsyncStorage.getItem('accessToken');
         const refreshToken = await AsyncStorage.getItem('refreshToken');
         
-        if (token) {
-            await fetch(`${API_BASE_URL}/auth/logout`, {
-                method: 'POST',
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({ refreshToken })
-            });
+        // Intentar hacer logout en el servidor (ignorar errores)
+        try {
+            await http.post('/auth/logout', { refreshToken });
+        } catch (error) {
+            // Continuar con la limpieza local aunque falle el logout del servidor
         }
-        
+
         // Limpiar tokens y datos locales
         await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
-        await AsyncStorage.getItem("accessToken");
     } catch (error) {
         console.error('Error en logout:', error);
         // Limpiar datos locales aunque falle el logout en el servidor
@@ -253,43 +132,41 @@ export const logout = async (): Promise<void> => {
 };
 
 // Refresh Token
+// NOTA: Esta función es usada internamente por http-client, pero también se exporta
+// para casos especiales donde se necesite forzar un refresh manualmente
 export const refreshToken = async (): Promise<{ accessToken: string; refreshToken: string }> => {
     try {
         const refreshTokenValue = await AsyncStorage.getItem('refreshToken');
-        
+
         if (!refreshTokenValue) {
             console.error('refreshToken: no value found in AsyncStorage');
             throw new Error('No hay refresh token disponible');
         }
-        
-        // Para depuración: no imprimir el token completo por seguridad, solo su longitud
+
         console.log(`refreshToken - found refresh token length: ${refreshTokenValue.length}`);
-        
-        const response = await fetch(`${API_BASE_URL}/auth/refresh`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ refreshToken: refreshTokenValue })
-        });
-        
-    const result = await handleResponse(response);
-    console.log('refreshToken - server result:', result);
-        
+
+        // Usar requiresAuth: false y skipRefreshRetry: true para evitar bucle infinito
+        const result = await http.post('/auth/refresh',
+            { refreshToken: refreshTokenValue },
+            { requiresAuth: false, skipRefreshRetry: true }
+        );
+
+        console.log('refreshToken - server result:', result);
+
         // El backend retorna: { success, message, data: { accessToken, refreshToken } }
         const tokens = {
             accessToken: result.data?.accessToken || result.accessToken,
             refreshToken: result.data?.refreshToken || result.refreshToken
         };
-        
+
         if (!tokens.accessToken || !tokens.refreshToken) {
             console.error('Tokens inválidos recibidos del refresh:', result);
             throw new Error('No se recibieron tokens válidos del servidor');
         }
-        
+
         // Actualizar tokens
         await saveTokens(tokens);
-        
+
         return tokens;
     } catch (error) {
         console.error('Error refrescando token:', error);

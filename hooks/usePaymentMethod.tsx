@@ -1,11 +1,12 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
-import { router } from 'expo-router';
+import { router, useFocusEffect } from 'expo-router';
 import { getUserPaymentMethods } from '../libs/paymentMethods';
 import { createReservationWithPayment, CreateReservationWithPaymentDTO } from '../libs/payments';
 import { SavedCardData, paymentMethodToSavedCard } from '../components/molecules/SavedCard';
 import { PaymentSummaryData } from '../components/molecules/PaymentSummary';
 import { scheduleReservationNotifications, testNotification } from '../libs/reservation-notifications';
+import React from 'react';
 
 interface UsePaymentMethodProps {
   reservationDataRaw: any;
@@ -78,6 +79,15 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
   useEffect(() => {
     loadPaymentMethods();
   }, [loadPaymentMethods]);
+
+  // 🔄 NUEVO: Recargar métodos de pago cuando la pantalla obtiene focus
+  // Esto asegura que después de agregar una tarjeta, la lista se actualice
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('🔄 Pantalla de método de pago obtuvo focus, recargando...');
+      loadPaymentMethods();
+    }, [loadPaymentMethods])
+  );
 
   // Validar datos de reserva
   const validateReservationData = useCallback((): boolean => {

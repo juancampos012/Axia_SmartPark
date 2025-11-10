@@ -1,5 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
+import { useFocusEffect } from 'expo-router';
+import React from 'react';
 import {
   ReservationWithRelations,
   ReservationSearchResult,
@@ -55,13 +57,11 @@ export const useReservationsHistory = ({
       }
       setError(null);
 
-      console.log('🔄 Cargando reservaciones...', { page, pageSize, filters });
       const result: ReservationSearchResult = await fetchMyReservations(page, pageSize, filters);
-      console.log('✅ Reservaciones recibidas:', result);
 
       // Validar que result tenga la estructura esperada
       if (!result || !Array.isArray(result.reservations)) {
-        console.warn('⚠️ Invalid response format from fetchMyReservations:', result);
+        console.warn(' Invalid response format from fetchMyReservations:', result);
         setReservations([]);
         setCurrentPage(1);
         setTotalPages(1);
@@ -70,7 +70,6 @@ export const useReservationsHistory = ({
         return;
       }
 
-      console.log('📊 Total de reservaciones:', result.reservations.length);
 
       if (refresh || page === 1) {
         setReservations(result.reservations);
@@ -85,7 +84,7 @@ export const useReservationsHistory = ({
       setHasMore(result.hasNextPage || false);
 
     } catch (err: any) {
-      console.error('❌ Error loading reservations:', err);
+      console.error('Error loading reservations:', err);
       setError(err.message || 'Error al cargar las reservaciones');
       setReservations([]); // Asegurar que sea un array vacío en caso de error
       Alert.alert('Error', err.message || 'Error al cargar las reservaciones');
@@ -194,6 +193,17 @@ export const useReservationsHistory = ({
     loadReservations(1);
     loadStats();
   }, [filters]); // Se recarga cuando cambian los filtros
+
+  /**
+   * Recargar cuando la pantalla obtiene foco
+   */
+  useFocusEffect(
+    React.useCallback(() => {
+      console.log('Reservations screen focused - reloading data');
+      loadReservations(currentPage, true);
+      loadStats();
+    }, [loadReservations, loadStats, currentPage])
+  );
 
   return {
     // Datos

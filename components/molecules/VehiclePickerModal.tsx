@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
+import { Modal, View, Text, Pressable, ScrollView, Image } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Vehicle {
@@ -9,6 +9,7 @@ interface Vehicle {
   licensePlate: string;
   type: 'car' | 'motorcycle';
   color?: string;
+  image?: string; // URL de la imagen del vehículo
 }
 
 interface Props {
@@ -57,15 +58,31 @@ const VehiclePickerModal: React.FC<Props> = ({
                         : 'border-axia-gray/30 bg-axia-gray/10'
                     } active:scale-95`}
                   >
-                    <View className="flex-row justify-between items-center">
-                      <View className="flex-1">
-                        <View className="flex-row items-center mb-1">
+                    <View className="flex-row items-center">
+                      {/* Imagen o Icono del vehículo */}
+                      {vehicle.image ? (
+                        <View className="w-12 h-12 rounded-full overflow-hidden mr-3 bg-white/90">
+                          <Image 
+                            source={{ uri: vehicle.image }}
+                            className="w-full h-full"
+                            resizeMode="cover"
+                          />
+                        </View>
+                      ) : (
+                        <View className={`w-12 h-12 rounded-full items-center justify-center mr-3 ${
+                          isSelected ? 'bg-axia-green/20' : 'bg-axia-gray/20'
+                        }`}>
                           <Ionicons 
                             name={vehicle.type === 'motorcycle' ? 'bicycle' : 'car-sport'} 
-                            size={16} 
+                            size={24} 
                             color={isSelected ? '#10B981' : '#6B7280'} 
                           />
-                          <Text className={`font-primaryBold text-base ml-2 ${
+                        </View>
+                      )}
+
+                      <View className="flex-1">
+                        <View className="flex-row items-center mb-1">
+                          <Text className={`font-primaryBold text-base ${
                             isSelected ? 'text-axia-green' : 'text-white'
                           }`}>
                             {vehicle.carBrand} {vehicle.model}
@@ -81,6 +98,7 @@ const VehiclePickerModal: React.FC<Props> = ({
                         )}
                       </View>
 
+                      {/* Checkmark si está seleccionado */}
                       {isSelected && (
                         <Ionicons name="checkmark-circle" size={24} color="#10B981" />
                       )}

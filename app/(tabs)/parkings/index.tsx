@@ -28,6 +28,8 @@ export default function ParkingsRoute() {
     loading: userLoading,
     error,
     statistics,
+    hasLocationPermission,
+    requestLocationPermission,
     handleFavoritePress,
     handleParkingPress,
     handleFilterSelect,
@@ -91,6 +93,31 @@ export default function ParkingsRoute() {
               </View>
             </View>
 
+            {/* Banner de permiso de ubicación */}
+            {!hasLocationPermission && (
+              <View className="px-6 mb-6">
+                <Pressable 
+                  onPress={requestLocationPermission}
+                  className="bg-axia-green/20 border-2 border-axia-green rounded-2xl p-4 active:scale-98"
+                >
+                  <View className="flex-row items-center">
+                    <View className="bg-axia-green rounded-full p-3 mr-4">
+                      <Ionicons name="location" size={24} color="#000000" />
+                    </View>
+                    <View className="flex-1">
+                      <Text className="text-white font-primaryBold text-base mb-1">
+                        Activa tu ubicación
+                      </Text>
+                      <Text className="text-axia-gray font-primary text-sm">
+                        Te mostraremos los parqueaderos más cercanos y calcularemos distancias precisas
+                      </Text>
+                    </View>
+                    <Ionicons name="chevron-forward" size={20} color="#10B981" />
+                  </View>
+                </Pressable>
+              </View>
+            )}
+
             <View className="px-6 mb-6">
               <View className="flex-row justify-between bg-axia-darkGray rounded-2xl p-4 shadow-lg shadow-black/50">
                 <View className="items-center flex-1">
@@ -127,7 +154,18 @@ export default function ParkingsRoute() {
                   <Text className="text-axia-green text-sm font-primaryBold ml-1">En tiempo real</Text>
                 </View>
               </View>
-              <MapSection parkingCount={parkingData.length} className="mx-4" />
+              <MapSection 
+                parkingCount={parkingData.length} 
+                parkings={parkingData.map(p => ({
+                  id: p.id,
+                  name: p.name,
+                  latitude: p.latitude,
+                  longitude: p.longitude,
+                  availableSpots: p.availableSpots,
+                }))}
+                onParkingPress={handleParkingPress}
+                className="mx-4" 
+              />
             </View>
 
             <View className="mb-6">
@@ -143,14 +181,12 @@ export default function ParkingsRoute() {
 
             <View className="mb-8">
               <View className="px-6 mb-4">
-                <View className="flex-row items-center justify-between mb-2">
-                  <Text className="text-white text-xl font-primaryBold">Parqueaderos Disponibles</Text>
-                  <View className="flex-row items-center">
-                    <View className="w-2 h-2 bg-axia-green rounded-full mr-2" />
-                    <Text className="text-axia-gray font-primary text-sm">{getOrderText()}</Text>
-                  </View>
+                <Text className="text-white text-xl font-primaryBold mb-3">Parqueaderos Disponibles</Text>
+                <View className="flex-row items-center">
+                  <View className="w-2 h-2 bg-axia-green rounded-full mr-2" />
+                  <Text className="text-axia-gray font-primary text-xs">{getOrderText()}</Text>
                 </View>
-                <Text className="text-axia-gray text-sm font-primary">{parkingData.length} parqueaderos encontrados</Text>
+                <Text className="text-axia-gray text-sm font-primary mt-1">{parkingData.length} parqueaderos encontrados</Text>
               </View>
 
               <ParkingsList
@@ -206,15 +242,98 @@ export default function ParkingsRoute() {
   const currentStatus = statusConfig[parking.status];
   const occupancy = ((parking.totalCapacity - parking.actualCapacity) / parking.totalCapacity) * 100;
 
-  return (
+    return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="px-6 pt-8 pb-4">
-            <Text className="text-white text-3xl font-primaryBold mb-2">Encuentra tu Parqueadero</Text>
+            <View className="mb-3">
+              <Text className="text-white text-3xl font-primaryBold mb-2">
+                Encuentra tu Parqueadero
+              </Text>
+              <Text className="text-axia-gray text-xs font-primary">
+                Espacios disponibles
+              </Text>
+            </View>
+            <View className="flex-1 bg-axia-darkGray rounded-xl p-4">
+              <Ionicons name="layers-outline" size={24} color="#10B981" />
+              <Text className="text-white text-2xl font-primaryBold mt-2">
+                {parking.floors}
+              </Text>
+              <Text className="text-axia-gray text-xs font-primary">
+                Pisos
+              </Text>
+            </View>
           </View>
 
-          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4">
+          {/* Ocupación */}
+          <View className="bg-axia-darkGray rounded-xl p-4 mb-4 mx-6">
+            <View className="flex-row justify-between mb-2">
+              <Text className="text-white font-primaryBold">Ocupación</Text>
+              <Text className="text-axia-green font-primaryBold">
+                {occupancy.toFixed(0)}%
+              </Text>
+            </View>
+            <View className="bg-axia-gray rounded-full h-2 overflow-hidden">
+              <View
+                className="bg-axia-green h-full"
+                style={{ width: `${occupancy}%` }}
+              />
+            </View>
+            <Text className="text-axia-gray text-xs font-primary mt-2">
+              {parking.totalCapacity - parking.actualCapacity} de {parking.totalCapacity} espacios ocupados
+            </Text>
+          </View>
+
+          {/* Información */}
+          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4 mx-6">
+            <Text className="text-white text-lg font-primaryBold mb-4">
+              Información General
+            </Text>
+            <View className="space-y-3">
+              <InfoRow icon="location" label="Dirección" value={parking.address} />
+              <InfoRow icon="time" label="Horario" value={parking.schedule} />
+              {parking.description && (
+                <InfoRow icon="information-circle" label="Descripción" value={parking.description} />
+              )}
+            </View>
+          </View>
+
+          {/* Tarifas */}
+          <View className="bg-axia-darkGray rounded-2xl p-4 mb-4 mx-6">
+            <Text className="text-white text-lg font-primaryBold mb-4">
+              Tarifas
+            </Text>
+            <View className="space-y-3">
+              <TariffRow
+                icon="car-sport"
+                label="Tarifa por hora - Carro"
+                value={`$${parking.hourlyCarRate.toLocaleString()}`}
+              />
+              <TariffRow
+                icon="bicycle"
+                label="Tarifa por hora - Moto"
+                value={`$${parking.hourlyMotorcycleRate.toLocaleString()}`}
+              />
+              {parking.dailyRate && (
+                <TariffRow
+                  icon="calendar"
+                  label="Tarifa diaria"
+                  value={`$${parking.dailyRate.toLocaleString()}`}
+                />
+              )}
+              {parking.monthlyRate && (
+                <TariffRow
+                  icon="calendar-outline"
+                  label="Tarifa mensual"
+                  value={`$${parking.monthlyRate.toLocaleString()}`}
+                />
+              )}
+            </View>
+          </View>
+
+          {/* Cambio rápido de estado */}
+          <View className="bg-axia-darkGray rounded-2xl p-4 mx-6 mb-6">
             <Text className="text-white text-lg font-primaryBold mb-4">
               Cambio Rápido de Estado
             </Text>
@@ -251,3 +370,28 @@ export default function ParkingsRoute() {
     </SafeAreaView>
   );
 }
+
+
+const InfoRow = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
+  <View className="flex-row items-start">
+    <View className="w-8 h-8 bg-axia-green/20 rounded-lg items-center justify-center mr-3">
+      <Ionicons name={icon as any} size={16} color="#10B981" />
+    </View>
+    <View className="flex-1">
+      <Text className="text-axia-gray text-xs font-primary mb-1">{label}</Text>
+      <Text className="text-white font-primary">{value}</Text>
+    </View>
+  </View>
+);
+
+const TariffRow = ({ icon, label, value }: { icon: string; label: string; value: string }) => (
+  <View className="flex-row items-center justify-between">
+    <View className="flex-row items-center flex-1">
+      <View className="w-8 h-8 bg-axia-green/20 rounded-lg items-center justify-center mr-3">
+        <Ionicons name={icon as any} size={16} color="#10B981" />
+      </View>
+      <Text className="text-white font-primary">{label}</Text>
+    </View>
+    <Text className="text-axia-green font-primaryBold">{value}</Text>
+  </View>
+);

@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, ScrollView, Pressable, ActivityIndicator, RefreshControl, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useCarsScreen } from '../../../../hooks/useCarsScreen';
@@ -25,7 +25,7 @@ const AllVehiclesScreen = () => {
     return (
       <SafeAreaView className="flex-1 bg-axia-black">
         <View className="flex-1 justify-center items-center">
-          <ActivityIndicator size="large" color="#10B981" />
+          <ActivityIndicator size="large" color="#006B54" />
           <Text className="text-white/60 mt-4">Cargando vehículos...</Text>
         </View>
       </SafeAreaView>
@@ -109,14 +109,24 @@ const AllVehiclesScreen = () => {
                   className="bg-axia-darkGray rounded-2xl p-4 active:opacity-80 mb-3"
                 >
                   <View className="flex-row items-start">
-                    {/* Icono */}
-                    <View className="bg-axia-green/20 w-14 h-14 rounded-full items-center justify-center mr-4">
-                      <Ionicons 
-                        name={getVehicleIcon(vehicle.type)} 
-                        size={28} 
-                        color="#10B981" 
-                      />
-                    </View>
+                    {/* Imagen o Icono */}
+                    {vehicle.image ? (
+                      <View className="w-14 h-14 rounded-full overflow-hidden mr-4 bg-white/90">
+                        <Image 
+                          source={{ uri: vehicle.image }}
+                          className="w-full h-full"
+                          resizeMode="cover"
+                        />
+                      </View>
+                    ) : (
+                      <View className="bg-axia-green/20 w-14 h-14 rounded-full items-center justify-center mr-4">
+                        <Ionicons 
+                          name={getVehicleIcon(vehicle.type)} 
+                          size={28} 
+                          color="#10B981" 
+                        />
+                      </View>
+                    )}
 
                     {/* Info del vehículo */}
                     <View className="flex-1">

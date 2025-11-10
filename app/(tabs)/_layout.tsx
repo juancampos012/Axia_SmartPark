@@ -1,12 +1,34 @@
-import { Tabs, Redirect } from 'expo-router';
+import { Tabs, Redirect, useRouter } from 'expo-router';
 import { View, Text, ActivityIndicator } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../context/AuthContext';
 import { useEffect } from 'react';
 import * as Haptics from 'expo-haptics'; 
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export default function TabsLayout() {
   const { user, loading, isConnected, isAdminOrOperator, isAdmin, isOperator } = useAuth();
+  const router = useRouter();
+
+  // Verificar periódicamente que haya token válido
+  useEffect(() => {
+    const checkTokenValidity = async () => {
+      const token = await AsyncStorage.getItem('accessToken');
+      const userData = await AsyncStorage.getItem('userData');
+      
+      // Si no hay token o datos de usuario pero estamos en tabs, redirigir a login
+      if (!token || !userData) {
+        console.log('TabsLayout - Token o userData faltante, redirigiendo a login');
+        router.replace('/(auth)/login');
+      }
+    };
+
+    // Verificar inmediatamente y cada 30 segundos
+    checkTokenValidity();
+    const interval = setInterval(checkTokenValidity, 30000);
+    
+    return () => clearInterval(interval);
+  }, []);
 
   useEffect(() => {
     if (!isConnected) {

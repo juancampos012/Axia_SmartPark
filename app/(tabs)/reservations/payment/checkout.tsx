@@ -37,13 +37,14 @@ const CheckoutSuccess = () => {
   }, []);
 
   const handleContinue = () => {
-    // Navegar a parkings limpiando el historial de navegación
-    // navigate() es más inteligente para tabs que push()
-    router.navigate('/(tabs)/parkings');
+    // Limpiar toda la pila de navegación y navegar al tab de parkings
+    router.dismissAll();
+    router.replace('/(tabs)/parkings/');
   };
 
   const handleViewReservation = () => {
-    // Navegar a reservaciones
+    // Limpiar la pila y navegar a reservaciones
+    router.dismissAll();
     router.replace('/(tabs)/reservations');
   };
 
@@ -58,7 +59,7 @@ const CheckoutSuccess = () => {
           className="mb-8"
         >
           <LinearGradient
-            colors={['#10B981', '#059669']}
+            colors={['#006B54', '#005945']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             className="w-32 h-32 rounded-full items-center justify-center shadow-2xl"
@@ -85,7 +86,7 @@ const CheckoutSuccess = () => {
           <View className="w-full bg-axia-darkGray rounded-2xl p-6 mb-8">
             <View className="flex-row items-center mb-4">
               <View className="bg-axia-green/20 w-12 h-12 rounded-full items-center justify-center mr-4">
-                <Ionicons name="receipt-outline" size={24} color="#10B981" />
+                <Ionicons name="receipt-outline" size={24} color="#006B54" />
               </View>
               <View className="flex-1">
                 <Text className="text-axia-gray text-sm font-primary">Número de Orden</Text>
@@ -99,7 +100,7 @@ const CheckoutSuccess = () => {
 
             <View className="flex-row items-center">
               <View className="bg-axia-green/20 w-12 h-12 rounded-full items-center justify-center mr-4">
-                <Ionicons name="time-outline" size={24} color="#10B981" />
+                <Ionicons name="time-outline" size={24} color="#006B54" />
               </View>
               <View className="flex-1">
                 <Text className="text-axia-gray text-sm font-primary">Tiempo estimado</Text>

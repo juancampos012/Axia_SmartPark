@@ -36,7 +36,7 @@ const PaymentMethod = () => {
       {processing && (
         <View className="absolute inset-0 bg-black/70 z-50 justify-center items-center">
           <View className="bg-axia-darkGray rounded-2xl p-6 items-center">
-            <ActivityIndicator size="large" color="#10B981" />
+            <ActivityIndicator size="large" color="#006B54" />
             <Text className="text-white font-primaryBold mt-4">Procesando pago...</Text>
             <Text className="text-axia-gray font-primary mt-2 text-center">
               Por favor espera un momento
@@ -76,7 +76,7 @@ const PaymentMethod = () => {
 
             {loading ? (
               <View className="bg-axia-darkGray rounded-2xl p-8 items-center">
-                <ActivityIndicator size="large" color="#10B981" />
+                <ActivityIndicator size="large" color="#006B54" />
                 <Text className="text-axia-gray text-base font-primary mt-4">
                   Cargando métodos de pago...
                 </Text>
@@ -118,7 +118,7 @@ const PaymentMethod = () => {
               disabled={processing}
               className="flex-row items-center justify-center bg-axia-darkGray/50 rounded-2xl p-4 mt-4 active:opacity-70 border-2 border-dashed border-axia-green/30"
             >
-              <Ionicons name="add-circle-outline" size={24} color="#10B981" />
+              <Ionicons name="add-circle-outline" size={24} color="#006B54" />
               <Text className="text-axia-green text-base font-primaryBold ml-2">
                 Agregar Nueva Tarjeta
               </Text>

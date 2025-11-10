@@ -1,81 +1,20 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { refreshToken } from './auth';
-// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+import { http } from './http-client';
 import { Parking, ParkingDetail, ParkingResponse } from '../interfaces/parking';
 
-// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
-
-// Wrapper para requests autenticados
-async function authenticatedRequest(endpoint: string, options: RequestInit = {}) {
-  let accessToken = await AsyncStorage.getItem('accessToken');
-  const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-  
-  if (!accessToken || !storedRefreshToken) {
-    throw new Error('No authentication tokens found');
-  }
-
-  const makeRequest = async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
-    return response;
-  };
-
-  // Primer intento
-  let response = await makeRequest(accessToken);
-
-  // Si token expiró, hacer refresh
-  if (response.status === 401) {
-    try {
-      console.log('Token expired, refreshing...');
-      const newTokens = await refreshToken();
-      accessToken = newTokens.accessToken;
-      
-      // Reintentar con nuevo token
-      response = await makeRequest(accessToken);
-    } catch (refreshError) {
-      console.error('Error refreshing token:', refreshError);
-      await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
-      throw new Error('Session expired. Please login again.');
-    }
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    let errorMessage = `Error ${response.status}`;
-    
-    try {
-      const errorData = JSON.parse(errorText);
-      errorMessage = errorData.message || errorMessage;
-    } catch {
-      errorMessage = errorText || errorMessage;
-    }
-    
-    throw new Error(errorMessage);
-  }
-
-  return response;
-}
-
-// Obtener todos los parkings
+/**
+ * Obtener todos los parqueaderos
+ */
 export async function fetchAllParkings(): Promise<Parking[]> {
   try {
-    const response = await authenticatedRequest('/parking');
-    const result: ParkingResponse = await response.json();
-    
+    const result: ParkingResponse = await http.get('/parking');
+
     if (!result.success || !result.data || !result.data.results) {
       throw new Error('Invalid response format from server');
     }
-    
+
     const transformedParkings: Parking[] = result.data.results.map(item => {
       const parking = item.parking;
-      
+
       return {
         id: parking.id,
         name: parking.name,
@@ -104,7 +43,7 @@ export async function fetchAllParkings(): Promise<Parking[]> {
         parkingSpots: parking.parkingSpots || []
       };
     });
-    
+
     return transformedParkings;
   } catch (error) {
     console.error('Error fetching parkings:', error);
@@ -112,7 +51,9 @@ export async function fetchAllParkings(): Promise<Parking[]> {
   }
 }
 
-// Obtener parkings cercanos
+/**
+ * Obtener parqueaderos cercanos
+ */
 export async function fetchNearbyParkings(latitude: number, longitude: number, radius?: number): Promise<Parking[]> {
   try {
     const params = new URLSearchParams({
@@ -121,8 +62,7 @@ export async function fetchNearbyParkings(latitude: number, longitude: number, r
       ...(radius && { radius: radius.toString() })
     });
 
-    const response = await authenticatedRequest(`/parking/nearby?${params}`);
-    const result: ParkingResponse = await response.json();
+    const result: ParkingResponse = await http.get(`/parking/nearby?${params}`);
     
     if (!result.success || !result.data || !result.data.results) {
       throw new Error('Invalid response format from server');
@@ -161,11 +101,12 @@ export async function fetchNearbyParkings(latitude: number, longitude: number, r
   }
 }
 
-// Obtener un parqueadero por ID
+/**
+ * Obtener un parqueadero por ID
+ */
 export async function fetchParkingById(parkingId: string): Promise<Parking> {
   try {
-    const response = await authenticatedRequest(`/parking/${parkingId}`);
-    const result = await response.json();
+    const result = await http.get(`/parking/${parkingId}`);
 
     if (!result.success || !result.data) {
       throw new Error(result.message || 'Invalid response format from server');
@@ -211,7 +152,9 @@ export async function fetchParkingById(parkingId: string): Promise<Parking> {
   }
 }
 
-// Función auxiliar para derivar features del parking
+/**
+ * Función auxiliar para derivar features del parking
+ */
 function getFeaturesFromParking(parking: ParkingDetail): string[] {
   const features: string[] = [];
   

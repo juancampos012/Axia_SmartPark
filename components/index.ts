@@ -10,6 +10,10 @@ export { default as ParkingCard } from './molecules/parking/ParkingCard';
 export { default as FilterList } from './molecules/parking/FilterList';
 export { default as MapSection } from './molecules/parking/MapSection';
 export { default as SearchHeader } from './molecules/parking/SearchHeader';
+export { default as ParkingMapView } from './molecules/parking/ParkingMapView';
+export { default as ParkingMapModal } from './molecules/parking/ParkingMapModal';
+export { default as SpotNavigator } from './molecules/parking/SpotNavigator';
+export { default as SpotNavigatorModal } from './molecules/parking/SpotNavigatorModal';
 
 // Organism components exports
 export { default as ParkingsList } from './organisms/parking/ParkingsList';

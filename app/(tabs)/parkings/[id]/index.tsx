@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, ScrollView, Pressable, Image, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLocalSearchParams } from 'expo-router';
@@ -6,9 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useParkingDetail } from '../../../../hooks/useParkingDetail';
 import { ParkingReviewsSection } from '../../../../components/molecules/ParkingReviewsSection';
+import ParkingMapModal from '../../../../components/molecules/parking/ParkingMapModal';
 
 const ParkingDetail = () => {
   const params = useLocalSearchParams<{ id: string; parkingData?: string }>();
+  const [showMapModal, setShowMapModal] = useState(false);
   
   const {
     parking,
@@ -56,6 +58,8 @@ const ParkingDetail = () => {
   const onShare = async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     handleShare();
+  const handleMapPress = () => {
+    setShowMapModal(true);
   };
 
   // Estados de carga y error
@@ -341,7 +345,7 @@ const ParkingDetail = () => {
             
             <View className="flex-row space-x-4">
               <Pressable
-                onPress={onViewOnMap}
+                onPress={handleMapPress}
                 className="flex-1 bg-axia-darkGray py-4 rounded-xl items-center active:scale-95 mt-4 mr-4"
               >
                 <View className="flex-row items-center justify-center">
@@ -367,6 +371,18 @@ const ParkingDetail = () => {
           </View>
         </View>
       </ScrollView>
+
+      {/* Modal de mapa */}
+      {parking && (
+        <ParkingMapModal
+          visible={showMapModal}
+          onClose={() => setShowMapModal(false)}
+          latitude={parking.latitude}
+          longitude={parking.longitude}
+          parkingName={parking.name}
+          address={parking.address}
+        />
+      )}
     </SafeAreaView>
   );
 };

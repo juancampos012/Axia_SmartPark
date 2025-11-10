@@ -1,6 +1,5 @@
-import AsyncStorage from '@react-native-async-storage/async-storage';
-// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
-import { 
+import { http } from './http-client';
+import {
   PaymentMethodResponse,
   PaymentMethodWithStats,
   CreatePaymentMethodDTO,
@@ -9,63 +8,22 @@ import {
 } from '../interfaces/paymentMethod';
 import { ApiResponse } from '../interfaces/ApiTypes';
 
-// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
-
-/**
- * Helper para obtener el token de autenticación
- */
-const getAuthToken = async (): Promise<string> => {
-  const token = await AsyncStorage.getItem('accessToken');
-  if (!token) {
-    throw new Error('No hay sesión activa. Por favor inicia sesión.');
-  }
-  return token;
-};
-
-/**
- * Helper para manejar errores de la API
- */
-const handleApiError = (error: any): never => {
-  if (error.response?.data?.message) {
-    throw new Error(error.response.data.message);
-  }
-  if (error.message) {
-    throw new Error(error.message);
-  }
-  throw new Error('Error al comunicarse con el servidor');
-};
-
 /**
  * Crear un nuevo método de pago
  * POST /api/payment-methods
  */
 export const createPaymentMethod = async (data: CreatePaymentMethodDTO): Promise<PaymentMethodResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
+    const result: ApiResponse<PaymentMethodResponse> = await http.post('/payment-methods', data);
 
-    const result: ApiResponse<PaymentMethodResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al crear el método de pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del método de pago');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error creating payment method:', error);
+    throw error;
   }
 };
 
@@ -75,28 +33,16 @@ export const createPaymentMethod = async (data: CreatePaymentMethodDTO): Promise
  */
 export const getUserPaymentMethods = async (): Promise<PaymentMethodResponse[]> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentMethodResponse[]> = await http.get('/payment-methods');
 
-    const result: ApiResponse<PaymentMethodResponse[]> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener los métodos de pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información de los métodos de pago');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching payment methods:', error);
+    throw error;
   }
 };
 
@@ -106,25 +52,17 @@ export const getUserPaymentMethods = async (): Promise<PaymentMethodResponse[]> 
  */
 export const getDefaultPaymentMethod = async (): Promise<PaymentMethodResponse | null> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods/default`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentMethodResponse | null> = await http.get('/payment-methods/default');
 
-    const result: ApiResponse<PaymentMethodResponse | null> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success) {
       throw new Error(result.message || 'Error al obtener el método de pago por defecto');
     }
 
     // En este caso, result.data puede ser null si no hay método por defecto
     return result.data ?? null;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching default payment method:', error);
+    throw error;
   }
 };
 
@@ -134,28 +72,16 @@ export const getDefaultPaymentMethod = async (): Promise<PaymentMethodResponse |
  */
 export const getPaymentMethodById = async (id: string): Promise<PaymentMethodResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods/${id}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentMethodResponse> = await http.get(`/payment-methods/${id}`);
 
-    const result: ApiResponse<PaymentMethodResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener el método de pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del método de pago');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching payment method by ID:', error);
+    throw error;
   }
 };
 
@@ -165,28 +91,16 @@ export const getPaymentMethodById = async (id: string): Promise<PaymentMethodRes
  */
 export const getPaymentMethodWithStats = async (id: string): Promise<PaymentMethodWithStats> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods/${id}/stats`, {
-      method: 'GET',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentMethodWithStats> = await http.get(`/payment-methods/${id}/stats`);
 
-    const result: ApiResponse<PaymentMethodWithStats> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al obtener el método de pago con estadísticas');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del método de pago con estadísticas');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error fetching payment method with stats:', error);
+    throw error;
   }
 };
 
@@ -196,30 +110,16 @@ export const getPaymentMethodWithStats = async (id: string): Promise<PaymentMeth
  */
 export const updatePaymentMethod = async (id: string, data: UpdatePaymentMethodDTO): Promise<PaymentMethodResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods/${id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`
-      },
-      body: JSON.stringify(data)
-    });
+    const result: ApiResponse<PaymentMethodResponse> = await http.put(`/payment-methods/${id}`, data);
 
-    const result: ApiResponse<PaymentMethodResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al actualizar el método de pago');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del método de pago actualizado');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error updating payment method:', error);
+    throw error;
   }
 };
 
@@ -229,28 +129,16 @@ export const updatePaymentMethod = async (id: string, data: UpdatePaymentMethodD
  */
 export const setDefaultPaymentMethod = async (id: string): Promise<PaymentMethodResponse> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods/${id}/set-default`, {
-      method: 'PATCH',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<PaymentMethodResponse> = await http.patch(`/payment-methods/${id}/set-default`, {});
 
-    const result: ApiResponse<PaymentMethodResponse> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success || !result.data) {
       throw new Error(result.message || 'Error al establecer el método de pago por defecto');
-    }
-
-    if (!result.data) {
-      throw new Error('No se recibió información del método de pago actualizado');
     }
 
     return result.data;
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error setting default payment method:', error);
+    throw error;
   }
 };
 
@@ -260,21 +148,13 @@ export const setDefaultPaymentMethod = async (id: string): Promise<PaymentMethod
  */
 export const deletePaymentMethod = async (id: string): Promise<void> => {
   try {
-    const token = await getAuthToken();
-    
-    const response = await fetch(`${API_BASE_URL}/payment-methods/${id}`, {
-      method: 'DELETE',
-      headers: {
-        'Authorization': `Bearer ${token}`
-      }
-    });
+    const result: ApiResponse<void> = await http.delete(`/payment-methods/${id}`);
 
-    const result: ApiResponse<void> = await response.json();
-
-    if (!response.ok || !result.success) {
+    if (!result.success) {
       throw new Error(result.message || 'Error al eliminar el método de pago');
     }
   } catch (error) {
-    return handleApiError(error);
+    console.error('Error deleting payment method:', error);
+    throw error;
   }
 };

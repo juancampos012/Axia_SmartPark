@@ -1,5 +1,5 @@
-import React, { useEffect, useRef } from 'react';
-import { View, Animated, Easing } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import { View, Text, Animated, Easing } from 'react-native';
 import { useRouter } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -7,6 +7,7 @@ import { Svg, Path } from 'react-native-svg';
 
 export default function SplashScreen() {
   const router = useRouter();
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true);
 
   const triangle1Anim = useRef(new Animated.Value(0)).current;
   const triangle2Anim = useRef(new Animated.Value(0)).current;
@@ -22,11 +23,47 @@ export default function SplashScreen() {
   const letterA2Anim = useRef(new Animated.Value(0)).current;
   const smartparkAnim = useRef(new Animated.Value(0)).current;
 
+  // Verificar si hay sesión activa al cargar
   useEffect(() => {
-    const checkAccessToken = async () => {
-      await AsyncStorage.getItem("accessToken");
+    const checkAuthStatus = async () => {
+      try {
+        const accessToken = await AsyncStorage.getItem('accessToken');
+        const userData = await AsyncStorage.getItem('userData');
+        
+        // Si hay token y datos de usuario, hay una sesión activa
+        const hasActiveSession = !!accessToken && !!userData;
+        
+        console.log('🔍 Splash - Verificando sesión:', { 
+          hasToken: !!accessToken, 
+          hasUserData: !!userData,
+          hasActiveSession 
+        });
+
+        setIsCheckingAuth(false);
+        
+        // Esperar un poco para mostrar el splash
+        setTimeout(() => {
+          if (hasActiveSession) {
+            console.log('✅ Sesión activa encontrada, redirigiendo a tabs...');
+            router.replace('/(tabs)/home');
+          } else {
+            console.log('❌ No hay sesión activa, redirigiendo a auth...');
+            router.replace('/(auth)');
+          }
+        }, 2500); // 2.5 segundos de splash
+        
+      } catch (error) {
+        console.error('Error verificando sesión:', error);
+        setIsCheckingAuth(false);
+        
+        // En caso de error, ir a auth por seguridad
+        setTimeout(() => {
+          router.replace('/(auth)');
+        }, 2500);
+      }
     };
-    checkAccessToken();
+
+    checkAuthStatus();
   }, []);
 
   useEffect(() => {
@@ -60,9 +97,6 @@ export default function SplashScreen() {
       Animated.timing(letterA2Anim, { toValue: 1, duration: 200, useNativeDriver: true }),
       Animated.timing(smartparkAnim, { toValue: 1, duration: 250, useNativeDriver: true }),
     ]).start();
-
-    const timer = setTimeout(() => router.replace('/(auth)'), 3000);
-    return () => clearTimeout(timer);
   }, []);
 
   const triangleSizeFactor = 1.5;

@@ -1,16 +1,12 @@
 // libs/reservations.ts
-import AsyncStorage from '@react-native-async-storage/async-storage';
-import { refreshToken } from './auth';
+import { http } from './http-client';
 import {
   ReservationWithRelations,
   ReservationSearchResult,
   UserReservationStats,
   ReservationSearchFilters
 } from '../interfaces/reservation';
-// import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-// const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
-const API_BASE_URL = "https://api.axiasmartpark.lat/api";
 export interface CreateReservationData {
   parkingSpotId: string;
   vehicleId: string;
@@ -34,77 +30,10 @@ export interface ReservationResponse {
   updatedAt: string;
 }
 
-// Wrapper para requests autenticados
-async function authenticatedRequest(endpoint: string, options: RequestInit = {}) {
-  let accessToken = await AsyncStorage.getItem('accessToken');
-  const storedRefreshToken = await AsyncStorage.getItem('refreshToken');
-  
-  if (!accessToken || !storedRefreshToken) {
-    throw new Error('No authentication tokens found');
-  }
-
-  const makeRequest = async (token: string) => {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
-      ...options,
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers,
-      },
-    });
-    return response;
-  };
-
-  // Primer intento
-  let response = await makeRequest(accessToken);
-
-  // Si token expiró, hacer refresh
-  if (response.status === 401) {
-    try {
-      console.log('Token expired, refreshing...');
-      const newTokens = await refreshToken();
-      accessToken = newTokens.accessToken;
-      
-      // Reintentar con nuevo token
-      response = await makeRequest(accessToken);
-    } catch (refreshError) {
-      console.error('Error refreshing token:', refreshError);
-      await AsyncStorage.multiRemove(['accessToken', 'refreshToken', 'userData']);
-      throw new Error('Session expired. Please login again.');
-    }
-  }
-
-  if (!response.ok) {
-    const errorText = await response.text();
-    let errorMessage = `Error ${response.status}`;
-    
-    try {
-      const errorData = JSON.parse(errorText);
-      errorMessage = errorData.message || errorMessage;
-    } catch {
-      errorMessage = errorText || errorMessage;
-    }
-    
-    throw new Error(errorMessage);
-  }
-
-  return response;
-}
-
 // Crear una reserva
 export async function createReservation(reservationData: CreateReservationData): Promise<ReservationResponse> {
   try {
-    const response = await authenticatedRequest('/reservations', {
-      method: 'POST',
-      body: JSON.stringify(reservationData),
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || 'Error creating reservation');
-    }
-
+    const result = await http.post('/reservations', reservationData);
     return result.data;
   } catch (error) {
     console.error('Error creating reservation:', error);
@@ -119,18 +48,11 @@ export async function checkSpotAvailability(
   endTime: string
 ): Promise<{ isAvailable: boolean; conflicts: any[] }> {
   try {
-    const response = await authenticatedRequest('/reservations/availability', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ parkingSpotId, startTime, endTime }),
+    const result = await http.post('/reservations/availability', { 
+      parkingSpotId, 
+      startTime, 
+      endTime 
     });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || 'Error checking availability');
-    }
-
     return result.data;
   } catch (error) {
     console.error('Error checking availability:', error);
@@ -169,18 +91,13 @@ export async function fetchMyReservations(
 
     const url = `/reservations/my?${params.toString()}`;
     
-    const response = await authenticatedRequest(url);
-    const result = await response.json();
+    const result = await http.get(url);
 
     console.log('API Response structure:', { 
       hasData: !!result.data,
       hasDataData: !!result.data?.data,
       hasPagination: !!result.data?.pagination 
     });
-
-    if (!result.success) {
-      throw new Error(result.message || 'Error obteniendo reservaciones');
-    }
 
     // Adaptar la respuesta del backend al formato esperado
     const apiData = result.data;
@@ -211,13 +128,7 @@ export async function fetchMyReservations(
  */
 export async function fetchReservationById(reservationId: string): Promise<ReservationWithRelations> {
   try {
-    const response = await authenticatedRequest(`/reservations/${reservationId}`);
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || 'Error obteniendo reservación');
-    }
-
+    const result = await http.get(`/reservations/${reservationId}`);
     return result.data;
   } catch (error) {
     console.error('Error fetchReservationById:', error);
@@ -230,13 +141,7 @@ export async function fetchReservationById(reservationId: string): Promise<Reser
  */
 export async function fetchMyReservationStats(): Promise<UserReservationStats> {
   try {
-    const response = await authenticatedRequest('/reservations/my/stats');
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || 'Error obteniendo estadísticas');
-    }
-
+    const result = await http.get('/reservations/my/stats');
     return result.data;
   } catch (error) {
     console.error('Error fetchMyReservationStats:', error);
@@ -252,17 +157,7 @@ export async function cancelReservation(
   reason?: string
 ): Promise<ReservationResponse> {
   try {
-    const response = await authenticatedRequest(`/reservations/${reservationId}`, {
-      method: 'DELETE',
-      body: JSON.stringify({ reason }),
-    });
-
-    const result = await response.json();
-
-    if (!result.success) {
-      throw new Error(result.message || 'Error cancelando reservación');
-    }
-
+    const result = await http.patch(`/reservations/${reservationId}/cancel`, { reason });
     return result.data;
   } catch (error) {
     console.error('Error cancelReservation:', error);
