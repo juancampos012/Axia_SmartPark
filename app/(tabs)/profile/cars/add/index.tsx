@@ -14,7 +14,8 @@ export default function AddCarScreen() {
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         className="flex-1"
       >
         <ScrollView

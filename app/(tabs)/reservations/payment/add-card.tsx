@@ -167,7 +167,8 @@ const AddNewCard = () => {
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top']}>
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         {/* Header */}
         <View className="flex-row items-center px-6 py-4 border-b border-axia-gray/20">

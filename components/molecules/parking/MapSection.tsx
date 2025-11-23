@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { View, Text, StyleSheet, Pressable, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import { View, Text, StyleSheet, Pressable, Platform } from 'react-native';
+import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import Card from '../../atoms/Card';
@@ -97,7 +97,7 @@ const MapSection: React.FC<MapSectionProps> = ({
       <Card className="h-64 overflow-hidden">
         <MapView
           style={styles.map}
-          provider={PROVIDER_GOOGLE}
+          provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
           initialRegion={initialRegion}
           showsUserLocation
           showsMyLocationButton

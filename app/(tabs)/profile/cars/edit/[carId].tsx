@@ -10,7 +10,7 @@ export default function EditCarScreen() {
 
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} className="flex-1">
+      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} className="flex-1">
         <ScrollView contentContainerStyle={{ flexGrow: 1 }} className="px-6 py-8" showsVerticalScrollIndicator={false}>
           <View className="mb-12">
             <View className="items-center">

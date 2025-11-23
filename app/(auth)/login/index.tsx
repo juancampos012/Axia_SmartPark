@@ -24,7 +24,8 @@ const Login = () => {
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView 
         className="flex-1" 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
       >
         <ScrollView 
           className="flex-1" 

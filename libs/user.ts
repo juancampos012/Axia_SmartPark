@@ -1,6 +1,26 @@
 import { UserUpdateDTO } from "../interfaces/User";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { http, HttpError } from "./http-client";
+import { http, HttpError, API_BASE_URL } from "./http-client";
+
+/**
+ * Convertir URL relativa a absoluta
+ */
+const makeAbsoluteUrl = (url: string | null): string | null => {
+  if (!url) return url;
+  
+  // Si ya es una URL absoluta, devolverla tal cual
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Obtener la base URL sin el /api al final
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  
+  // Si la URL relativa empieza con /, quitarle el / inicial
+  const relativePath = url.startsWith('/') ? url : `/${url}`;
+  
+  return `${baseUrl}${relativePath}`;
+};
 
 /**
  * Funciones auxiliares para manejo de datos de usuario en AsyncStorage
@@ -44,7 +64,7 @@ const mapUserData = (userData: any) => {
     return {
         ...userData,
         parkingId: userData.assignedParkingId || userData.parkingId || null,
-        avatar: userData.profilePicture || userData.avatar || null
+        avatar: makeAbsoluteUrl(userData.profilePicture || userData.avatar || null)
     };
 };
 

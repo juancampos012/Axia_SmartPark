@@ -1,6 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
-// IMPORTANTE: Asegúrate de importar useFocusEffect desde '@react-navigation/native'
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect } from 'expo-router';
 import { useAuth } from '../context/AuthContext';
 import {
   fetchParkingByIdAdmin,

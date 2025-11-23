@@ -58,9 +58,12 @@ const ParkingDetail = () => {
   const onShare = async () => {
     await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     handleShare();
+  };
+
   const handleMapPress = () => {
     setShowMapModal(true);
   };
+
 
   // Estados de carga y error
   if (loading) {
@@ -93,13 +96,27 @@ const ParkingDetail = () => {
     );
   }
 
+  // Valores seguros (parking ya no es null aquí)
+  const availableSpots = parking.availableSpots ?? 0;
+  const totalCapacity = parking.totalCapacity ?? 0;
+  const hourlyCarRate = parking.hourlyCarRate ?? 0;
+  const hourlyMotorcycleRate = parking.hourlyMotorcycleRate ?? 0;
+  const dailyRateValue = parking.dailyRate ?? 0;
+  const monthlyRateValue = parking.monthlyRate ?? 0;
+
   return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         
         {/* Imagen */}
         <View className="relative">
-          <Image source={{ uri: parking.image }} className="w-full h-64" resizeMode="cover" />
+          {parking.image ? (
+            <Image source={{ uri: parking.image }} className="w-full h-64" resizeMode="cover" />
+          ) : (
+            <View className="w-full h-64 bg-axia-darkGray items-center justify-center">
+              <Ionicons name="image-outline" size={48} color="#6B7280" />
+            </View>
+          )}
           
           {/* Overlay */}
           <View className="absolute top-0 left-0 right-0 p-6 flex-row justify-between">
@@ -175,19 +192,19 @@ const ParkingDetail = () => {
                 Disponibilidad
               </Text>
               <View className={`flex-row items-center px-3 py-1 rounded-full ${
-                parking.availableSpots > 10 ? 'bg-axia-green/20' : 
-                parking.availableSpots > 0 ? 'bg-yellow-500/20' : 'bg-red-500/20'
+                availableSpots > 10 ? 'bg-axia-green/20' : 
+                availableSpots > 0 ? 'bg-yellow-500/20' : 'bg-red-500/20'
               }`}>
                 <View className={`w-2 h-2 rounded-full mr-2 ${
-                  parking.availableSpots > 10 ? 'bg-axia-green' : 
-                  parking.availableSpots > 0 ? 'bg-yellow-500' : 'bg-red-500'
+                  availableSpots > 10 ? 'bg-axia-green' : 
+                  availableSpots > 0 ? 'bg-yellow-500' : 'bg-red-500'
                 }`} />
                 <Text className={`text-sm font-primaryBold ${
-                  parking.availableSpots > 10 ? 'text-axia-green' : 
-                  parking.availableSpots > 0 ? 'text-yellow-500' : 'text-red-500'
+                  availableSpots > 10 ? 'text-axia-green' : 
+                  availableSpots > 0 ? 'text-yellow-500' : 'text-red-500'
                 }`}>
-                  {parking.availableSpots > 10 ? 'Disponible' : 
-                   parking.availableSpots > 0 ? 'Pocos espacios' : 'Completo'}
+                  {availableSpots > 10 ? 'Disponible' : 
+                   availableSpots > 0 ? 'Pocos espacios' : 'Completo'}
                 </Text>
               </View>
             </View>
@@ -197,7 +214,7 @@ const ParkingDetail = () => {
                 Espacios disponibles
               </Text>
               <Text className="text-white font-primaryBold">
-                {parking.availableSpots} / {parking.totalCapacity}
+                {availableSpots} / {totalCapacity}
               </Text>
             </View>
 
@@ -210,13 +227,13 @@ const ParkingDetail = () => {
                 <View className="flex-row justify-between items-center py-1">
                   <Text className="text-axia-gray text-xs font-primary">Total de pisos</Text>
                   <Text className="text-white text-xs font-primaryBold">
-                    {parking.floors} pisos
-                  </Text>
+                      {parking.floors} pisos
+                    </Text>
                 </View>
                 <View className="flex-row justify-between items-center py-1">
                   <Text className="text-axia-gray text-xs font-primary">Capacidad total</Text>
                   <Text className="text-white text-xs font-primaryBold">
-                    {parking.totalCapacity} espacios
+                    {totalCapacity} espacios
                   </Text>
                 </View>
               </View>
@@ -236,7 +253,7 @@ const ParkingDetail = () => {
                   <Text className="text-white font-primary ml-3">Vehículo por hora</Text>
                 </View>
                 <Text className="text-axia-green font-primaryBold text-lg">
-                  COP {parking.hourlyCarRate.toLocaleString()}
+                  COP {hourlyCarRate.toLocaleString()}
                 </Text>
               </View>
               
@@ -246,30 +263,30 @@ const ParkingDetail = () => {
                   <Text className="text-white font-primary ml-3">Motocicleta por hora</Text>
                 </View>
                 <Text className="text-axia-green font-primaryBold text-lg">
-                  COP {parking.hourlyMotorcycleRate.toLocaleString()}
+                  COP {hourlyMotorcycleRate.toLocaleString()}
                 </Text>
               </View>
 
-              {parking.dailyRate > 0 && (
+              {dailyRateValue > 0 && (
                 <View className="flex-row justify-between items-center">
                   <View className="flex-row items-center">
                     <Ionicons name="calendar" size={20} color="#10B981" />
                     <Text className="text-white font-primary ml-3">Tarifa diaria</Text>
                   </View>
                   <Text className="text-axia-green font-primaryBold text-lg">
-                    COP {parking.dailyRate.toLocaleString()}
+                    COP {dailyRateValue.toLocaleString()}
                   </Text>
                 </View>
               )}
 
-              {parking.monthlyRate > 0 && (
+              {monthlyRateValue > 0 && (
                 <View className="flex-row justify-between items-center">
                   <View className="flex-row items-center">
                     <Ionicons name="business" size={20} color="#10B981" />
                     <Text className="text-white font-primary ml-3">Tarifa mensual</Text>
                   </View>
                   <Text className="text-axia-green font-primaryBold text-lg">
-                    COP {parking.monthlyRate.toLocaleString()}
+                    COP {monthlyRateValue.toLocaleString()}
                   </Text>
                 </View>
               )}
@@ -335,7 +352,7 @@ const ParkingDetail = () => {
                   !isAvailable ? 'text-axia-gray' : 'text-axia-black'
                 }`}>
                   {!isAvailable
-                    ? (parking.availableSpots === 0
+                    ? (availableSpots === 0
                       ? 'Sin espacios disponibles'
                       : 'Estacionamiento cerrado')
                     : 'Reservar ahora'}

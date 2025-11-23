@@ -94,7 +94,8 @@ export const EditReviewModal: React.FC<EditReviewModalProps> = ({
       onRequestClose={onClose}
     >
       <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        behavior="padding"
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}
         className="flex-1"
       >
         <Pressable

@@ -9,10 +9,14 @@
  */
 
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import Constants from 'expo-constants';
 import { refreshToken } from './auth';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 
-const API_BASE_URL = ENV_API_BASE_URL || 'https://api.axiasmartpark.lat/api';
+// Leer la URL desde expo-constants (eas.json) o usar fallback
+const API_BASE_URL = 
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_API_BASE_URL || 
+  process.env.EXPO_PUBLIC_API_BASE_URL || 
+  'http://192.168.39.131:3001/api';
 
 /**
  * Opciones de configuración para las peticiones HTTP

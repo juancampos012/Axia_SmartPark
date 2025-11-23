@@ -1,4 +1,24 @@
-import { http, HttpError } from './http-client';
+import { http, HttpError, API_BASE_URL } from './http-client';
+
+/**
+ * Convertir URL relativa a absoluta
+ */
+const makeAbsoluteUrl = (url: string | undefined | null): string | undefined => {
+  if (!url) return url || undefined;
+  
+  // Si ya es una URL absoluta, devolverla tal cual
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Obtener la base URL sin el /api al final
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  
+  // Si la URL relativa empieza con /, quitarle el / inicial
+  const relativePath = url.startsWith('/') ? url : `/${url}`;
+  
+  return `${baseUrl}${relativePath}`;
+};
 
 /**
  * Tipos de datos para vehículos
@@ -30,7 +50,13 @@ export interface UpdateVehicleDTO {
 export async function fetchMyVehicles() {
   try {
     const result = await http.get('/vehicles/my');
-    return result.data;
+    
+    // Convertir las URLs de imágenes a absolutas
+    const vehicles = result.data || [];
+    return vehicles.map((vehicle: any) => ({
+      ...vehicle,
+      image: makeAbsoluteUrl(vehicle.image)
+    }));
   } catch (error) {
     console.error('Error fetching vehicles:', error);
     throw error;
@@ -93,7 +119,14 @@ export async function deleteVehicle(vehicleId: string) {
 export async function updateVehicle(vehicleId: string, body: UpdateVehicleDTO) {
   try {
     const result = await http.put(`/vehicles/${vehicleId}`, body);
-    return result.data;
+    
+    // Convertir la URL de imagen a absoluta si existe
+    const vehicle = result.data;
+    if (vehicle?.image) {
+      vehicle.image = makeAbsoluteUrl(vehicle.image);
+    }
+    
+    return vehicle;
   } catch (error) {
     console.error('Error updating vehicle:', error);
     

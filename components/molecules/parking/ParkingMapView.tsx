@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, Pressable, Linking, Platform, Alert } from 'react-native';
-import MapView, { Marker, PROVIDER_GOOGLE } from 'react-native-maps';
+import MapView, { Marker, PROVIDER_GOOGLE, PROVIDER_DEFAULT } from 'react-native-maps';
 import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 
@@ -117,7 +117,7 @@ const ParkingMapView: React.FC<ParkingMapViewProps> = ({
 
       <MapView
         style={{ flex: 1 }}
-        provider={PROVIDER_GOOGLE}
+        provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : PROVIDER_DEFAULT}
         initialRegion={{
           latitude,
           longitude,

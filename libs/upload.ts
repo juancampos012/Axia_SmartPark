@@ -4,9 +4,33 @@
  * Funciones helper para subir imágenes al servidor
  */
 
-import { http } from './http-client';
+import { http, API_BASE_URL } from './http-client';
 import * as ImagePicker from 'expo-image-picker';
 import { Platform } from 'react-native';
+
+/**
+ * Convertir URL relativa a absoluta
+ * Si la URL ya es absoluta (empieza con http:// o https://), la devuelve tal cual
+ * Si es relativa, le agrega el dominio del API
+ */
+const makeAbsoluteUrl = (url: string): string => {
+  if (!url) return url;
+  
+  // Si ya es una URL absoluta, devolverla tal cual
+  if (url.startsWith('http://') || url.startsWith('https://')) {
+    return url;
+  }
+  
+  // Obtener la base URL sin el /api al final
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  
+  // Si la URL relativa empieza con /, quitarle el / inicial
+  const relativePath = url.startsWith('/') ? url : `/${url}`;
+  
+  console.log('🖼️ Convirtiendo URL:', { original: url, base: baseUrl, result: `${baseUrl}${relativePath}` });
+  
+  return `${baseUrl}${relativePath}`;
+};
 
 /**
  * Interface para avatar de usuario
@@ -195,7 +219,13 @@ export const removeVehicleImage = async (vehicleId: string): Promise<boolean> =>
 export const fetchVehicleAvatars = async (): Promise<VehicleAvatar[]> => {
   try {
     const result = await http.get('/vehicles/avatars/list');
-    return result.data?.avatars || [];
+    const avatars = result.data?.avatars || [];
+    
+    // Convertir todas las URLs a absolutas
+    return avatars.map((avatar: VehicleAvatar) => ({
+      ...avatar,
+      url: makeAbsoluteUrl(avatar.url)
+    }));
   } catch (error) {
     console.error('Error fetching vehicle avatars:', error);
     throw error;
@@ -208,7 +238,13 @@ export const fetchVehicleAvatars = async (): Promise<VehicleAvatar[]> => {
 export const fetchUserAvatars = async (): Promise<UserAvatar[]> => {
   try {
     const result = await http.get('/users/avatars/list');
-    return result.data?.avatars || [];
+    const avatars = result.data?.avatars || [];
+    
+    // Convertir todas las URLs a absolutas
+    return avatars.map((avatar: UserAvatar) => ({
+      ...avatar,
+      url: makeAbsoluteUrl(avatar.url)
+    }));
   } catch (error) {
     console.error('Error fetching user avatars:', error);
     throw error;

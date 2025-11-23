@@ -36,8 +36,8 @@ const PersonalProfile = () => {
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="flex-1 px-6 pt-8">
             {/* Header */}
-            <View className="items-center mb-12">
-              <View className="relative mb-6">
+            <View className="items-center mb-8">
+              <View className="relative mb-4">
                 <Pressable
                   onPress={handleOpenAvatarSelector}
                   className="w-32 h-32 rounded-full border-4 border-axia-green/30 items-center justify-center shadow-2xl active:scale-95"
@@ -62,9 +62,7 @@ const PersonalProfile = () => {
                   <Ionicons name="camera" size={18} color="#000" />
                 </Pressable>
               </View>
-            </View>
 
-            <View className="items-center">
               <Text className="text-white text-3xl font-primaryBold mb-2">
                 {displayName}
               </Text>
@@ -73,12 +71,6 @@ const PersonalProfile = () => {
                 <Text className="text-axia-green text-sm font-primaryBold ml-2">
                   Cuenta verificada
                 </Text>
-                <View className="flex-row items-center bg-axia-green/10 px-4 py-2 rounded-full">
-                  <Ionicons name="shield-checkmark" size={16} color="#006B54" />
-                  <Text className="text-axia-green text-sm font-primaryBold ml-2">
-                    Cuenta verificada
-                  </Text>
-                </View>
               </View>
             </View>
 

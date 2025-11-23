@@ -239,12 +239,15 @@ export default function ParkingsRoute() {
     );
   }
 
+  // Valores seguros para evitar NaN / Infinity en cálculos y llamadas sobre undefined
+  const totalCapacitySafe = parking.totalCapacity ?? 1;
+  const actualCapacitySafe = parking.actualCapacity ?? 0;
+  const occupancy = Math.max(0, Math.min(100, ((totalCapacitySafe - actualCapacitySafe) / totalCapacitySafe) * 100));
   const currentStatus = statusConfig[parking.status];
-  const occupancy = ((parking.totalCapacity - parking.actualCapacity) / parking.totalCapacity) * 100;
 
     return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      <KeyboardAvoidingView className="flex-1" behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <KeyboardAvoidingView className="flex-1" behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
           <View className="px-6 pt-8 pb-4">
             <View className="mb-3">
@@ -308,25 +311,25 @@ export default function ParkingsRoute() {
               <TariffRow
                 icon="car-sport"
                 label="Tarifa por hora - Carro"
-                value={`$${parking.hourlyCarRate.toLocaleString()}`}
+                value={`$${(parking.hourlyCarRate ?? 0).toLocaleString()}`}
               />
               <TariffRow
                 icon="bicycle"
                 label="Tarifa por hora - Moto"
-                value={`$${parking.hourlyMotorcycleRate.toLocaleString()}`}
+                value={`$${(parking.hourlyMotorcycleRate ?? 0).toLocaleString()}`}
               />
               {parking.dailyRate && (
                 <TariffRow
                   icon="calendar"
                   label="Tarifa diaria"
-                  value={`$${parking.dailyRate.toLocaleString()}`}
+                  value={`$${(parking.dailyRate ?? 0).toLocaleString()}`}
                 />
               )}
               {parking.monthlyRate && (
                 <TariffRow
                   icon="calendar-outline"
                   label="Tarifa mensual"
-                  value={`$${parking.monthlyRate.toLocaleString()}`}
+                  value={`$${(parking.monthlyRate ?? 0).toLocaleString()}`}
                 />
               )}
             </View>
