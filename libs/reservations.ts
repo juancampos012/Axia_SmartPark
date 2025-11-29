@@ -164,3 +164,59 @@ export async function cancelReservation(
     throw error;
   }
 }
+
+/**
+ * Obtener reservaciones de un parqueadero específico (para Admin/Operator)
+ * GET /api/reservations/parking/:parkingId
+ */
+export async function fetchReservationsByParking(
+  parkingId: string,
+  page: number = 1,
+  limit: number = 20,
+  filters?: {
+    status?: string | string[];
+    startDate?: string;
+    endDate?: string;
+  }
+): Promise<ReservationSearchResult> {
+  try {
+    const params = new URLSearchParams({
+      page: page.toString(),
+      limit: limit.toString(),
+    });
+
+    if (filters) {
+      if (filters.status) {
+        if (Array.isArray(filters.status)) {
+          params.append('status', filters.status.join(','));
+        } else {
+          params.append('status', filters.status);
+        }
+      }
+      if (filters.startDate) params.append('startDate', filters.startDate);
+      if (filters.endDate) params.append('endDate', filters.endDate);
+    }
+
+    const url = `/reservations/parking/${parkingId}?${params.toString()}`;
+    const result = await http.get(url);
+
+    console.log('📋 fetchReservationsByParking - Response:', {
+      hasData: !!result.data,
+      reservationsCount: result.data?.reservations?.length,
+      total: result.data?.total
+    });
+
+    // Adaptar respuesta del backend
+    return {
+      reservations: result.data.reservations || [],
+      total: result.data.total || 0,
+      totalPages: result.data.totalPages || 1,
+      currentPage: result.data.page || page,
+      hasNextPage: page < (result.data.totalPages || 1),
+      hasPreviousPage: page > 1,
+    };
+  } catch (error) {
+    console.error('❌ Error fetchReservationsByParking:', error);
+    throw error;
+  }
+}

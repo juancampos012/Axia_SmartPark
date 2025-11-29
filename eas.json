@@ -11,7 +11,8 @@
         "buildType": "apk"
       },
       "env": {
-        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.1.1:3001/api"
+        "APP_VARIANT": "development",
+        "EXPO_PUBLIC_API_BASE_URL": "http://192.168.39.131:3001/api"
       }
     },
     "preview": {
@@ -20,6 +21,7 @@
         "buildType": "apk"
       },
       "env": {
+        "APP_VARIANT": "preview",
         "EXPO_PUBLIC_API_BASE_URL": "https://api.axiasmartpark.lat/api"
       }
     },
@@ -29,6 +31,7 @@
         "buildType": "apk"
       },
       "env": {
+        "APP_VARIANT": "production",
         "EXPO_PUBLIC_API_BASE_URL": "https://api.axiasmartpark.lat/api"
       }
     }

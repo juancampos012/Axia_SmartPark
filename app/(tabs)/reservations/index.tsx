@@ -1,22 +1,105 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView } from 'react-native';
+import { View, Text, Pressable, FlatList, ActivityIndicator, ListRenderItem } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
+import { useRouter } from 'expo-router';
+import { useAuth } from '../../../context/AuthContext';
 import { useReservationsScreen } from '../../../hooks/useReservationsScreen';
+import { useParkingReservations } from '../../../hooks/useParkingReservations';
+import { ReservationWithRelations } from '../../../interfaces/reservation';
+
+// Helper para obtener texto del estado
+const getStatusText = (status: string) => {
+  switch (status) {
+    case 'PENDING': return 'Pendiente';
+    case 'CONFIRMED': return 'Confirmada';
+    case 'COMPLETED': return 'Finalizada';
+    case 'CANCELED': return 'Cancelada';
+    default: return status;
+  }
+};
+
+// Helper para obtener color del estado
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'PENDING': return '#F59E0B';
+    case 'CONFIRMED': return '#10B981';
+    case 'COMPLETED': return '#6B7280';
+    case 'CANCELED': return '#EF4444';
+    default: return '#6B7280';
+  }
+};
+
+// Helper para obtener icono del estado
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'PENDING': return 'hourglass-outline';
+    case 'CONFIRMED': return 'checkmark-circle';
+    case 'COMPLETED': return 'checkmark-done-circle';
+    case 'CANCELED': return 'close-circle';
+    default: return 'help-circle';
+  }
+};
+
+// Helper para formatear fecha
+const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  const day = date.getDate().toString().padStart(2, '0');
+  const month = (date.getMonth() + 1).toString().padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
+
+// Helper para formatear hora
+const formatTime = (dateString: string) => {
+  const date = new Date(dateString);
+  const hours = date.getHours();
+  const minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'PM' : 'AM';
+  const displayHours = hours % 12 || 12;
+  const displayMinutes = minutes.toString().padStart(2, '0');
+  return `${displayHours}:${displayMinutes} ${ampm}`;
+};
 
 const Reservations = () => {
+  const router = useRouter();
+  const { isAdminOrOperator, parkingId } = useAuth();
+
+  // Hooks
+  const userReservations = useReservationsScreen();
+  const parkingReservations = useParkingReservations();
+
+  // Usar el hook apropiado según el rol
+  const isAdmin = isAdminOrOperator;
   const {
-    currentReservation,
-    reservationHistory,
-    hasActiveReservation,
-    totalHistoryCount,
-    getStatusText,
-    getStatusColor,
-    getStatusIcon,
-    handleReservationPress,
-    handleNewReservation,
-  } = useReservationsScreen();
+    reservations: allReservations,
+    loading,
+    refreshing,
+    loadingMore,
+    hasMore,
+    handleRefresh,
+    loadMore,
+    totalCount
+  } = isAdmin ? {
+    reservations: parkingReservations.reservations,
+    loading: parkingReservations.loading,
+    refreshing: parkingReservations.refreshing,
+    loadingMore: parkingReservations.loadingMore,
+    hasMore: parkingReservations.hasMore,
+    handleRefresh: parkingReservations.handleRefresh,
+    loadMore: parkingReservations.loadMore,
+    totalCount: parkingReservations.totalCount
+  } : {
+    reservations: userReservations.reservationHistory,
+    loading: userReservations.loading,
+    refreshing: userReservations.refreshing,
+    loadingMore: false,
+    hasMore: false,
+    handleRefresh: userReservations.handleRefresh,
+    loadMore: () => {},
+    totalCount: userReservations.totalHistoryCount
+  };
 
   // Funciones con Haptics
   const handlePressWithHaptics = (callback: () => void) => {
@@ -24,262 +107,195 @@ const Reservations = () => {
     callback();
   };
 
-  return (
-    <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="flex-1 px-6 pt-8">
-          
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-white text-3xl font-primaryBold mb-2">
-              Mis Reservas
-            </Text>
+  const handleReservationPress = (reservation: any) => {
+    router.push({
+      pathname: `/reservations/${reservation.id}`,
+      params: { data: JSON.stringify(reservation) },
+    });
+  };
+
+  // Renderizar cada reserva
+  const renderReservation: ListRenderItem<ReservationWithRelations | any> = ({ item: reservation }) => {
+    // Determinar el nombre del parqueadero
+    const parkingName = reservation.parkingName || reservation.parkingSpot?.parking?.name || 'Parqueadero';
+    const address = reservation.address || reservation.parkingSpot?.parking?.address || 'Sin dirección';
+    const spotNumber = reservation.spot || (reservation.parkingSpot?.spotNumber ? `Puesto ${reservation.parkingSpot.spotNumber}` : 'N/A');
+    
+    // Determinar tiempo y fecha
+    let time = reservation.time;
+    let date = reservation.date;
+    
+    if (!time && reservation.startTime && reservation.endTime) {
+      time = `${formatTime(reservation.startTime)} - ${formatTime(reservation.endTime)}`;
+    }
+    
+    if (!date && reservation.startTime) {
+      date = formatDate(reservation.startTime);
+    }
+
+    // Usuario (solo para admin)
+    const userName = isAdmin && reservation.user
+      ? `${reservation.user.name} ${reservation.user.lastName || ''}`
+      : null;
+    
+    const status = reservation.realStatus || reservation.status;
+
+    return (
+      <Pressable
+        onPress={() => handlePressWithHaptics(() => handleReservationPress(reservation))}
+        className="bg-axia-darkGray rounded-2xl p-5 mb-3 shadow-lg shadow-black/30 active:scale-95"
+      >
+        <View className="flex-row items-start">
+          <View 
+            className="w-10 h-10 rounded-xl items-center justify-center mr-4"
+            style={{ backgroundColor: getStatusColor(status) + '20' }}
+          >
+            <Ionicons 
+              name={getStatusIcon(status)} 
+              size={20} 
+              color={getStatusColor(status)} 
+            />
           </View>
 
-          {/* Reserva Actual */}
-          <View className="mb-8">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-white text-xl font-primaryBold">
-                Reserva Actual
+          <View className="flex-1">
+            <View className="flex-row justify-between items-start mb-2">
+              <Text className="text-white text-lg font-primaryBold flex-1 mr-2">
+                {parkingName}
               </Text>
-              {currentReservation && (
-                <View 
-                  className="flex-row items-center px-3 py-1 rounded-full"
-                  style={{ backgroundColor: getStatusColor(currentReservation.status) + '20' }}
+              <View 
+                className="px-3 py-1 rounded-full"
+                style={{ backgroundColor: getStatusColor(status) + '20' }}
+              >
+                <Text 
+                  className="text-xs font-primaryBold"
+                  style={{ color: getStatusColor(status) }}
                 >
-                  <Ionicons 
-                    name={getStatusIcon(currentReservation.status)} 
-                    size={14} 
-                    color={getStatusColor(currentReservation.status)} 
-                  />
-                  <Text 
-                    className="text-sm font-primaryBold ml-1"
-                    style={{ color: getStatusColor(currentReservation.status) }}
-                  >
-                    {currentReservation.status === 'pending' ? 'Pendiente' : 'En curso'}
-                  </Text>
-                </View>
-              )}
+                  {getStatusText(status)}
+                </Text>
+              </View>
             </View>
 
-            {currentReservation ? (
-              <Pressable
-                onPress={() => handlePressWithHaptics(() => handleReservationPress(currentReservation))}
-                className="bg-axia-darkGray rounded-2xl p-6 shadow-lg shadow-black/50 active:scale-95 transition-all"
-              >
-                {/* Header con icono */}
-                <View className="flex-row items-start mb-4">
-                  <View 
-                    className="w-12 h-12 rounded-xl items-center justify-center mr-4"
-                    style={{ backgroundColor: getStatusColor(currentReservation.status) + '20' }}
-                  >
-                    <Ionicons 
-                      name="car-sport" 
-                      size={24} 
-                      color={getStatusColor(currentReservation.status)} 
-                    />
-                  </View>
-                  <View className="flex-1">
-                    <Text className="text-white text-xl font-primaryBold mb-1">
-                      {currentReservation.parkingName}
-                    </Text>
-                    <Text className="text-axia-gray text-sm font-primary">
-                      {currentReservation.address}
-                    </Text>
-                  </View>
-                </View>
+            <Text className="text-axia-gray text-sm font-primary mb-2">
+              {address}
+            </Text>
 
-                {/* Mensaje de pendiente si aplica */}
-                {currentReservation.status === 'pending' && (
-                  <View className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-3 mb-4">
-                    <View className="flex-row items-center">
-                      <Ionicons name="hourglass-outline" size={16} color="#F59E0B" />
-                      <Text className="text-amber-500 text-sm font-primary ml-2 flex-1">
-                        Esperando confirmación del operador
-                      </Text>
-                    </View>
-                  </View>
-                )}
-
-                {/* Información de tiempo */}
-                <View className="flex-row items-center mb-4">
-                  <Ionicons name="time-outline" size={16} color="#9CA3AF" />
-                  <Text className="text-white text-base font-primary ml-2 mr-4">
-                    {currentReservation.time}
-                  </Text>
-                  <Ionicons name="calendar-outline" size={16} color="#9CA3AF" />
-                  <Text className="text-axia-gray text-base font-primary ml-2">
-                    {currentReservation.date}
-                  </Text>
-                </View>
-
-                {/* Detalles de la reserva */}
-                <View className="bg-axia-black/50 rounded-xl p-4 mb-4">
-                  <View className="flex-row justify-between items-center mb-3">
-                    <View className="flex-row items-center">
-                      <Ionicons name="pricetag-outline" size={16} color="#10B981" />
-                      <Text className="text-white font-primary ml-2">Espacio</Text>
-                    </View>
-                    <Text className="text-axia-gray font-primary">
-                      {currentReservation.spot}
-                    </Text>
-                  </View>
-                  
-                  <View className="flex-row justify-between items-center">
-                    <View className="flex-row items-center">
-                      <Ionicons 
-                        name={getStatusIcon(currentReservation.status)} 
-                        size={16} 
-                        color={getStatusColor(currentReservation.status)} 
-                      />
-                      <Text className="text-white font-primary ml-2">Estado</Text>
-                    </View>
-                    <View className="flex-row items-center">
-                      <View 
-                        className="w-2 h-2 rounded-full mr-2"
-                        style={{ backgroundColor: getStatusColor(currentReservation.status) }}
-                      />
-                      <Text 
-                        className="font-primary"
-                        style={{ color: getStatusColor(currentReservation.status) }}
-                      >
-                        {getStatusText(currentReservation.status)}
-                      </Text>
-                    </View>
-                  </View>
-                </View>
-
-                {/* Botón de acción */}
-                <View className="flex-row items-center justify-between">
-                  <Text className="text-axia-gray text-sm font-primary">
-                    Toca para ver detalles
-                  </Text>
-                  <Ionicons name="chevron-forward" size={20} color="#9CA3AF" />
-                </View>
-              </Pressable>
-            ) : (
-              <View className="bg-axia-darkGray rounded-2xl p-8 items-center">
-                <View className="bg-axia-black/50 w-20 h-20 rounded-full items-center justify-center mb-4">
-                  <Ionicons name="calendar-outline" size={32} color="#6B7280" />
-                </View>
-                <Text className="text-axia-gray text-lg font-primaryBold text-center mb-2">
-                  No tienes reservas activas
+            {/* Usuario (solo para admin) */}
+            {userName && (
+              <View className="flex-row items-center mb-2">
+                <Ionicons name="person-outline" size={14} color="#6B7280" />
+                <Text className="text-axia-gray text-sm font-primary ml-1">
+                  {userName}
                 </Text>
-                <Text className="text-axia-gray text-sm font-primary text-center mb-6">
-                  Encuentra y reserva tu próximo estacionamiento
-                </Text>
-                <Pressable
-                  onPress={() => handlePressWithHaptics(handleNewReservation)}
-                  className="bg-axia-green px-8 py-4 rounded-xl flex-row items-center shadow-lg shadow-axia-green/25 active:scale-95"
-                >
-                  <Ionicons name="add" size={20} color="#000000" />
-                  <Text className="text-axia-black font-primaryBold ml-2">
-                    Hacer una Reserva
-                  </Text>
-                </Pressable>
               </View>
             )}
-          </View>
 
-          {/* Historial de Reservas */}
-          <View className="mb-8">
-            <View className="flex-row items-center justify-between mb-4">
-              <Text className="text-white text-xl font-primaryBold">
-                Historial de Reservas
-              </Text>
-              <Text className="text-axia-gray text-sm font-primary">
-                {totalHistoryCount} reservas
-              </Text>
+            <View className="flex-row items-center justify-between mb-2">
+              <View className="flex-row items-center flex-1 mr-2">
+                <Ionicons name="time-outline" size={14} color="#6B7280" />
+                <Text className="text-axia-gray text-sm font-primary ml-1" numberOfLines={1}>
+                  {time || 'N/A'}
+                </Text>
+              </View>
+              <View className="flex-row items-center">
+                <Ionicons name="calendar-outline" size={14} color="#6B7280" />
+                <Text className="text-axia-gray text-sm font-primary ml-1">
+                  {date || 'N/A'}
+                </Text>
+              </View>
             </View>
 
-            {reservationHistory.map((reservation, index) => (
-              <Pressable
-                key={reservation.id}
-                onPress={() => handlePressWithHaptics(() => handleReservationPress(reservation))}
-                className="bg-axia-darkGray rounded-2xl p-5 mb-3 shadow-lg shadow-black/30 active:scale-95 transition-all"
-              >
-                <View className="flex-row items-start">
-                  <View 
-                    className="w-10 h-10 rounded-xl items-center justify-center mr-4"
-                    style={{ backgroundColor: getStatusColor(reservation.status) + '20' }}
-                  >
-                    <Ionicons 
-                      name={getStatusIcon(reservation.status)} 
-                      size={20} 
-                      color={getStatusColor(reservation.status)} 
-                    />
-                  </View>
-
-                  <View className="flex-1">
-                    <View className="flex-row justify-between items-start mb-2">
-                      <Text className="text-white text-lg font-primaryBold flex-1 mr-2">
-                        {reservation.parkingName}
-                      </Text>
-                      <View 
-                        className="px-3 py-1 rounded-full"
-                        style={{ backgroundColor: getStatusColor(reservation.status) + '20' }}
-                      >
-                        <Text 
-                          className="text-xs font-primaryBold"
-                          style={{ color: getStatusColor(reservation.status) }}
-                        >
-                          {getStatusText(reservation.status)}
-                        </Text>
-                      </View>
-                    </View>
-
-                    <Text className="text-axia-gray text-sm font-primary mb-2">
-                      {reservation.address}
-                    </Text>
-
-                    <View className="flex-row items-center justify-between">
-                      <View className="flex-row items-center">
-                        <Ionicons name="time-outline" size={14} color="#6B7280" />
-                        <Text className="text-axia-gray text-sm font-primary ml-1">
-                          {reservation.time}
-                        </Text>
-                      </View>
-                      <View className="flex-row items-center">
-                        <Ionicons name="calendar-outline" size={14} color="#6B7280" />
-                        <Text className="text-axia-gray text-sm font-primary ml-1">
-                          {reservation.date}
-                        </Text>
-                      </View>
-                    </View>
-                  </View>
-                </View>
-
-                {index < reservationHistory.length - 1 && (
-                  <View className="border-b border-axia-border/20 mt-3" />
-                )}
-              </Pressable>
-            ))}
-          </View>
-
-          {/* Footer de ayuda */}
-          <View className="bg-axia-darkGray rounded-2xl p-6 mb-8">
-            <View className="flex-row items-center mb-3">
-              <Ionicons name="help-buoy-outline" size={24} color="#6B7280" />
-              <Text className="text-white text-lg font-primaryBold ml-3">
-                ¿Necesitas ayuda?
+            <View className="flex-row items-center">
+              <Ionicons name="location-outline" size={14} color="#6B7280" />
+              <Text className="text-axia-gray text-sm font-primary ml-1">
+                {spotNumber}
               </Text>
             </View>
-            <Text className="text-axia-gray text-sm font-primary leading-5 mb-4">
-              Si tienes problemas con tus reservas, nuestro equipo de soporte está disponible 24/7.
-            </Text>
-            <Pressable 
-              className="flex-row items-center"
-              onPress={() => handlePressWithHaptics(() => console.log('Ir a soporte'))}
-            >
-              <Text className="text-axia-green text-sm font-primaryBold mr-2">
-                Contactar soporte
-              </Text>
-              <Ionicons name="arrow-forward" size={16} color="#10B981" />
-            </Pressable>
           </View>
-
         </View>
-      </ScrollView>
+      </Pressable>
+    );
+  };
+
+  // Header de la lista
+  const ListHeaderComponent = () => (
+    <View className="pt-8 pb-4">
+      <Text className="text-white text-3xl font-primaryBold mb-2">
+        {isAdmin ? 'Reservas del Parqueadero' : 'Mis Reservas'}
+      </Text>
+      <Text className="text-axia-gray text-sm font-primary mb-6">
+        {totalCount} {totalCount === 1 ? 'reserva' : 'reservas'} {isAdmin ? 'totales' : ''}
+      </Text>
+    </View>
+  );
+
+  // Footer con loading indicator
+  const ListFooterComponent = () => {
+    if (!loadingMore) return null;
+    return (
+      <View className="py-4">
+        <ActivityIndicator size="small" color="#10B981" />
+      </View>
+    );
+  };
+
+  // Empty state
+  const ListEmptyComponent = () => {
+    if (loading) {
+      return (
+        <View className="flex-1 items-center justify-center py-20">
+          <ActivityIndicator size="large" color="#10B981" />
+          <Text className="text-axia-gray text-base font-primary mt-4">
+            Cargando reservas...
+          </Text>
+        </View>
+      );
+    }
+
+    return (
+      <View className="flex-1 items-center justify-center py-20">
+        <View className="bg-axia-darkGray w-20 h-20 rounded-full items-center justify-center mb-4">
+          <Ionicons name="calendar-outline" size={40} color="#6B7280" />
+        </View>
+        <Text className="text-white text-xl font-primaryBold text-center mb-2">
+          {isAdmin ? 'No hay reservas' : 'No tienes reservas'}
+        </Text>
+        <Text className="text-axia-gray text-sm font-primary text-center mb-6 px-8">
+          {isAdmin
+            ? 'Aún no hay reservas para este parqueadero'
+            : 'Encuentra y reserva tu próximo estacionamiento'
+          }
+        </Text>
+        {!isAdmin && (
+          <Pressable
+            onPress={() => handlePressWithHaptics(() => router.push('/(tabs)/home'))}
+            className="bg-axia-green px-8 py-4 rounded-xl flex-row items-center shadow-lg shadow-axia-green/25 active:scale-95"
+          >
+            <Ionicons name="add" size={20} color="#000000" />
+            <Text className="text-axia-black font-primaryBold ml-2">
+              Hacer una Reserva
+            </Text>
+          </Pressable>
+        )}
+      </View>
+    );
+  };
+
+  return (
+    <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
+      <FlatList
+        data={allReservations}
+        renderItem={renderReservation}
+        keyExtractor={(item) => item.id}
+        ListHeaderComponent={ListHeaderComponent}
+        ListFooterComponent={ListFooterComponent}
+        ListEmptyComponent={ListEmptyComponent}
+        contentContainerStyle={{ paddingHorizontal: 24, paddingBottom: 32, flexGrow: 1 }}
+        showsVerticalScrollIndicator={false}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        onEndReached={loadMore}
+        onEndReachedThreshold={0.5}
+      />
     </SafeAreaView>
   );
 };

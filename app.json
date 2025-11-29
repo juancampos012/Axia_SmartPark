@@ -33,11 +33,6 @@
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION"
       ],
-      "config": {
-        "googleMaps": {
-          "apiKey": "AIzaSyD7rw7sf7FBwPpA2ZEgbZv9IxdIVOwwMVo"
-        }
-      },
       "softwareKeyboardLayoutMode": "pan"
     },
     "web": {

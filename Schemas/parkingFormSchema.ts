@@ -54,6 +54,7 @@ export const updateParkingFormSchema = z.object({
 
   monthlyRate: z.coerce.number()
     .min(100, { message: 'La tarifa mensual debe ser al menos 100' })
+    .max(72000000, { message: 'La tarifa mensual no debe exceder 72000000' })
     .optional(),
 
   latitude: z.coerce.number()

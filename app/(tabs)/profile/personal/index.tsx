@@ -185,6 +185,48 @@ const PersonalProfile = () => {
             )}
           </View>
 
+          {/* Sección Legal */}
+          <View className="mb-6">
+            <Text className="text-white text-xl font-primaryBold mb-4">Legal</Text>
+            <View className="bg-axia-darkGray rounded-2xl overflow-hidden shadow-lg shadow-black/30">
+              <Pressable
+                onPress={async () => {
+                  await Haptics.selectionAsync();
+                  handleMenuItemPress('/(tabs)/settings/terms-conditions');
+                }}
+                className="flex-row items-center justify-between py-5 px-6 active:bg-axia-gray/20 border-b border-axia-gray/20"
+              >
+                <View className="flex-row items-center flex-1">
+                  <View className="w-10 h-10 bg-axia-blue/20 rounded-xl items-center justify-center mr-4">
+                    <Ionicons name="document-text-outline" size={20} color="#093774" />
+                  </View>
+                  <Text className="text-white text-lg font-primary flex-1">
+                    Términos y Condiciones
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+              </Pressable>
+              
+              <Pressable
+                onPress={async () => {
+                  await Haptics.selectionAsync();
+                  handleMenuItemPress('/(tabs)/settings/privacy-policy');
+                }}
+                className="flex-row items-center justify-between py-5 px-6 active:bg-axia-gray/20"
+              >
+                <View className="flex-row items-center flex-1">
+                  <View className="w-10 h-10 bg-axia-purple/20 rounded-xl items-center justify-center mr-4">
+                    <Ionicons name="shield-checkmark-outline" size={20} color="#780BB7" />
+                  </View>
+                  <Text className="text-white text-lg font-primary flex-1">
+                    Política de Privacidad
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color="#6B7280" />
+              </Pressable>
+            </View>
+          </View>
+
           {/* 🔚 Botón Cerrar sesión */}
           <View className="mb-12">
             <Pressable

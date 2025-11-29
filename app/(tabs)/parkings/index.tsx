@@ -240,32 +240,61 @@ export default function ParkingsRoute() {
   }
 
   // Valores seguros para evitar NaN / Infinity en cálculos y llamadas sobre undefined
-  const totalCapacitySafe = parking.totalCapacity ?? 1;
-  const actualCapacitySafe = parking.actualCapacity ?? 0;
-  const occupancy = Math.max(0, Math.min(100, ((totalCapacitySafe - actualCapacitySafe) / totalCapacitySafe) * 100));
-  const currentStatus = statusConfig[parking.status];
+  const totalCapacitySafe = parking?.totalCapacity ?? 1;
+  const actualCapacitySafe = parking?.actualCapacity ?? 0;
+  const availableSpots = actualCapacitySafe;
+  const occupiedSpots = totalCapacitySafe - actualCapacitySafe;
+  const occupancy = Math.max(0, Math.min(100, (occupiedSpots / totalCapacitySafe) * 100));
+  const currentStatus = statusConfig[parking?.status || 'CLOSED'];
+
+  console.log('🏢 Rendering admin view - Parking:', {
+    name: parking?.name,
+    status: parking?.status,
+    totalCapacity: totalCapacitySafe,
+    actualCapacity: actualCapacitySafe,
+    occupancy: occupancy.toFixed(0)
+  });
 
     return (
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <KeyboardAvoidingView className="flex-1" behavior="padding" keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
         <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+          {/* Header con nombre del parqueadero */}
           <View className="px-6 pt-8 pb-4">
             <View className="mb-3">
               <Text className="text-white text-3xl font-primaryBold mb-2">
-                Encuentra tu Parqueadero
+                {parking?.name || 'Mi Parqueadero'}
               </Text>
-              <Text className="text-axia-gray text-xs font-primary">
-                Espacios disponibles
-              </Text>
+              <View className="flex-row items-center">
+                <View className={`w-3 h-3 rounded-full ${currentStatus?.color || 'bg-gray-500'} mr-2`} />
+                <Text className="text-axia-gray text-sm font-primary">
+                  {currentStatus?.label || 'Desconocido'}
+                </Text>
+              </View>
             </View>
-            <View className="flex-1 bg-axia-darkGray rounded-xl p-4">
-              <Ionicons name="layers-outline" size={24} color="#10B981" />
-              <Text className="text-white text-2xl font-primaryBold mt-2">
-                {parking.floors}
-              </Text>
-              <Text className="text-axia-gray text-xs font-primary">
-                Pisos
-              </Text>
+          </View>
+
+          {/* Cards de estadísticas */}
+          <View className="px-6 mb-4">
+            <View className="flex-row gap-3">
+              <View className="flex-1 bg-axia-darkGray rounded-xl p-4">
+                <Ionicons name="car-sport" size={24} color="#10B981" />
+                <Text className="text-white text-2xl font-primaryBold mt-2">
+                  {availableSpots}
+                </Text>
+                <Text className="text-axia-gray text-xs font-primary">
+                  Disponibles
+                </Text>
+              </View>
+              <View className="flex-1 bg-axia-darkGray rounded-xl p-4">
+                <Ionicons name="layers-outline" size={24} color="#F59E0B" />
+                <Text className="text-white text-2xl font-primaryBold mt-2">
+                  {parking?.floors || 0}
+                </Text>
+                <Text className="text-axia-gray text-xs font-primary">
+                  Pisos
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -284,7 +313,7 @@ export default function ParkingsRoute() {
               />
             </View>
             <Text className="text-axia-gray text-xs font-primary mt-2">
-              {parking.totalCapacity - parking.actualCapacity} de {parking.totalCapacity} espacios ocupados
+              {occupiedSpots} de {totalCapacitySafe} espacios ocupados • {availableSpots} disponibles
             </Text>
           </View>
 
@@ -294,9 +323,9 @@ export default function ParkingsRoute() {
               Información General
             </Text>
             <View className="space-y-3">
-              <InfoRow icon="location" label="Dirección" value={parking.address} />
-              <InfoRow icon="time" label="Horario" value={parking.schedule} />
-              {parking.description && (
+              <InfoRow icon="location" label="Dirección" value={parking?.address || 'No disponible'} />
+              <InfoRow icon="time" label="Horario" value={parking?.schedule || 'No disponible'} />
+              {parking?.description && (
                 <InfoRow icon="information-circle" label="Descripción" value={parking.description} />
               )}
             </View>
@@ -311,25 +340,25 @@ export default function ParkingsRoute() {
               <TariffRow
                 icon="car-sport"
                 label="Tarifa por hora - Carro"
-                value={`$${(parking.hourlyCarRate ?? 0).toLocaleString()}`}
+                value={`$${(parking?.hourlyCarRate ?? 0).toLocaleString()}`}
               />
               <TariffRow
                 icon="bicycle"
                 label="Tarifa por hora - Moto"
-                value={`$${(parking.hourlyMotorcycleRate ?? 0).toLocaleString()}`}
+                value={`$${(parking?.hourlyMotorcycleRate ?? 0).toLocaleString()}`}
               />
-              {parking.dailyRate && (
+              {parking?.dailyRate && parking.dailyRate > 0 && (
                 <TariffRow
                   icon="calendar"
                   label="Tarifa diaria"
-                  value={`$${(parking.dailyRate ?? 0).toLocaleString()}`}
+                  value={`$${parking.dailyRate.toLocaleString()}`}
                 />
               )}
-              {parking.monthlyRate && (
+              {parking?.monthlyRate && parking.monthlyRate > 0 && (
                 <TariffRow
                   icon="calendar-outline"
                   label="Tarifa mensual"
-                  value={`$${(parking.monthlyRate ?? 0).toLocaleString()}`}
+                  value={`$${parking.monthlyRate.toLocaleString()}`}
                 />
               )}
             </View>
@@ -341,31 +370,34 @@ export default function ParkingsRoute() {
               Cambio Rápido de Estado
             </Text>
             <View className="flex-row flex-wrap gap-2">
-              {Object.entries(statusConfig).map(([status, config]) => (
-                <Pressable
-                  key={status}
-                  onPress={() => handlePressWithHaptics(() => handleChangeStatus(status as any))}
-                  disabled={parking.status === status}
-                  className={`flex-1 min-w-[45%] p-3 rounded-xl flex-row items-center justify-center ${
-                    parking.status === status
-                      ? 'bg-axia-green/20 border-2 border-axia-green'
-                      : 'bg-axia-gray/20 border-2 border-transparent'
-                  } ${parking.status === status ? '' : 'active:scale-95'}`}
-                >
-                  <Ionicons
-                    name={config.icon as any}
-                    size={18}
-                    color={parking.status === status ? '#10B981' : '#6B7280'}
-                  />
-                  <Text
-                    className={`font-primaryBold ml-2 ${
-                      parking.status === status ? 'text-axia-green' : 'text-axia-gray'
-                    }`}
+              {Object.entries(statusConfig).map(([status, config]) => {
+                const isCurrentStatus = parking?.status === status;
+                return (
+                  <Pressable
+                    key={status}
+                    onPress={() => handlePressWithHaptics(() => handleChangeStatus(status as 'OPEN' | 'CLOSED' | 'FULL' | 'MAINTENANCE'))}
+                    disabled={isCurrentStatus}
+                    className={`flex-1 min-w-[45%] p-3 rounded-xl flex-row items-center justify-center ${
+                      isCurrentStatus
+                        ? 'bg-axia-green/20 border-2 border-axia-green'
+                        : 'bg-axia-gray/20 border-2 border-transparent'
+                    } ${isCurrentStatus ? '' : 'active:scale-95'}`}
                   >
-                    {config.label}
-                  </Text>
-                </Pressable>
-              ))}
+                    <Ionicons
+                      name={config.icon as any}
+                      size={18}
+                      color={isCurrentStatus ? '#10B981' : '#6B7280'}
+                    />
+                    <Text
+                      className={`font-primaryBold ml-2 ${
+                        isCurrentStatus ? 'text-axia-green' : 'text-axia-gray'
+                      }`}
+                    >
+                      {config.label}
+                    </Text>
+                  </Pressable>
+                );
+              })}
             </View>
           </View>
         </ScrollView>

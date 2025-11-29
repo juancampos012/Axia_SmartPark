@@ -14,7 +14,9 @@ const emailSchema = z.string()
 
 export const LoginSchema = z.object({
   email: emailSchema,
-  password: z.string().min(1, 'La contraseña es obligatoria')
+  password: z.string()
+    .min(1, 'La contraseña es obligatoria')
+    .max(128, 'La contraseña no puede exceder 128 caracteres')
 });
 
 export type LoginFormData = z.infer<typeof LoginSchema>;

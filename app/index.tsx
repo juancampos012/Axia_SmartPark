@@ -29,33 +29,54 @@ export default function SplashScreen() {
       try {
         const accessToken = await AsyncStorage.getItem('accessToken');
         const userData = await AsyncStorage.getItem('userData');
-        
+
         // Si hay token y datos de usuario, hay una sesión activa
         const hasActiveSession = !!accessToken && !!userData;
-        
-        console.log('🔍 Splash - Verificando sesión:', { 
-          hasToken: !!accessToken, 
+
+        console.log('🔍 Splash - Verificando sesión:', {
+          hasToken: !!accessToken,
           hasUserData: !!userData,
-          hasActiveSession 
+          hasActiveSession
         });
 
         setIsCheckingAuth(false);
-        
+
         // Esperar un poco para mostrar el splash
         setTimeout(() => {
           if (hasActiveSession) {
             console.log('✅ Sesión activa encontrada, redirigiendo a tabs...');
-            router.replace('/(tabs)/home');
+
+            // Verificar el rol del usuario para redirigir a la tab correcta
+            if (userData) {
+              try {
+                const user = JSON.parse(userData);
+                const isAdminOrOperator = user.role === 'ADMIN' || user.role === 'OPERATOR';
+
+                if (isAdminOrOperator) {
+                  console.log('👤 Usuario Admin/Operator - redirigiendo a parkings');
+                  router.replace('/(tabs)/parkings');
+                } else {
+                  console.log('👤 Usuario normal - redirigiendo a home');
+                  router.replace('/(tabs)/home');
+                }
+              } catch (parseError) {
+                console.error('Error parseando userData:', parseError);
+                // Por defecto ir a home si hay error
+                router.replace('/(tabs)/home');
+              }
+            } else {
+              router.replace('/(tabs)/home');
+            }
           } else {
             console.log('❌ No hay sesión activa, redirigiendo a auth...');
             router.replace('/(auth)');
           }
         }, 2500); // 2.5 segundos de splash
-        
+
       } catch (error) {
         console.error('Error verificando sesión:', error);
         setIsCheckingAuth(false);
-        
+
         // En caso de error, ir a auth por seguridad
         setTimeout(() => {
           router.replace('/(auth)');

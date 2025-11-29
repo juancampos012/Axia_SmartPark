@@ -1,21 +1,37 @@
-import * as Notifications from 'expo-notifications';
 import { ReservationWithPaymentResponse } from './payments'; // Ajusta la ruta según tu estructura
+import Constants from 'expo-constants';
 
-// 🧩 Configuración global del manejador de notificaciones
-Notifications.setNotificationHandler({
-  handleNotification: async () => ({
-    shouldShowAlert: true,
-    shouldPlaySound: true,
-    shouldSetBadge: false,
-    shouldShowBanner: true,
-    shouldShowList: true,
-  }),
-});
+// Detectar si estamos en Expo Go
+const isExpoGo = Constants.appOwnership === 'expo';
+
+// Importación condicional de notificaciones
+let Notifications: typeof import('expo-notifications') | null = null;
+
+// Solo cargar expo-notifications si NO estamos en Expo Go
+if (!isExpoGo) {
+  try {
+    Notifications = require('expo-notifications');
+    // 🧩 Configuración global del manejador de notificaciones
+    Notifications?.setNotificationHandler({
+      handleNotification: async () => ({
+        shouldShowAlert: true,
+        shouldPlaySound: true,
+        shouldSetBadge: false,
+        shouldShowBanner: true,
+        shouldShowList: true,
+      }),
+    });
+  } catch (error) {
+    console.warn('⚠️ expo-notifications no disponible:', error);
+  }
+}
 
 /**
  * 🔧 Convierte un Date a CalendarTriggerInput de Expo
  */
-function dateToCalendarTrigger(date: Date): Notifications.CalendarTriggerInput {
+function dateToCalendarTrigger(date: Date): any {
+  if (!Notifications) return null;
+
   return {
     type: Notifications.SchedulableTriggerInputTypes.CALENDAR,
     year: date.getFullYear(),
@@ -32,6 +48,11 @@ function dateToCalendarTrigger(date: Date): Notifications.CalendarTriggerInput {
  * 📅 Programa las notificaciones para una reserva (inicio y fin)
  */
 export async function scheduleReservationNotifications(reservationData: ReservationWithPaymentResponse) {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return;
+  }
+
   try {
     const reservation = reservationData.reservation;
     await cancelReservationNotifications(reservation.id);
@@ -103,6 +124,11 @@ export async function scheduleReservationNotifications(reservationData: Reservat
  * 🗑️ Cancela las notificaciones asociadas a una reserva específica
  */
 export async function cancelReservationNotifications(reservationId: string) {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return;
+  }
+
   try {
     const scheduledNotifications = await Notifications.getAllScheduledNotificationsAsync();
 
@@ -127,6 +153,11 @@ export async function cancelReservationNotifications(reservationId: string) {
  * 🔄 Programa notificaciones para todas las reservas activas
  */
 export async function scheduleNotificationsForActiveReservations(reservations: ReservationWithPaymentResponse[]) {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return;
+  }
+
   const now = new Date();
 
   const activeReservations = reservations.filter(reservationData => {
@@ -149,6 +180,11 @@ export async function scheduleNotificationsForActiveReservations(reservations: R
  * 🚫 Cancela todas las notificaciones programadas
  */
 export async function clearAllScheduledNotifications() {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return;
+  }
+
   await Notifications.cancelAllScheduledNotificationsAsync();
   console.log('🧽 Todas las notificaciones programadas fueron canceladas');
 }
@@ -157,6 +193,11 @@ export async function clearAllScheduledNotifications() {
  * 🧪 Programa una notificación de prueba (10 s en el futuro)
  */
 export async function testNotification() {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return;
+  }
+
   const triggerDate = new Date();
   triggerDate.setSeconds(triggerDate.getSeconds() + 10);
 
@@ -177,6 +218,11 @@ export async function testNotification() {
  * 📋 Obtiene la lista de notificaciones programadas
  */
 export async function getScheduledNotifications() {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return [];
+  }
+
   const notifications = await Notifications.getAllScheduledNotificationsAsync();
   console.log(`📋 ${notifications.length} notificaciones programadas:`);
   notifications.forEach(notification => {
@@ -189,6 +235,11 @@ export async function getScheduledNotifications() {
  * 🔐 Solicitar permisos de notificación
  */
 export async function requestNotificationPermissions() {
+  if (!Notifications) {
+    console.warn('⚠️ Notificaciones no disponibles en Expo Go');
+    return 'unavailable';
+  }
+
   try {
     const { status } = await Notifications.getPermissionsAsync();
     

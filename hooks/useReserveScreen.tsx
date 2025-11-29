@@ -3,6 +3,8 @@ import { Alert } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { fetchMyVehicles } from '../libs/vehicles';
 import { Vehicle } from '../interfaces/vehicle';
+import { CreateReservationSchema } from '../schemas/reservationSchema';
+import { ZodError } from 'zod';
 
 // Types
 interface ParkingSpot {
@@ -303,13 +305,33 @@ export const useReserveScreen = () => {
         return `${displayHours}:${minutes} ${ampm}`;
       };
 
-      // Preparar datos completos para el flujo de pago
-      const reservationPaymentData = {
-        // Datos para crear la reservación en el backend
+      // Validar datos de reserva con el schema antes de continuar
+      const reservationData = {
         parkingSpotId: selectedSpot.id,
         vehicleId: selectedVehicle.id,
         startTime: reservationStartTime.toISOString(),
         endTime: reservationEndTime.toISOString(),
+      };
+
+      try {
+        // Validar con Zod schema
+        CreateReservationSchema.parse(reservationData);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const firstError = validationError.errors[0];
+          Alert.alert(
+            'Error de validación',
+            firstError.message || 'Los datos de la reserva no son válidos'
+          );
+          return;
+        }
+        throw validationError;
+      }
+
+      // Preparar datos completos para el flujo de pago
+      const reservationPaymentData = {
+        // Datos validados para crear la reservación en el backend
+        ...reservationData,
         totalAmount: totalPrice,
         
         // Datos para mostrar en la UI de pago
@@ -328,7 +350,7 @@ export const useReserveScreen = () => {
         guestContact: undefined
       };
 
-      console.log('Datos de reservación para pago:', reservationPaymentData);
+      console.log('✅ Datos de reservación validados y preparados para pago:', reservationPaymentData);
 
       // Navegar a la pantalla de método de pago
       router.push({

@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, Pressable, Linking } from 'react-native';
 import { Controller } from 'react-hook-form';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
 import Input from '../../atoms/Input';
 import Button from '../../atoms/Button';
 import Checkbox from '../../atoms/Checkbox';
@@ -21,13 +22,18 @@ interface RegisterFormProps {
 }
 
 const RegisterForm: React.FC<RegisterFormProps> = ({ onSubmit, onLoginPress }) => {
+  const router = useRouter();
   const { control, errors, isSubmitting, handleSubmit } = useRegisterForm({
     onSuccess: onSubmit,
     onLoginPress
   });
 
   const handleOpenTerms = () => {
-    Linking.openURL('https://tu-sitio.com/terminos');
+    router.push('/(auth)/terms-conditions');
+  };
+
+  const handleOpenPrivacy = () => {
+    router.push('/(auth)/privacy-policy');
   };
 console.log("Errors:", errors);
   return (
@@ -151,6 +157,10 @@ console.log("Errors:", errors);
                   Acepto los{' '}
                   <Text className="text-axia-green font-primaryBold" onPress={handleOpenTerms}>
                     términos y condiciones
+                  </Text>{' '}
+                  y la{' '}
+                  <Text className="text-axia-green font-primaryBold" onPress={handleOpenPrivacy}>
+                    política de privacidad
                   </Text>{' '}
                   de Axia SmartPark
                 </Text>

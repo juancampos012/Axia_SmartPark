@@ -49,6 +49,9 @@ export interface PaymentMethodResponse {
   cardholderName: string;
   isDefault: boolean;
   isActive: boolean;
+  nickname?: string | null;
+  billingAddress?: string | null;
+  lastUsedAt?: string | null;
   createdAt: string;
   updatedAt: string;
   // NUNCA incluye token en la respuesta por seguridad
@@ -78,7 +81,9 @@ export interface UpdatePaymentMethodDTO {
   cardholderName?: string;
   expiryMonth?: number;
   expiryYear?: number;
-  isDefault?: boolean;
+  billingAddress?: string;
+  nickname?: string;
+  isActive?: boolean;
 }
 
 // Datos para tokenizar tarjeta

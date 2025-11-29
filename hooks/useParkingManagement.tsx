@@ -17,7 +17,10 @@ export const useParkingManagement = () => {
 
   // Cargar información del parqueadero
   const loadParking = useCallback(async (isManualRefresh: boolean = false) => {
+    console.log('🏢 useParkingManagement - loadParking called:', { parkingId, isManualRefresh });
+    
     if (!parkingId) {
+      console.log('🏢 useParkingManagement - No parkingId, showing empty state');
       setLoading(false);
       setRefreshing(false);
       return;
@@ -34,10 +37,17 @@ export const useParkingManagement = () => {
     }
 
     try {
+      console.log('🏢 useParkingManagement - Fetching parking data for ID:', parkingId);
       const parkingData = await fetchParkingByIdAdmin(parkingId);
+      console.log('🏢 useParkingManagement - Parking data received:', {
+        name: parkingData.name,
+        status: parkingData.status,
+        actualCapacity: parkingData.actualCapacity,
+        totalCapacity: parkingData.totalCapacity
+      });
       setParking(parkingData);
     } catch (error: any) {
-      console.error('Error al cargar información del parqueadero:', error.message);
+      console.error('❌ useParkingManagement - Error al cargar información del parqueadero:', error.message);
       // Setea parking a null si falla para mostrar la vista de error
       setParking(null); 
     } finally {

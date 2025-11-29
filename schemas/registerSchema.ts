@@ -7,14 +7,16 @@ export const RegisterSchema = z
   .object({
     firstName: z
       .string()
-      .min(1, "El nombre es obligatorio")
-      .regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/, "El nombre solo puede contener letras")
+      .min(2, "El nombre debe tener al menos 2 caracteres")
+      .max(50, "El nombre no puede exceder 50 caracteres")
+      .regex(/^[a-zA-ZÀ-ÿ\u00f1\u00d1\s\-']{2,100}$/, "El nombre contiene caracteres inválidos")
       .transform(normalizeText),
 
     lastName: z
       .string()
-      .min(1, "El apellido es obligatorio")
-      .regex(/^[A-Za-zÁÉÍÓÚáéíóúÑñ\s]+$/, "El apellido solo puede contener letras")
+      .min(2, "El apellido debe tener al menos 2 caracteres")
+      .max(50, "El apellido no puede exceder 50 caracteres")
+      .regex(/^[a-zA-ZÀ-ÿ\u00f1\u00d1\s\-']{2,100}$/, "El apellido contiene caracteres inválidos")
       .transform(normalizeText),
 
     email: z
@@ -32,19 +34,12 @@ export const RegisterSchema = z
 
     password: z
       .string()
-      .min(7, "La contraseña debe tener al menos 7 caracteres")
-      .refine((val) => /[A-Z]/.test(val), {
-        message: "Debe tener al menos una letra mayúscula (A-Z)",
-      })
-      .refine((val) => /[a-z]/.test(val), {
-        message: "Debe tener al menos una letra minúscula (a-z)",
-      })
-      .refine((val) => /\d/.test(val), {
-        message: "Debe tener al menos un número (0-9)",
-      })
-      .refine((val) => /[@$!%*?&]/.test(val), {
-        message: "Debe tener al menos un carácter especial (@$!%*?&)",
-      }),
+      .min(8, "La contraseña debe tener al menos 8 caracteres")
+      .max(128, "La contraseña no puede exceder 128 caracteres")
+      .regex(
+        /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]/,
+        "La contraseña debe contener al menos una mayúscula, una minúscula, un número y un carácter especial (@$!%*?&)"
+      ),
 
     confirmPassword: z.string().min(1, "Confirma tu contraseña"),
 

@@ -152,7 +152,19 @@ export async function fetchMyParking(): Promise<AdminParkingInfo> {
 export async function fetchParkingByIdAdmin(parkingId: string): Promise<AdminParkingInfo> {
   try {
     const response = await http.get(`/parking/${parkingId}`);
-    return response.data;
+    
+    // Backend response structure: { data: { parking: {...}, availability: {...}, pricing: {...}, rating: {...} } }
+    // We need to extract the parking object specifically
+    const parkingData = response.data?.data?.parking || response.data?.parking || response.data;
+    
+    console.log('📦 fetchParkingByIdAdmin - Extracted parking:', {
+      name: parkingData.name,
+      status: parkingData.status,
+      actualCapacity: parkingData.actualCapacity,
+      totalCapacity: parkingData.totalCapacity
+    });
+    
+    return parkingData;
   } catch (error: any) {
     console.error(`Error fetching parking ${parkingId}:`, error);
     throw error;
@@ -200,9 +212,15 @@ export async function changeParkingStatus(
   status: 'OPEN' | 'CLOSED' | 'FULL' | 'MAINTENANCE'
 ): Promise<AdminParkingInfo> {
   try {
+    console.log('📦 changeParkingStatus - Request:', { parkingId, status });
     const response = await http.patch(`/parking/${parkingId}/status`, { status });
-    console.log("Parking status changed:", response.data);
-    return response.data;
+    console.log('📦 changeParkingStatus - Raw response:', response);
+    
+    // Extract parking data from nested structure
+    const parkingData = response.data?.data?.parking || response.data?.parking || response.data;
+    console.log('📦 changeParkingStatus - Extracted parking:', parkingData);
+    
+    return parkingData;
   } catch (error: any) {
     console.error(`Error changing parking status ${parkingId}:`, error);
     throw error;

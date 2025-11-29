@@ -44,16 +44,25 @@ export const useLoginForm = ({ onSuccess }: UseLoginFormProps = {}) => {
         response.data.tokens.accessToken,
         response.data.tokens.refreshToken
       );
-      
+
       await Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      
+
       try {
         router.dismissAll();
       } catch (e) {
         console.log('No modals to dismiss');
       }
-      router.replace('/(tabs)/home');
-   
+
+      // Redirigir según el rol del usuario
+      const isAdminOrOperator = response.data.user.role === 'ADMIN' || response.data.user.role === 'OPERATOR';
+      if (isAdminOrOperator) {
+        console.log('Login - Redirigiendo Admin/Operator a parkings');
+        router.replace('/(tabs)/parkings');
+      } else {
+        console.log('Login - Redirigiendo usuario normal a home');
+        router.replace('/(tabs)/home');
+      }
+
       if (onSuccess) onSuccess();
     } catch (error: any) {
       console.error('Login error:', error);

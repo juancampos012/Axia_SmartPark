@@ -6,18 +6,16 @@ const normalizeEmail = (email: string): string => email.toLowerCase().trim();
 export const PersonalInfoSchema = z.object({
   firstName: z
     .string()
-    .min(1, "El nombre es obligatorio")
     .min(2, "El nombre debe tener al menos 2 caracteres")
     .max(50, "El nombre no puede tener más de 50 caracteres")
-    .regex(/^[A-Za-zÀ-ÿ\s]+$/, "El nombre solo puede contener letras y espacios")
+    .regex(/^[a-zA-ZÀ-ÿ\u00f1\u00d1\s\-']{2,100}$/, "El nombre contiene caracteres inválidos")
     .transform(normalizeText),
 
   lastName: z
     .string()
-    .min(1, "El apellido es obligatorio")
     .min(2, "El apellido debe tener al menos 2 caracteres")
     .max(50, "El apellido no puede tener más de 50 caracteres")
-    .regex(/^[A-Za-zÀ-ÿ\s]+$/, "El apellido solo puede contener letras y espacios")
+    .regex(/^[a-zA-ZÀ-ÿ\u00f1\u00d1\s\-']{2,100}$/, "El apellido contiene caracteres inválidos")
     .transform(normalizeText),
 
   email: z
@@ -31,9 +29,7 @@ export const PersonalInfoSchema = z.object({
 
   phone: z
     .string()
-    .min(10, "El teléfono debe tener 10 dígitos")
-    .max(10, "El teléfono debe tener 10 dígitos")
-    .regex(/^\d{10}$/, "El teléfono debe contener exactamente 10 números"),
+    .regex(/^(\+?[1-9]\d{1,14}|[0-9]{7,15})$/, "Formato de número de teléfono inválido"),
 
   active: z.boolean().default(true).optional(),
   createdAt: z.string().optional(),

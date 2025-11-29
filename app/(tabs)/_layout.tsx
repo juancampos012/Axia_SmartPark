@@ -80,20 +80,6 @@ export default function TabsLayout() {
       <View className="flex-1 bg-axia-black">
         {!isConnected && <OfflineBanner />}
         <Tabs screenOptions={commonScreenOptions}>
-          {/* Inicio */}
-          <Tabs.Screen
-            name="home/index"
-            options={{
-              title: 'Inicio',
-              tabBarIcon: ({ color }) => (
-                <Ionicons name="home-outline" size={34} color={color} style={{ marginBottom: -10 }}/>
-              ),
-            }}
-            listeners={{
-              tabPress: async () => await Haptics.selectionAsync(), 
-            }}
-          />
-          
           {/* Mi Parqueo */}
           <Tabs.Screen
             name="parkings"
@@ -150,8 +136,12 @@ export default function TabsLayout() {
             }}
           />
 
+          {/* Ocultar pantallas que no son tabs para admin/operator */}
+          <Tabs.Screen name="home/index" options={{ href: null }} />
           <Tabs.Screen name="parkings/edit" options={{ href: null }} />
           <Tabs.Screen name="payments" options={{ href: null }} />
+          <Tabs.Screen name="settings/terms-conditions" options={{ href: null }} />
+          <Tabs.Screen name="settings/privacy-policy" options={{ href: null }} />
         </Tabs>
       </View>
     );
@@ -218,9 +208,11 @@ export default function TabsLayout() {
           }}
         />
 
-        <Tabs.Screen name="settings/parking-info/index" options={{ href: null }} />
-        <Tabs.Screen name="settings/parking-info/edit" options={{ href: null }} />
+        {/* Ocultar pantallas que no son tabs para usuarios */}
         <Tabs.Screen name="payments" options={{ href: null }} />
+        <Tabs.Screen name="settings/index" options={{ href: null }} />
+        <Tabs.Screen name="settings/terms-conditions" options={{ href: null }} />
+        <Tabs.Screen name="settings/privacy-policy" options={{ href: null }} />
       </Tabs>
     </View>
   );

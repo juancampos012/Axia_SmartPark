@@ -6,6 +6,8 @@ import { createReservationWithPayment, CreateReservationWithPaymentDTO } from '.
 import { SavedCardData, paymentMethodToSavedCard } from '../components/molecules/SavedCard';
 import { PaymentSummaryData } from '../components/molecules/PaymentSummary';
 import { scheduleReservationNotifications, testNotification } from '../libs/reservation-notifications';
+import { CreateReservationWithPaymentSchema } from '../schemas/paymentSchema';
+import { ZodError } from 'zod';
 import React from 'react';
 
 interface UsePaymentMethodProps {
@@ -132,7 +134,22 @@ export const usePaymentMethod = ({ reservationDataRaw }: UsePaymentMethodProps) 
         guestContact: reservationDataRaw.guestContact
       };
 
-      console.log('Enviando datos de reservación con pago:', paymentData);
+      // Validar datos con schema antes de enviar al backend
+      try {
+        CreateReservationWithPaymentSchema.parse(paymentData);
+        console.log('✅ Datos de reservación con pago validados:', paymentData);
+      } catch (validationError) {
+        if (validationError instanceof ZodError) {
+          const errors = validationError.errors.map(e => e.message).join('\n');
+          Alert.alert(
+            'Error de validación',
+            errors || 'Los datos de pago no son válidos'
+          );
+          console.error('❌ Errores de validación:', validationError.errors);
+          return;
+        }
+        throw validationError;
+      }
 
       // Crear reservación y pago en una transacción
       const result = await createReservationWithPayment(paymentData);
