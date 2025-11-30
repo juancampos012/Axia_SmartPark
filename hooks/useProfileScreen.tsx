@@ -148,15 +148,31 @@ export const useProfileScreen = () => {
     setShowAvatarSelector(false);
   }, []);
 
-  const handleAvatarSelect = useCallback((newImageUrl: string) => {
+  const handleAvatarSelect = useCallback(async (newImageUrl: string) => {
     // Actualizar el avatar en el estado local INMEDIATAMENTE
-    setUserProfile(prev => prev ? { ...prev, avatar: newImageUrl } : { name: 'Usuario', avatar: newImageUrl });
+    setUserProfile(prev => {
+      const updated = prev ? { ...prev, avatar: newImageUrl } : { name: 'Usuario', avatar: newImageUrl };
+      
+      // Guardar en AsyncStorage de forma asíncrona
+      import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
+        AsyncStorage.getItem('userData').then(userData => {
+          if (userData) {
+            const user = JSON.parse(userData);
+            user.avatar = newImageUrl;
+            AsyncStorage.setItem('userData', JSON.stringify(user));
+            console.log('✅ Avatar actualizado en AsyncStorage:', newImageUrl);
+          }
+        });
+      });
+      
+      return updated;
+    });
     setShowAvatarSelector(false);
     
-    // Recargar el perfil después de un pequeño delay para confirmar desde el servidor
+    // Recargar el perfil después para sincronizar con el servidor
     setTimeout(() => {
       loadData();
-    }, 500);
+    }, 300);
   }, [loadData]);
 
   // Valores derivados

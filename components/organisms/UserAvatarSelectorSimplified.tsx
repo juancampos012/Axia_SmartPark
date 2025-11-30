@@ -120,10 +120,11 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
       const result = await uploadUserAvatar(image.uri);
 
       if (result.success && result.data?.image.url) {
-        // Actualizar UI local primero
+        console.log('✅ Avatar subido exitosamente:', result.data.image.url);
+        // Actualizar UI local inmediatamente
         onSelect(result.data.image.url, true);
-        Alert.alert('Éxito', 'Foto de perfil actualizada correctamente');
         onClose();
+        Alert.alert('Éxito', 'Foto de perfil actualizada correctamente');
       }
     } catch (error) {
       console.error('Error uploading from gallery:', error);
@@ -145,10 +146,11 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
       const result = await uploadUserAvatar(image.uri);
 
       if (result.success && result.data?.image.url) {
-        // Actualizar UI local primero
+        console.log('✅ Avatar subido exitosamente:', result.data.image.url);
+        // Actualizar UI local inmediatamente
         onSelect(result.data.image.url, true);
-        Alert.alert('Éxito', 'Foto de perfil actualizada correctamente');
         onClose();
+        Alert.alert('Éxito', 'Foto de perfil actualizada correctamente');
       }
     } catch (error) {
       console.error('Error uploading from camera:', error);

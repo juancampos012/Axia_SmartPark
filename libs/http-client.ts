@@ -293,6 +293,74 @@ export const http = {
 
     return data as T;
   },
+
+  /**
+   * PUT request con FormData (para uploads)
+   */
+  putFormData: async <T = any>(
+    endpoint: string,
+    formData: FormData,
+    options?: Omit<HttpClientOptions, 'method' | 'body' | 'headers'>
+  ) => {
+    const { requiresAuth = true } = options || {};
+    const url = endpoint.startsWith('http') ? endpoint : `${API_BASE_URL}${endpoint}`;
+
+    const requestHeaders: Record<string, string> = {};
+
+    if (requiresAuth) {
+      const accessToken = await AsyncStorage.getItem('accessToken');
+      if (!accessToken) {
+        throw new HttpError('No hay sesión activa', 401);
+      }
+      requestHeaders['Authorization'] = `Bearer ${accessToken}`;
+    }
+
+    // NO establecer Content-Type para FormData, el browser lo hace automáticamente
+    let response = await fetch(url, {
+      method: 'PUT',
+      headers: requestHeaders,
+      body: formData,
+    });
+
+    // Manejo de 401 similar al httpClient principal
+    if (response.status === 401 && requiresAuth) {
+      try {
+        const newTokens = await refreshToken();
+        requestHeaders['Authorization'] = `Bearer ${newTokens.accessToken}`;
+        
+        response = await fetch(url, {
+          method: 'PUT',
+          headers: requestHeaders,
+          body: formData,
+        });
+      } catch (refreshError) {
+        await handleInvalidSession();
+        throw new HttpError('Sesión expirada. Por favor inicia sesión nuevamente.', 401);
+      }
+    }
+
+    if (response.status === 401) {
+      await handleInvalidSession();
+      throw new HttpError('Sesión expirada. Por favor inicia sesión nuevamente.', 401);
+    }
+
+    const contentType = response.headers.get('content-type');
+    let data: any;
+    
+    if (contentType && contentType.includes('application/json')) {
+      data = await response.json();
+    } else {
+      const text = await response.text();
+      data = text ? { message: text } : {};
+    }
+
+    if (!response.ok) {
+      const errorMessage = data?.message || `Error ${response.status}`;
+      throw new HttpError(errorMessage, response.status, data);
+    }
+
+    return data as T;
+  },
 };
 
 /**

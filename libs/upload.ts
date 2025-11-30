@@ -107,7 +107,7 @@ export const pickImageFromGallery = async (): Promise<ImagePicker.ImagePickerAss
   if (!hasPermission) return null;
 
   const result = await ImagePicker.launchImageLibraryAsync({
-    mediaTypes: ImagePicker.MediaTypeOptions.Images,
+    mediaTypes: ['images'],
     allowsEditing: true,
     aspect: [1, 1], // Cuadrado
     quality: 0.8,
@@ -165,7 +165,17 @@ const createFormData = (imageUri: string, fieldName: string = 'image'): FormData
 export const uploadUserAvatar = async (imageUri: string): Promise<UploadResult> => {
   try {
     const formData = createFormData(imageUri, 'avatar');
-    const result = await http.postFormData('/users/avatar', formData);
+    const result = await http.putFormData('/users/avatar', formData);
+    
+    // Convertir la URL de la imagen a absoluta
+    if (result.data?.image?.url) {
+      result.data.image.url = makeAbsoluteUrl(result.data.image.url);
+    }
+    if (result.data?.image?.thumbnailUrl) {
+      result.data.image.thumbnailUrl = makeAbsoluteUrl(result.data.image.thumbnailUrl);
+    }
+    
+    console.log('📤 Avatar subido:', result.data?.image?.url);
     return result.data;
   } catch (error) {
     console.error('Error uploading user avatar:', error);
@@ -179,7 +189,17 @@ export const uploadUserAvatar = async (imageUri: string): Promise<UploadResult> 
 export const uploadVehicleImage = async (vehicleId: string, imageUri: string): Promise<UploadResult> => {
   try {
     const formData = createFormData(imageUri, 'image');
-    const result = await http.postFormData(`/vehicles/${vehicleId}/image`, formData);
+    const result = await http.putFormData(`/vehicles/${vehicleId}/image`, formData);
+    
+    // Convertir la URL de la imagen a absoluta
+    if (result.data?.image?.url) {
+      result.data.image.url = makeAbsoluteUrl(result.data.image.url);
+    }
+    if (result.data?.image?.thumbnailUrl) {
+      result.data.image.thumbnailUrl = makeAbsoluteUrl(result.data.image.thumbnailUrl);
+    }
+    
+    console.log('📤 Imagen de vehículo subida:', result.data?.image?.url);
     return result.data;
   } catch (error) {
     console.error('Error uploading vehicle image:', error);

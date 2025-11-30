@@ -19,7 +19,9 @@
       "bundleIdentifier": "com.anonymous.AxiaSmartPark",
       "infoPlist": {
         "NSLocationWhenInUseUsageDescription": "Necesitamos tu ubicación para mostrarte los parqueaderos más cercanos y calcular distancias precisas.",
-        "NSLocationAlwaysAndWhenInUseUsageDescription": "Axia SmartPark necesita acceso a tu ubicación para mostrarte parqueaderos cercanos."
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Axia SmartPark necesita acceso a tu ubicación para mostrarte parqueaderos cercanos.",
+        "NSPhotoLibraryUsageDescription": "Necesitamos acceso a tu galería para que puedas seleccionar fotos de perfil y vehículos.",
+        "NSCameraUsageDescription": "Necesitamos acceso a tu cámara para que puedas tomar fotos de perfil y vehículos."
       }
     },
     "android": {
@@ -31,7 +33,11 @@
       "package": "com.anonymous.AxiaSmartPark",
       "permissions": [
         "ACCESS_COARSE_LOCATION",
-        "ACCESS_FINE_LOCATION"
+        "ACCESS_FINE_LOCATION",
+        "CAMERA",
+        "READ_MEDIA_IMAGES",
+        "READ_EXTERNAL_STORAGE",
+        "WRITE_EXTERNAL_STORAGE"
       ],
       "softwareKeyboardLayoutMode": "pan"
     },
@@ -49,6 +55,13 @@
           "locationWhenInUsePermission": "Permite a $(PRODUCT_NAME) acceder a tu ubicación mientras usas la app.",
           "isAndroidBackgroundLocationEnabled": false,
           "isAndroidForegroundServiceEnabled": false
+        }
+      ],
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "La aplicación necesita acceso a tu galería para que puedas seleccionar fotos de perfil y vehículos.",
+          "cameraPermission": "La aplicación necesita acceso a tu cámara para que puedas tomar fotos de perfil y vehículos."
         }
       ]
     ],
