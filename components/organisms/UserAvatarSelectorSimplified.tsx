@@ -120,7 +120,6 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
       const result = await uploadUserAvatar(image.uri);
 
       if (result.success && result.data?.image.url) {
-        console.log('✅ Avatar subido exitosamente:', result.data.image.url);
         // Actualizar UI local inmediatamente
         onSelect(result.data.image.url, true);
         onClose();
@@ -146,7 +145,6 @@ export const UserAvatarSelectorSimplified: React.FC<UserAvatarSelectorSimplified
       const result = await uploadUserAvatar(image.uri);
 
       if (result.success && result.data?.image.url) {
-        console.log('✅ Avatar subido exitosamente:', result.data.image.url);
         // Actualizar UI local inmediatamente
         onSelect(result.data.image.url, true);
         onClose();

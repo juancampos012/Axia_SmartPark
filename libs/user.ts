@@ -4,21 +4,26 @@ import { http, HttpError, API_BASE_URL } from "./http-client";
 
 /**
  * Convertir URL relativa a absoluta
+ * Corrige URLs absolutas con dominio incorrecto (localhost o IPs locales)
  */
 const makeAbsoluteUrl = (url: string | null): string | null => {
   if (!url) return url;
   
-  // Si ya es una URL absoluta, devolverla tal cual
+  // Obtener la base URL correcta sin el /api al final
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  
+  // Si ya es una URL absoluta
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Extraer solo la parte después de /uploads/
+    const uploadsMatch = url.match(/\/uploads\/.+/);
+    if (uploadsMatch) {
+      return `${baseUrl}${uploadsMatch[0]}`;
+    }
     return url;
   }
   
-  // Obtener la base URL sin el /api al final
-  const baseUrl = API_BASE_URL.replace('/api', '');
-  
-  // Si la URL relativa empieza con /, quitarle el / inicial
+  // Si es relativa, agregar el dominio
   const relativePath = url.startsWith('/') ? url : `/${url}`;
-  
   return `${baseUrl}${relativePath}`;
 };
 

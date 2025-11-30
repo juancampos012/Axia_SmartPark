@@ -10,26 +10,32 @@ import { Platform } from 'react-native';
 
 /**
  * Convertir URL relativa a absoluta
- * Si la URL ya es absoluta (empieza con http:// o https://), la devuelve tal cual
- * Si es relativa, le agrega el dominio del API
+ * Si la URL ya es absoluta pero del servidor incorrecto, la corrige
+ * Si es relativa, le agrega el dominio del API correcto
  */
 const makeAbsoluteUrl = (url: string): string => {
   if (!url) return url;
   
-  // Si ya es una URL absoluta, devolverla tal cual
+  // Obtener la base URL correcta sin el /api al final
+  const baseUrl = API_BASE_URL.replace('/api', '');
+  
+  // Si ya es una URL absoluta (http:// o https://)
   if (url.startsWith('http://') || url.startsWith('https://')) {
+    // Extraer solo la parte después de /uploads/
+    const uploadsMatch = url.match(/\/uploads\/.+/);
+    if (uploadsMatch) {
+      const relativePath = uploadsMatch[0];
+      return `${baseUrl}${relativePath}`;
+    }
+    // Si no tiene /uploads/, devolver tal cual (puede ser una URL externa válida)
     return url;
   }
   
-  // Obtener la base URL sin el /api al final
-  const baseUrl = API_BASE_URL.replace('/api', '');
-  
-  // Si la URL relativa empieza con /, quitarle el / inicial
+  // Si es relativa, agregar el dominio
   const relativePath = url.startsWith('/') ? url : `/${url}`;
+  const result = `${baseUrl}${relativePath}`;
   
-  console.log('🖼️ Convirtiendo URL:', { original: url, base: baseUrl, result: `${baseUrl}${relativePath}` });
-  
-  return `${baseUrl}${relativePath}`;
+  return result;
 };
 
 /**
@@ -175,7 +181,6 @@ export const uploadUserAvatar = async (imageUri: string): Promise<UploadResult> 
       result.data.image.thumbnailUrl = makeAbsoluteUrl(result.data.image.thumbnailUrl);
     }
     
-    console.log('📤 Avatar subido:', result.data?.image?.url);
     return result.data;
   } catch (error) {
     console.error('Error uploading user avatar:', error);
@@ -199,7 +204,6 @@ export const uploadVehicleImage = async (vehicleId: string, imageUri: string): P
       result.data.image.thumbnailUrl = makeAbsoluteUrl(result.data.image.thumbnailUrl);
     }
     
-    console.log('📤 Imagen de vehículo subida:', result.data?.image?.url);
     return result.data;
   } catch (error) {
     console.error('Error uploading vehicle image:', error);

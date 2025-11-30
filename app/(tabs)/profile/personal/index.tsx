@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Image } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, Image, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
@@ -11,9 +11,11 @@ const PersonalProfile = () => {
     userProfile,
     userCars,
     loading,
+    refreshing,
     menuItems,
     displayName,
     userAvatar,
+    avatarKey,
     showAvatarSelector,
     handleMenuItemPress,
     handleCarPress,
@@ -23,6 +25,7 @@ const PersonalProfile = () => {
     handleOpenAvatarSelector,
     handleCloseAvatarSelector,
     handleAvatarSelect,
+    refreshProfileData,
   } = useProfileScreen();
 
   const handleLogoutPress = async () => {
@@ -33,7 +36,18 @@ const PersonalProfile = () => {
   return (
     <>
       <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
-        <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+        <ScrollView 
+          className="flex-1" 
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl
+              refreshing={refreshing}
+              onRefresh={refreshProfileData}
+              tintColor="#10B981"
+              colors={['#10B981']}
+            />
+          }
+        >
           <View className="flex-1 px-6 pt-8">
             {/* Header */}
             <View className="items-center mb-8">
@@ -44,7 +58,8 @@ const PersonalProfile = () => {
                 >
                   {userAvatar ? (
                     <Image
-                      source={{ uri: userAvatar }}
+                      key={`avatar-${avatarKey}`}
+                      source={{ uri: `${userAvatar}${userAvatar.includes('?') ? '&' : '?'}t=${avatarKey}` }}
                       className="w-28 h-28 rounded-full"
                       resizeMode="cover"
                     />

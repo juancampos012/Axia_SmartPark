@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Alert } from 'react-native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserProfile } from '../libs/user';
 import { fetchMyVehicles } from '../libs/vehicles';
@@ -33,6 +34,8 @@ export const useProfileScreen = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showAvatarSelector, setShowAvatarSelector] = useState(false);
+  // Estado separado para forzar re-render del avatar (cache buster)
+  const [avatarKey, setAvatarKey] = useState<number>(Date.now());
 
   const menuItems: MenuItem[] = useMemo(() => {
     const baseItems = [
@@ -149,31 +152,28 @@ export const useProfileScreen = () => {
   }, []);
 
   const handleAvatarSelect = useCallback(async (newImageUrl: string) => {
-    // Actualizar el avatar en el estado local INMEDIATAMENTE
-    setUserProfile(prev => {
-      const updated = prev ? { ...prev, avatar: newImageUrl } : { name: 'Usuario', avatar: newImageUrl };
-      
-      // Guardar en AsyncStorage de forma asíncrona
-      import('@react-native-async-storage/async-storage').then(({ default: AsyncStorage }) => {
-        AsyncStorage.getItem('userData').then(userData => {
-          if (userData) {
-            const user = JSON.parse(userData);
-            user.avatar = newImageUrl;
-            AsyncStorage.setItem('userData', JSON.stringify(user));
-            console.log('✅ Avatar actualizado en AsyncStorage:', newImageUrl);
-          }
-        });
-      });
-      
-      return updated;
-    });
-    setShowAvatarSelector(false);
+    // 1. Actualizar el estado local INMEDIATAMENTE (esto fuerza el re-render)
+    setUserProfile(prev => prev ? { ...prev, avatar: newImageUrl } : { name: 'Usuario', avatar: newImageUrl });
     
-    // Recargar el perfil después para sincronizar con el servidor
-    setTimeout(() => {
-      loadData();
-    }, 300);
-  }, [loadData]);
+    // 2. Forzar recarga de la imagen con nuevo key (cache buster)
+    setAvatarKey(Date.now());
+    
+    // 3. Actualizar AsyncStorage
+    try {
+      const userData = await AsyncStorage.getItem('userData');
+      if (userData) {
+        const user = JSON.parse(userData);
+        user.avatar = newImageUrl;
+        user.profilePicture = newImageUrl;
+        await AsyncStorage.setItem('userData', JSON.stringify(user));
+      }
+    } catch (error) {
+      console.error('Error actualizando AsyncStorage:', error);
+    }
+    
+    // 4. Cerrar modal
+    setShowAvatarSelector(false);
+  }, []);
 
   // Valores derivados
   const hasVehicles = userCars.length > 0;
@@ -193,6 +193,7 @@ export const useProfileScreen = () => {
     hasVehicles,
     displayName,
     userAvatar,
+    avatarKey,
 
     // Handlers
     handleMenuItemPress,
