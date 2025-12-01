@@ -10,7 +10,8 @@ export default ({ config }) => {
     );
   
   // Google Maps API Keys
-  const googleMapsAndroidKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY;
+  // Soportar tanto EXPO_PUBLIC_GOOGLE_MAPS_DEV_KEY (EAS) como EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY (local)
+  const googleMapsAndroidKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_DEV_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_KEY;
   const googleMapsIosKey = process.env.EXPO_PUBLIC_GOOGLE_MAPS_IOS_KEY;
 
   return {

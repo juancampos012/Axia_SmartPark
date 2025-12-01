@@ -7,7 +7,7 @@
   "icon": "./assets/Axia_icon.png",
     "userInterfaceStyle": "light",
     "newArchEnabled": true,
-    "scheme": "AxiaSmartPark",
+    "scheme": "axiasmartpark",
     "splash": {
       "image": "./assets/splash-icon.png",
       "resizeMode": "contain",
@@ -30,7 +30,8 @@
         "backgroundColor": "#10B981"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.anonymous.AxiaSmartPark",
+      "package": "com.axiasmartpark.app",
+      "versionCode": 1,
       "permissions": [
         "ACCESS_COARSE_LOCATION",
         "ACCESS_FINE_LOCATION",

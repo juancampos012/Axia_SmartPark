@@ -5,6 +5,9 @@ import { Ionicons } from '@expo/vector-icons';
 import * as Location from 'expo-location';
 import Card from '../../atoms/Card';
 
+// Flag para deshabilitar el mapa si hay problemas con Google Maps API
+const DISABLE_MAP = false; // Cambiar a true si hay problemas con API key
+
 interface MapSectionProps {
   parkingCount: number;
   parkings?: Array<{
@@ -67,6 +70,25 @@ const MapSection: React.FC<MapSectionProps> = ({
         longitudeDelta: 0.05,
       }
     : defaultRegion;
+
+  // Fallback UI si el mapa está deshabilitado
+  if (DISABLE_MAP) {
+    return (
+      <View className={className}>
+        <Card className="h-64 items-center justify-center">
+          <View className="bg-axia-darkGray w-full h-full rounded-xl items-center justify-center px-6">
+            <Ionicons name="map-outline" size={48} color="#8C8C8C" />
+            <Text className="text-white font-primaryBold text-base mt-4 text-center">
+              {parkingCount} parqueaderos disponibles
+            </Text>
+            <Text className="text-axia-gray font-primary text-sm mt-2 text-center">
+              Vista de mapa temporalmente deshabilitada
+            </Text>
+          </View>
+        </Card>
+      </View>
+    );
+  }
 
   if (!hasLocationPermission && parkings.length === 0) {
     return (
