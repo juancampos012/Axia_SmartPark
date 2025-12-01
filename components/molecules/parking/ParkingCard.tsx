@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, Image, Pressable } from 'react-native';
+import { View, Text, Pressable } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import Card from '../../atoms/Card';
 import Rating from '../../atoms/Rating';
@@ -34,13 +34,9 @@ const ParkingCard: React.FC<ParkingCardProps> = ({ parking, onPress, onFavoriteP
         onPress={() => onPress(parking.id)}
         className="flex-row active:scale-95"
       >
-        {/* Imagen del parqueadero */}
-        <View className="w-20 h-20 rounded-lg bg-axia-gray mr-4 overflow-hidden items-center justify-center">
-          <Image 
-            source={{ uri: parking.image }}
-            className="w-full h-full"
-            resizeMode="cover"
-          />
+        {/* Icono del parqueadero */}
+        <View className="w-20 h-20 rounded-lg bg-axia-green/20 mr-4 items-center justify-center">
+          <Ionicons name="car" size={32} color="#10B981" />
         </View>
 
         {/* Información del parqueadero */}

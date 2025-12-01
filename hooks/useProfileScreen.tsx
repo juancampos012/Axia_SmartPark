@@ -2,7 +2,6 @@ import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useRouter, useFocusEffect } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { Alert } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { useAuth } from '../context/AuthContext';
 import { fetchUserProfile } from '../libs/user';
 import { fetchMyVehicles } from '../libs/vehicles';
@@ -28,14 +27,11 @@ export const useProfileScreen = () => {
   const { isAdminOrOperator, signOut } = useAuth();
 
   // Estados
-  const [userProfile, setUserProfile] = useState<{ name: string; avatar?: string } | null>(null);
+  const [userProfile, setUserProfile] = useState<{ name: string } | null>(null);
   const [userCars, setUserCars] = useState<Car[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showAvatarSelector, setShowAvatarSelector] = useState(false);
-  // Estado separado para forzar re-render del avatar (cache buster)
-  const [avatarKey, setAvatarKey] = useState<number>(Date.now());
 
   const menuItems: MenuItem[] = useMemo(() => {
     const baseItems = [
@@ -143,42 +139,9 @@ export const useProfileScreen = () => {
     }
   }, [router, signOut]);
 
-  const handleOpenAvatarSelector = useCallback(() => {
-    setShowAvatarSelector(true);
-  }, []);
-
-  const handleCloseAvatarSelector = useCallback(() => {
-    setShowAvatarSelector(false);
-  }, []);
-
-  const handleAvatarSelect = useCallback(async (newImageUrl: string) => {
-    // 1. Actualizar el estado local INMEDIATAMENTE (esto fuerza el re-render)
-    setUserProfile(prev => prev ? { ...prev, avatar: newImageUrl } : { name: 'Usuario', avatar: newImageUrl });
-    
-    // 2. Forzar recarga de la imagen con nuevo key (cache buster)
-    setAvatarKey(Date.now());
-    
-    // 3. Actualizar AsyncStorage
-    try {
-      const userData = await AsyncStorage.getItem('userData');
-      if (userData) {
-        const user = JSON.parse(userData);
-        user.avatar = newImageUrl;
-        user.profilePicture = newImageUrl;
-        await AsyncStorage.setItem('userData', JSON.stringify(user));
-      }
-    } catch (error) {
-      console.error('Error actualizando AsyncStorage:', error);
-    }
-    
-    // 4. Cerrar modal
-    setShowAvatarSelector(false);
-  }, []);
-
   // Valores derivados
   const hasVehicles = userCars.length > 0;
   const displayName = userProfile?.name || 'Usuario';
-  const userAvatar = userProfile?.avatar;
 
   return {
     userProfile,
@@ -187,22 +150,16 @@ export const useProfileScreen = () => {
     refreshing,
     error,
     menuItems,
-    showAvatarSelector,
 
     // Valores derivados
     hasVehicles,
     displayName,
-    userAvatar,
-    avatarKey,
 
     // Handlers
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
-    handleOpenAvatarSelector,
-    handleCloseAvatarSelector,
-    handleAvatarSelect,
 
     // Nueva función para refrescar datos
     refreshProfileData: handleRefreshProfile,

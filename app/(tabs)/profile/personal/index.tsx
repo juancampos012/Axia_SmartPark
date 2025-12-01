@@ -1,10 +1,9 @@
 import React from 'react';
-import { View, Text, Pressable, ScrollView, ActivityIndicator, Image, RefreshControl } from 'react-native';
+import { View, Text, Pressable, ScrollView, ActivityIndicator, RefreshControl } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as Haptics from 'expo-haptics';
 import { useProfileScreen } from '../../../../hooks/useProfileScreen';
-import UserAvatarSelectorSimplified from '../../../../components/organisms/UserAvatarSelectorSimplified';
 
 const PersonalProfile = () => {
   const {
@@ -14,17 +13,11 @@ const PersonalProfile = () => {
     refreshing,
     menuItems,
     displayName,
-    userAvatar,
-    avatarKey,
-    showAvatarSelector,
     handleMenuItemPress,
     handleCarPress,
     handleViewAllCars,
     handleAddCar,
     handleLogout,
-    handleOpenAvatarSelector,
-    handleCloseAvatarSelector,
-    handleAvatarSelect,
     refreshProfileData,
   } = useProfileScreen();
 
@@ -52,30 +45,9 @@ const PersonalProfile = () => {
             {/* Header */}
             <View className="items-center mb-8">
               <View className="relative mb-4">
-                <Pressable
-                  onPress={handleOpenAvatarSelector}
-                  className="w-32 h-32 rounded-full border-4 border-axia-green/30 items-center justify-center shadow-2xl active:scale-95"
-                >
-                  {userAvatar ? (
-                    <Image
-                      key={`avatar-${avatarKey}`}
-                      source={{ uri: `${userAvatar}${userAvatar.includes('?') ? '&' : '?'}t=${avatarKey}` }}
-                      className="w-28 h-28 rounded-full"
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View className="w-28 h-28 rounded-full items-center justify-center bg-axia-darkGray">
-                      <Ionicons name="person" size={50} color="#10B981" />
-                    </View>
-                  )}
-                </Pressable>
-                {/* Botón de cámara para editar */}
-                <Pressable
-                  onPress={handleOpenAvatarSelector}
-                  className="absolute bottom-0 right-0 w-10 h-10 rounded-full bg-axia-green items-center justify-center border-4 border-axia-black active:scale-95"
-                >
-                  <Ionicons name="camera" size={18} color="#000" />
-                </Pressable>
+                <View className="w-32 h-32 rounded-full border-4 border-axia-green/30 items-center justify-center shadow-2xl bg-axia-darkGray">
+                  <Ionicons name="person" size={60} color="#10B981" />
+                </View>
               </View>
 
               <Text className="text-white text-3xl font-primaryBold mb-2">
@@ -257,14 +229,6 @@ const PersonalProfile = () => {
         </View>
       </ScrollView>
     </SafeAreaView>
-
-    {/* User Avatar Selector Modal */}
-    <UserAvatarSelectorSimplified
-      visible={showAvatarSelector}
-      currentImageUrl={userAvatar}
-      onClose={handleCloseAvatarSelector}
-      onSelect={handleAvatarSelect}
-    />
     </>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Modal, View, Text, Pressable, ScrollView, Image } from 'react-native';
+import { Modal, View, Text, Pressable, ScrollView } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 interface Vehicle {
@@ -59,26 +59,16 @@ const VehiclePickerModal: React.FC<Props> = ({
                     } active:scale-95`}
                   >
                     <View className="flex-row items-center">
-                      {/* Imagen o Icono del vehículo */}
-                      {vehicle.image ? (
-                        <View className="w-12 h-12 rounded-full overflow-hidden mr-3 bg-white/90">
-                          <Image 
-                            source={{ uri: vehicle.image }}
-                            className="w-full h-full"
-                            resizeMode="cover"
-                          />
-                        </View>
-                      ) : (
-                        <View className={`w-12 h-12 rounded-full items-center justify-center mr-3 ${
-                          isSelected ? 'bg-axia-green/20' : 'bg-axia-gray/20'
-                        }`}>
-                          <Ionicons 
-                            name={vehicle.type === 'motorcycle' ? 'bicycle' : 'car-sport'} 
-                            size={24} 
-                            color={isSelected ? '#10B981' : '#6B7280'} 
-                          />
-                        </View>
-                      )}
+                      {/* Icono del vehículo */}
+                      <View className={`w-12 h-12 rounded-full items-center justify-center mr-3 ${
+                        isSelected ? 'bg-axia-green/20' : 'bg-axia-gray/20'
+                      }`}>
+                        <Ionicons 
+                          name={vehicle.type === 'motorcycle' ? 'bicycle' : 'car-sport'} 
+                          size={24} 
+                          color={isSelected ? '#10B981' : '#6B7280'} 
+                        />
+                      </View>
 
                       <View className="flex-1">
                         <View className="flex-row items-center mb-1">

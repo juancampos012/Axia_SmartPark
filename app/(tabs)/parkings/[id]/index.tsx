@@ -108,15 +108,11 @@ const ParkingDetail = () => {
     <SafeAreaView className="flex-1 bg-axia-black" edges={['top', 'left', 'right']}>
       <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
         
-        {/* Imagen */}
+        {/* Imagen del parqueadero - Reemplazado con icono */}
         <View className="relative">
-          {parking.image ? (
-            <Image source={{ uri: parking.image }} className="w-full h-64" resizeMode="cover" />
-          ) : (
-            <View className="w-full h-64 bg-axia-darkGray items-center justify-center">
-              <Ionicons name="image-outline" size={48} color="#6B7280" />
-            </View>
-          )}
+          <View className="w-full h-64 bg-gradient-to-b from-axia-green/20 to-axia-darkGray items-center justify-center">
+            <Ionicons name="business" size={80} color="#10B981" />
+          </View>
           
           {/* Overlay */}
           <View className="absolute top-0 left-0 right-0 p-6 flex-row justify-between">
